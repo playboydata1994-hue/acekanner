@@ -29,6 +29,7 @@ dependencies:
   intl: ^0.20.2
   package_info_plus: ^10.2.2
   cryptography: ^2.9.0
+  crypto: ^3.0.8
 
   # Wired up in later phases. Declared now so the complete dependency graph is
   # resolved and build-verified from the start (see docs/ARCHITECTURE.md §2).

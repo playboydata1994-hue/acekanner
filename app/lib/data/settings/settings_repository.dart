@@ -4,6 +4,9 @@ import '../db/app_database.dart';
 /// Keys stored in `application_settings`.
 abstract final class SettingKeys {
   static const String onboardingCompleted = 'onboarding.completed.v1';
+
+  /// School student-number format, e.g. "####-#####".
+  static const String studentNoFormat = 'school.student_no_format';
 }
 
 /// Typed access to the `application_settings` table.
