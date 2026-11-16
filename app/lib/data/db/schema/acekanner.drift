@@ -443,7 +443,7 @@ SELECT
     (SELECT COUNT(*) FROM examinations WHERE deleted_at IS NULL) AS exam_count,
     (SELECT COUNT(*) FROM answer_sheets a
         INNER JOIN examinations e ON e.id = a.examination_id
-        WHERE a.status = 'finalized' AND e.deleted_at IS NULL) AS papers_scanned,
+        WHERE a.status IN ('needs_review', 'finalized') AND e.deleted_at IS NULL) AS papers_scanned,
     (SELECT COUNT(*) FROM scan_ledger WHERE tier = 'free') AS free_scans_used_local;
 
 recentExaminations:
@@ -456,7 +456,7 @@ SELECT
     e.updated_at,
     s.code AS subject_code,
     (SELECT COUNT(*) FROM answer_sheets a
-        WHERE a.examination_id = e.id AND a.status = 'finalized') AS finalized_count
+        WHERE a.examination_id = e.id AND a.status IN ('needs_review', 'finalized')) AS finalized_count
 FROM examinations e
 LEFT JOIN subjects s ON s.id = e.subject_id
 WHERE e.deleted_at IS NULL
@@ -489,7 +489,7 @@ SELECT
     sub.title AS subject_title,
     (SELECT COUNT(*) FROM examination_versions v WHERE v.examination_id = e.id) AS version_count,
     (SELECT COUNT(*) FROM answer_sheets a
-        WHERE a.examination_id = e.id AND a.status = 'finalized') AS paper_count
+        WHERE a.examination_id = e.id AND a.status IN ('needs_review', 'finalized')) AS paper_count
 FROM examinations e
 LEFT JOIN subjects sub ON sub.id = e.subject_id
 WHERE e.deleted_at IS NULL
@@ -502,7 +502,7 @@ SELECT
     sub.title AS subject_title,
     (SELECT COUNT(*) FROM examination_versions v WHERE v.examination_id = e.id) AS version_count,
     (SELECT COUNT(*) FROM answer_sheets a
-        WHERE a.examination_id = e.id AND a.status = 'finalized') AS paper_count
+        WHERE a.examination_id = e.id AND a.status IN ('needs_review', 'finalized')) AS paper_count
 FROM examinations e
 LEFT JOIN subjects sub ON sub.id = e.subject_id
 WHERE e.deleted_at IS NOT NULL

@@ -236,51 +236,65 @@ disagree.
 
 ### 5.2 Recognition pipeline (Kotlin, OpenCV)
 
-1. **Capture.** Full-resolution still from CameraX. Live preview frames (downscaled
-   grayscale, about 5 fps) run step 3 only, to draw the "paper found" outline and enable
-   the shutter.
-2. **Quality gate.** Blur (variance of Laplacian), exposure (mean and clipped-pixel
-   ratio) and glare (saturated blobs in the sheet area). A failing photo is rejected with a
-   specific instruction ("Hold steady", "Too dark", "Glare on the page") and **never
-   consumes a scan**.
-3. **Marker detection.** ArUco detection with sub-pixel corner refinement. All four markers
-   of one template must be found. The marker IDs fix orientation (0/90/180/270°) and
-   template.
-4. **Perspective correction.** A homography from the four marker corners to canonical
-   template coordinates (10 px/mm), then `warpPerspective`. A re-projection error check
-   rejects warped or badly curled sheets.
-5. **Sheet validation.** The QR is decoded inside its known region of the corrected image.
-   A wrong exam, template or version gives a clear error. A missing or unreadable QR is
-   allowed for generic sheets (the instructor chose the exam before scanning) but is
-   recorded.
-6. **Illumination normalization.** Flat-field correction: divide by a large-kernel blurred
-   background, which removes shadows and lighting gradients.
-7. **Bubble scoring.** For every bubble, mean darkness of the inner disc (70 % of the
-   radius, which excludes the printed outline), measured against the local paper white from
-   a surrounding ring. This gives a score from 0 (empty) to 1 (solid).
-8. **Per-sheet calibration.** Empty and filled reference levels come from this sheet's own
-   score distribution (two-cluster split). This adapts to pencil versus pen, light versus
-   heavy shading, and printer toner differences.
-9. **Classification per question**, with configurable thresholds on the normalized score
-   *s*:
-   - filled if *s* ≥ `fill` (default 0.55); empty if *s* ≤ `empty` (default 0.25);
-     anything between is **ambiguous**;
-   - exactly one filled and the rest empty → **answered**;
-   - none filled and all empty → **blank**;
-   - two or more filled → **multiple**;
-   - any ambiguous bubble, or a filled answer next to a partly dark bubble (a likely
-     erasure) → **uncertain**. The engine suggests an answer, but the instructor must
-     confirm before the paper can be finalized.
-   - Presets: *Lenient / Standard / Strict* tune `fill`, `empty` and the erasure ratio.
-     Advanced users can edit the values.
-10. **Student number and exam set.** Read with the same rules, column by column. An
-    unreadable digit flags the paper. A complete number is matched against the roster.
-11. **Output.** JSON with per-question state, the five scores and confidence, the decoded
-    student number, set, QR payload and quality metrics. The corrected image is saved
-    privately and drives the verification screen (scan beside recognized answers, with
-    flagged items highlighted).
+Source: `app/android/app/src/main/kotlin/com/acekanner/app/omr/core/OmrEngine.kt`.
+The pipeline below is as built and tested in Phase 4. It changed from the first plan
+in steps 4 and 5, because of what the tests showed.
 
-### 5.3 Accuracy targets (to be proven, not assumed)
+1. **Capture.** A 1080p still from CameraX. Live preview frames (luminance plane,
+   downscaled to 720 px) only run marker detection, to drive the on-screen guidance and
+   auto-capture (all four corners found and steady for 3 frames).
+2. **Marker detection.** ArUco `DICT_4X4_50` with sub-pixel corner refinement. All
+   four markers of the template must be found. Their IDs give the template
+   (50/75/100) and the orientation, so a sheet photographed sideways or upside
+   down is fine.
+3. **Perspective correction.** A homography from the 16 marker corners to the
+   canonical frame (8 px/mm), then `warpPerspective`. A leave-one-out marker check
+   rejects only gross distortion: at phone resolutions, extrapolating one corner
+   from the other three is too noisy for anything finer.
+4. **Quality gate**, checked in this order: contrast (paper minus marker ink), then
+   focus, then glare. Focus is measured as the **10–90 % edge width of the corner
+   markers in mm**. This replaced the Laplacian variance, which sensor noise kept
+   artificially high on blurred photos.
+5. **Flat-field normalization**, then **local alignment.** For each block of about
+   40 answer bubbles (each column split into thirds) and for the student-number
+   grid, the engine searches ±2.5 mm for the shift that best aligns the printed
+   bubble rings. This corrects slight curl, lens distortion and corner noise; flat
+   sheets need about 0.2 mm. A block needing more than 2 mm means a folded or
+   curled sheet, and the photo is rejected.
+6. **Bubble scoring**: darkness of the inner disc (62 % of the radius, so it excludes the
+   printed outline), at the aligned position.
+7. **Per-sheet calibration**: the empty level is the 40th percentile of all bubble
+   scores. The filled level is the median of the clearly marked per-question maxima.
+8. **Classification**: see §5.3. Then the student-number columns, the set row,
+   and the QR code (decoded inside its known box).
+9. **Output**: JSON with per-question state, scores and confidence, the
+   student number, set, QR, quality metrics and engine version. A
+   perspective-corrected JPEG (1520×2000) is saved for the review screen. The
+   original photo is deleted immediately after reading.
+
+### 5.3 Decision rules (`OmrThresholds`)
+
+Scores are normalized per sheet: 0 is this sheet's empty level, 1 its filled level.
+
+| Preset | Filled ≥ | Empty ≤ | Erasure auto-accept |
+|---|---|---|---|
+| Lenient | 0.50 | 0.28 | yes (dominance 0.30, residue ≤ 0.45) |
+| **Standard** (default) | 0.55 | 0.20 | yes (dominance 0.40, residue ≤ 0.35) |
+| Strict | 0.60 | 0.15 | no |
+
+- One filled bubble, others empty: **answered**.
+- None filled, all empty: **blank**.
+- Two or more filled, none ambiguous: **multiple** (scored per the exam's policy).
+- Anything ambiguous (light, partial, check mark, strong second mark):
+  **uncertain**. The instructor must decide on the review screen before the paper
+  can be saved. The engine's suggestion is shown but never applied silently.
+
+### 5.4 Accuracy targets and measured results
+
+Measured results to date (simulation, plus the app's real PDFs) are in
+[`OMR_TEST_PROTOCOL.md`](OMR_TEST_PROTOCOL.md): **0 misread answers out of 4,050**
+across all scenarios. The physical test campaign in Phase 8 decides whether the
+targets below are met.
 
 The figures below are targets only. They will be measured with the physical test protocol in
 Phase 8 (at least 30 printed sheets per condition, two or more phone models, pencil and pen,

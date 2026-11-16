@@ -13,6 +13,7 @@ export reports. Student data stays encrypted on the phone.
 |---|---|
 | `app/` | Flutter application (Dart UI and logic, Kotlin OMR engine in `android/`) |
 | `docs/` | Architecture, database reference, SQL scripts, development log |
+| `omr_engine/` | Desktop test harness for the OMR engine (runs the app's Kotlin engine against desktop OpenCV) |
 | `tools/brand/` | Icon generator |
 | `store/` | Google Play listing assets |
 
@@ -33,12 +34,14 @@ flutter build apk --release --split-per-abi   # sideload test builds
 flutter build appbundle --release            # Google Play upload
 ```
 
+OMR engine tests (desktop, no phone needed): `cd omr_engine && ./gradlew test`.
+
 Release signing reads `app/android/key.properties`, which is never committed. See the
 comment at the top of `app/android/app/build.gradle.kts`.
 
 ## Status
 
-Phases 1–3 of 9 are complete: architecture, project setup, encrypted database, design
-system, navigation, onboarding, dashboard, and examination management (profile, classes
-and rosters with CSV import, examinations with sets A–D, answer-key editor). See the
-development log for what's next.
+Phases 1–4 of 9 are complete: architecture, setup, encrypted database, examination
+management, printable answer sheets, the OMR engine (0 misread answers in 4,050
+simulated questions; physical tests pending), the camera scanner and the review screen.
+See the development log for what's next.

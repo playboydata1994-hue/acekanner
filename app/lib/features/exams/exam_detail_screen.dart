@@ -9,6 +9,8 @@ import '../../core/theme/spacing.dart';
 import '../../core/widgets/feedback.dart';
 import '../../core/widgets/info_row.dart';
 import '../../core/widgets/section_header.dart';
+import '../../data/repositories/scan_repository.dart';
+import '../../data/repositories/students_repository.dart';
 import '../../data/repositories/exams_repository.dart';
 import 'exam_widgets.dart';
 
@@ -130,6 +132,28 @@ class _DetailBody extends StatelessWidget {
               ],
             ),
           ),
+          SectionHeader('Papers · ${detail.paperCount}'),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => context.push('/sheets/${exam.id}'),
+                  icon: const Icon(Icons.print_outlined),
+                  label: const Text('Answer sheets'),
+                ),
+              ),
+              const SizedBox(width: Space.m),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () => context.push('/scan/${exam.id}'),
+                  icon: const Icon(Icons.document_scanner_outlined),
+                  label: const Text('Scan papers'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Space.m),
+          _PapersList(examId: exam.id),
           const SectionHeader('Details'),
           Card(
             child: Column(
@@ -152,7 +176,6 @@ class _DetailBody extends StatelessWidget {
                 ),
                 InfoRow(label: 'Totals below zero', value: exam.allowNegativeTotal ? 'Allowed' : 'Not allowed'),
                 InfoRow(label: 'Student number', value: '${exam.studentIdDigits} digits'),
-                InfoRow(label: 'Papers scanned', value: '${detail.paperCount}'),
               ],
             ),
           ),
@@ -162,6 +185,60 @@ class _DetailBody extends StatelessWidget {
   }
 
   static String _fmt(double v) => v == v.roundToDouble() ? v.toInt().toString() : v.toString();
+}
+
+class _PapersList extends ConsumerWidget {
+  const _PapersList({required this.examId});
+
+  final String examId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final papers = ref.watch(scannedPapersProvider(examId));
+    final theme = Theme.of(context);
+    return switch (papers) {
+      AsyncData(:final value) when value.isEmpty => Text(
+          'No papers scanned yet. Print answer sheets, give the examination, then scan each paper.',
+          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        ),
+      AsyncData(:final value) => Card(
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            children: [
+              for (var i = 0; i < value.length; i++) ...[
+                if (i > 0) const Divider(indent: Space.l, endIndent: Space.l),
+                _PaperTile(paper: value[i]),
+              ],
+            ],
+          ),
+        ),
+      AsyncError() => const Text('Could not load the papers.'),
+      _ => const SizedBox(height: 48, child: Center(child: CircularProgressIndicator())),
+    };
+  }
+}
+
+class _PaperTile extends StatelessWidget {
+  const _PaperTile({required this.paper});
+
+  final ScannedPaper paper;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = paper.student;
+    final sheet = paper.sheet;
+    return ListTile(
+      leading: CircleAvatar(child: Text(paper.versionLabel ?? '?')),
+      title: Text(s == null ? 'Student not identified' : studentDisplayName(s)),
+      subtitle: Text(
+        [
+          s?.studentNo ?? sheet.detectedStudentNo ?? 'no number',
+          if (sheet.flaggedCount > 0) '${sheet.flaggedCount} reviewed',
+          sheet.status == 'finalized' ? 'Graded' : 'Awaiting grading',
+        ].join(' · '),
+      ),
+    );
+  }
 }
 
 class _KeyTile extends StatelessWidget {

@@ -14,6 +14,8 @@ import '../features/exams/exams_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/recovery/recovery_screen.dart';
+import '../features/scanner/scan_screen.dart';
+import '../features/sheets/sheets_screen.dart';
 import '../features/settings/about_screen.dart';
 import '../features/settings/privacy_screen.dart';
 import '../features/settings/settings_screen.dart';
@@ -42,6 +44,8 @@ abstract final class Routes {
   static String answerKey(String versionId) => '/answer-key/$versionId';
   static String section(String id) => '/classes/sections/$id';
   static String rosterImport(String sectionId) => '/roster-import/$sectionId';
+  static String sheets(String examId) => '/sheets/$examId';
+  static String scan(String examId) => '/scan/$examId';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -158,6 +162,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => ScaffoldMessenger(
           child: AnswerKeyScreen(versionId: state.pathParameters['versionId']!),
         ),
+      ),
+      GoRoute(
+        path: '/sheets/:examId',
+        parentNavigatorKey: rootKey,
+        builder: (_, state) => ScaffoldMessenger(child: SheetsScreen(examId: state.pathParameters['examId']!)),
+      ),
+      GoRoute(
+        path: '/scan/:examId',
+        parentNavigatorKey: rootKey,
+        builder: (_, state) => ScaffoldMessenger(child: ScanScreen(examId: state.pathParameters['examId']!)),
       ),
       GoRoute(
         path: '/roster-import/:sectionId',

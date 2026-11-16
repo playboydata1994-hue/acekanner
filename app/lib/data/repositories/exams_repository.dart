@@ -235,7 +235,7 @@ class ExamsRepository {
     final sections = await _db.examinationSectionList(examinationId: id).get();
     final versions = await _db.versionKeyStatus(examinationId: id).get();
     final papers = await _count(
-      "SELECT COUNT(*) AS c FROM answer_sheets WHERE examination_id = ? AND status = 'finalized'",
+      "SELECT COUNT(*) AS c FROM answer_sheets WHERE examination_id = ? AND status IN ('needs_review', 'finalized')",
       id,
     );
     return ExamDetail(

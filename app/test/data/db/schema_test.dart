@@ -269,18 +269,19 @@ void main() {
   });
 
   group('dashboard queries', () {
-    test('count active exams, finalized papers and free charges', () async {
+    test('count active exams, saved papers (reviewed or graded) and free charges', () async {
       await insertExam(db, id: 'e1');
       await insertExam(db, id: 'e2', deletedAt: t0);
       await insertSheet(db, id: 's1', examId: 'e1');
       await insertSheet(db, id: 's2', examId: 'e1', status: 'needs_review');
+      await insertSheet(db, id: 's2b', examId: 'e1', status: 'superseded', submissionKey: hex64(77));
       await insertSheet(db, id: 's3', examId: 'e2');
       await insertLedger(db, id: 'L1', submissionKey: hex64(1), seed: 1);
       await insertLedger(db, id: 'L2', submissionKey: hex64(2), seed: 2, tier: 'premium');
 
       final stats = await db.dashboardStats().getSingle();
       expect(stats.examCount, 1);
-      expect(stats.papersScanned, 1);
+      expect(stats.papersScanned, 2, reason: 'superseded papers and deleted exams are not counted');
       expect(stats.freeScansUsedLocal, 1);
     });
 

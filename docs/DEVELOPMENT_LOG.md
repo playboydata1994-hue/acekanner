@@ -5,6 +5,90 @@ and the next step.
 
 ---
 
+## 2026-11-16 · Phase 4: answer sheets, OMR engine, scanner and review
+
+### What was built
+**Answer sheets** (`lib/domain/sheet_layout.dart`, `lib/services/answer_sheet_pdf.dart`)
+- One geometry source for 50/75/100 items, sets A–D and 4–12 student-number digits.
+  It drives both the PDF and the engine (as JSON).
+- A paper-size-independent 190×250 mm frame, centred on A4, Letter or 8.5×13 in.
+- Four ArUco corner markers (their IDs encode the template), a QR code with the exam
+  code and an optional personalized sheet code, a student-number grid, the set row,
+  instructions, and an embedded Roboto font (so ñ prints).
+- Sheets screen: live PDF preview, print (Android print service), share/save,
+  generic sheets with a copy count, or personalized sheets per section.
+  Printing records `printed_sheets`, which locks item count and sets.
+
+**OMR engine** (Kotlin + OpenCV 4.14, `android/.../omr/core`)
+- Pipeline and decision rules in ARCHITECTURE §5.2–5.3. Platform channel:
+  `analyzeSheet`, `detectMarkers`.
+- **Desktop harness** (`omr_engine/`): the same Kotlin code against desktop OpenCV,
+  with synthetic sheets, simulated phone photos, and the app's real PDFs rasterized
+  with poppler.
+
+**Scanner and review** (`lib/features/scanner`, `lib/data/repositories/scan_repository.dart`)
+- Camera screen (1080p):
+  - Live corner guidance ("3 of 4 corners found — move back a little",
+    "different sheet type").
+  - Auto-capture when steady; a manual shutter; a light toggle.
+  - Batch scanning with a saved counter.
+- Every rejection says why, and no scan is counted. The photo is deleted right after
+  reading; only the corrected sheet image is kept, privately.
+- Sheets printed for another examination, or before its settings changed, are
+  refused (QR check).
+- Review screen:
+  - The corrected sheet with what was read circled (pinch to zoom).
+  - The student, identified by personalized QR, then by shaded number (exam
+    sections first), or chosen by hand.
+  - The set, and a grid of all answers.
+  - Flagged answers must be decided, with darkness bars and the engine's suggestion.
+  - Re-scanning a student replaces the earlier paper (kept as `superseded`).
+- Saving writes `answer_sheets`, per-question `student_answers` (detected state,
+  scores, final answer, engine or instructor), session counters, and an audit
+  entry, in one transaction.
+- Exam screen: "Answer sheets" and "Scan papers" buttons, and a list of saved papers.
+
+### Engine problems found by the tests and fixed
+| Found | Fix |
+|---|---|
+| Check marks (✓) scored about 0.25 and were read as **blank**: a silent error | "Empty" threshold lowered 0.30 → 0.20, so they are flagged |
+| Laplacian sharpness stayed high on blurred photos (sensor noise) | Focus measured as marker edge width in mm |
+| Too-dark photos reported as "blurry" | Contrast checked before focus |
+| A blank desk reported "blurry", a blurred sheet "no sheet" | Blur reported only when paper is visible |
+| A 4 mm folded corner was accepted, and the corner-extrapolation check gave false "folded" results at 1080p | **Local alignment on the bubble rings**: corrects small distortions, rejects real folds; the corner check is now only for gross errors |
+
+### Verification
+| Check | Result |
+|---|---|
+| Engine accuracy, 4,050 questions across 54 photos | **0 misread**. Flagged only where marks were deliberately unclear. Details in `docs/OMR_TEST_PROTOCOL.md`. |
+| Engine rejections | 9 situations, each with the right reason |
+| `omr_engine` tests | 18 passed |
+| `flutter test` | **119 / 119 passed**. New: layout geometry for 18 configurations, fixtures in sync, PDF generation, scan repository, capture guide, review-screen flows. |
+| `flutter analyze` | No issues |
+| Android build | Debug and release build. The engine compiles against OpenCV 4.14 Android. |
+
+### Not verified yet (needs your phone and printer)
+- The camera, live guidance and auto-capture on a real device.
+- Printing through the Android print service.
+- **Physical accuracy.** All results so far are from simulation and from
+  rasterized PDFs. Follow `docs/OMR_TEST_PROTOCOL.md` §2. Start simple: print one
+  50-item sheet at 100 % scale, shade it with a pencil, and scan it.
+
+### Known limitations
+- Papers are saved as "Awaiting grading". Scores, finalization and scan counting
+  come in Phase 5 (grading) and Phase 6 (licensing).
+- Scanning happens at 1080p. If physical tests show a need, switch to
+  `ResolutionPreset.ultraHigh` (heavier live preview).
+- Live guidance shows a count of corners found, not their positions on screen.
+
+### Next step: Phase 5, grading
+Finalize papers: compute scores from the current answer-key revision, store
+`examination_results`, regrade on key revisions with audit, and add individual
+results and class analytics (average, highest and lowest, pass rate, item
+difficulty, most-missed questions, score distribution).
+
+---
+
 ## 2026-11-16 · Phase 3: examination management
 
 ### What was built
