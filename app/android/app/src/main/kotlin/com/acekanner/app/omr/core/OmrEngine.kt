@@ -51,7 +51,7 @@ class DetectedMarker(val id: Int, val corners: Array<Point>) {
  */
 class OmrEngine(private val thresholds: OmrThresholds = OmrThresholds.STANDARD) {
     companion object {
-        const val VERSION = "2.0.0"
+        const val VERSION = "3.0.0"
 
         /** Marker detection runs on images no larger than this (long side, px). */
         private const val DETECT_MAX_SIDE = 2000.0
@@ -70,7 +70,7 @@ class OmrEngine(private val thresholds: OmrThresholds = OmrThresholds.STANDARD) 
         ArucoDetector(Objdetect.getPredefinedDictionary(Objdetect.DICT_4X4_50), params)
     }
 
-    /** Finds ACEkanner corner markers (IDs 0-23, every sheet design) in an 8-bit grey image. */
+    /** Finds ACEkanner corner markers (IDs 0-35, every sheet design) in an 8-bit grey image. */
     fun detectMarkers(gray: Mat): List<DetectedMarker> {
         val corners = ArrayList<Mat>()
         val ids = Mat()

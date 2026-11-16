@@ -218,13 +218,14 @@ size.
 
   | Design | 50 items | 75 items | 100 items |
   |---|---|---|---|
-  | 2 — board-exam ovals (current) | IDs 12–15 | 16–19 | 20–23 |
-  | 1 — circles (test builds 0.4–0.5, retired) | 0–3 | 4–7 | 8–11 |
+  | 3 — circles, letter inside, dark outline (current, from 0.5.2) | IDs 24–27 | 28–31 | 32–35 |
+  | 2 — ovals (test build 0.5.1, retired) | 12–15 | 16–19 | 20–23 |
+  | 1 — first circles (test builds 0.4–0.5, retired) | 0–3 | 4–7 | 8–11 |
 
   A photo taken upside down or of the wrong template is detected immediately. A sheet of
-  the retired design is rejected with "older sheet design, print new sheets" and is never
+  a retired design is rejected with "older sheet design, print new sheets" and is never
   read with the wrong geometry.
-- **QR code** (top right): `ACK2|<exam code>|<items>|<id digits>|<sets>|G` on generic
+- **QR code** (top right): `ACK3|<exam code>|<items>|<id digits>|<sets>|G` on generic
   sheets, or `…|P<sheet code>` on personalized ones. The number after `ACK` is the
   sheet design.
   Generic sheets carry the exam identity. Personalized sheets also carry a per-student sheet
@@ -234,18 +235,20 @@ size.
   12 supported). Write-in boxes sit above each column.
 - **Exam set row** (A–D) for exams with shuffled versions.
 - **Answer area**: 25 rows per column. 50 items = 2 columns, 75 = 3, 100 = 4.
-  5 board-exam style **ovals** (A–E) per item, 5.0 × 3.2 mm, with the letter printed
-  inside; 6.8 mm horizontal pitch, 6.4 mm row pitch. Student-number ovals are
-  4.2 × 2.8 mm at 5.4 mm pitch. Outlines are dark grey (0.3 mm) and the letters light
-  grey, so they add little "ink" to the reading.
-- Student instructions printed on the sheet (shade one oval completely, dark pencil or
-  pen, erase cleanly, don't fold across the markers), with a **correct / wrong shading
-  example** (filled oval vs. check, cross, half and dot).
+  5 **circles** (A–E) per item, 4.6 mm across, with the letter printed inside;
+  6.4 mm horizontal and row pitch. Student-number circles are 3.5 mm across, 5.0 mm
+  apart and 4.6 mm between rows. Outlines are dark grey (0.3 mm) and the letters light
+  grey, so they add little "ink" to the reading. Every bubble is at least 1 mm from
+  its neighbours (a unit test checks this). The geometry stores each bubble's
+  half-width and half-height, so the engine reads any bubble shape the same way.
+- Student instructions printed on the sheet (shade one circle completely, dark pencil
+  or pen, erase cleanly, don't fold across the markers), with a **correct / wrong
+  shading example** (filled circle vs. check, cross, half and dot).
 - **Header**: school name, examination title, subject and date. An optional **school
   logo** (11 × 11 mm, beside the top-left marker, outside its quiet zone) and an
   optional **instructor name** (footer). Both are switched on or off on the Answer
   sheets screen; the logo is added in Profile. The footer also names the form
-  (e.g. `ACK2-75`) so a sheet's design can be identified on paper.
+  (e.g. `ACK3-75`) so a sheet's design can be identified on paper.
 
 The exact coordinates come from one Dart layout function. It produces both the PDF and a
 JSON geometry file that the Kotlin engine reads. A unit test fails the build if the two ever
@@ -276,11 +279,11 @@ in steps 4 and 5, because of what the tests showed.
 5. **Flat-field normalization**, then **local alignment.** For each block of about
    40 answer bubbles (each column split into thirds) and for the student-number
    grid, the engine searches ±2.5 mm for the shift that best aligns the printed
-   oval outlines. This corrects slight curl, lens distortion and corner noise; flat
+   bubble outlines. This corrects slight curl, lens distortion and corner noise; flat
    sheets need about 0.2 mm. A block needing more than 2 mm means a folded or
    curled sheet, and the photo is rejected.
-6. **Bubble scoring**: darkness of the inner oval (62 % of each half-axis, so it excludes
-   the printed outline), at the aligned position.
+6. **Bubble scoring**: darkness of the inner area (62 % of the bubble's half-width and
+   half-height, so it excludes the printed outline), at the aligned position.
 7. **Per-sheet calibration**: the empty level is the 40th percentile of all bubble
    scores. The filled level is the median of the clearly marked per-question maxima.
 8. **Classification**: see §5.3. Then the student-number columns, the set row,

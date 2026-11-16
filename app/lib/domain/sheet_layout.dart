@@ -57,17 +57,30 @@ abstract final class ArucoMarkers {
     '1011000000101011', // 21
     '1100110011010101', // 22
     '1101110110000010', // 23
+    '1111111001000111', // 24
+    '1001010001110001', // 25
+    '1010110011100100', // 26
+    '1010010101010100', // 27
+    '0010000100100011', // 28
+    '0011010001101111', // 29
+    '0100010000010101', // 30
+    '0101011110110010', // 31
+    '1001111011001111', // 32
+    '1111000011001011', // 33
+    '0000100010101110', // 34
+    '0000100100101001', // 35
   ];
 
   /// Marker IDs (top-left, top-right, bottom-right, bottom-left) for each
   /// template of the current sheet design. Reading the IDs tells the engine
   /// which template and design it sees and how the photo is rotated.
-  /// Design 1 (circles, IDs 0–11) is retired: the engine rejects those sheets
-  /// with "older sheet design" instead of misreading them.
+  /// Earlier test designs are retired, and the engine rejects them with
+  /// "older sheet design" instead of misreading them: design 1 (first circles,
+  /// IDs 0–11) and design 2 (ovals, IDs 12–23).
   static List<int> idsFor(int itemCount) => switch (itemCount) {
-        50 => const [12, 13, 14, 15],
-        75 => const [16, 17, 18, 19],
-        100 => const [20, 21, 22, 23],
+        50 => const [24, 25, 26, 27],
+        75 => const [28, 29, 30, 31],
+        100 => const [32, 33, 34, 35],
         _ => throw ArgumentError('Unsupported item count $itemCount'),
       };
 }
@@ -143,8 +156,8 @@ class SheetLayout {
   }
 
   /// Bumped whenever geometry changes; printed sheets carry it in the QR and
-  /// in their marker IDs. 2 = board-exam style oval bubbles.
-  static const int formatVersion = 2;
+  /// in their marker IDs. 3 = circles with the letter inside, dark outline.
+  static const int formatVersion = 3;
 
   static const double frameWidth = 190;
   static const double frameHeight = 250;
@@ -153,25 +166,26 @@ class SheetLayout {
   /// Resolution of the corrected image the engine works on.
   static const int pxPerMm = 8;
 
-  /// Answer ovals: 5.0 × 3.2 mm (half-axes), like board-exam answer sheets.
-  static const double bubbleRx = 2.5;
-  static const double bubbleRy = 1.6;
+  /// Answer circles: 4.6 mm across. Stored as half-width / half-height so
+  /// the engine and the PDF handle any bubble shape the same way.
+  static const double bubbleRx = 2.3;
+  static const double bubbleRy = 2.3;
 
-  /// Student-number ovals: 4.2 × 2.8 mm.
-  static const double idBubbleRx = 2.1;
-  static const double idBubbleRy = 1.4;
+  /// Student-number circles: 3.5 mm across, at least 1 mm apart.
+  static const double idBubbleRx = 1.75;
+  static const double idBubbleRy = 1.75;
   static const int rowsPerColumn = 25;
   static const double rowPitch = 6.4;
-  static const double choicePitch = 6.8;
+  static const double choicePitch = 6.4;
   static const double firstRowY = 79;
 
   /// From a column's left edge to its first bubble centre (room for "100").
   static const double numberWidth = 10.5;
 
   static const double idFirstX = 98.5;
-  static const double idPitch = 5.4;
+  static const double idPitch = 5.0;
   static const double idFirstY = 27;
-  static const double idRowPitch = 4.4;
+  static const double idRowPitch = 4.6;
   static const double idBoxTop = 18.5;
   static const double idBoxSize = 4.4;
 

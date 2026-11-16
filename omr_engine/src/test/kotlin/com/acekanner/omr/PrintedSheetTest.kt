@@ -34,10 +34,10 @@ class PrintedSheetTest {
     private class Fixture(val png: String, val layout: String, val pageW: Double, val pageH: Double)
 
     private val fixtures = listOf(
-        Fixture("a4-ack2-50-d10-s1", "ack2-50-d10-s1", 210.0, 297.0),
+        Fixture("a4-ack3-50-d10-s1", "ack3-50-d10-s1", 210.0, 297.0),
         // These two carry the sample school logo beside the top-left marker.
-        Fixture("letter-ack2-75-d9-s2", "ack2-75-d9-s2", 215.9, 279.4),
-        Fixture("long-ack2-100-d12-s4", "ack2-100-d12-s4", 215.9, 330.2),
+        Fixture("letter-ack3-75-d9-s2", "ack3-75-d9-s2", 215.9, 279.4),
+        Fixture("long-ack3-100-d12-s4", "ack3-100-d12-s4", 215.9, 330.2),
     )
 
     @Test
@@ -85,7 +85,7 @@ class PrintedSheetTest {
             }
             assertEquals(digits, result.studentNumber, "${f.png} student number")
             if (set != null) assertEquals(1 shl set, result.set!!.mask)
-            assertEquals("ACK2|K7M2Q9XA|${layout.itemCount}|${layout.idDigits}|${layout.setCount}|G", result.qrText)
+            assertEquals("ACK3|K7M2Q9XA|${layout.itemCount}|${layout.idDigits}|${layout.setCount}|G", result.qrText)
             check(File(out).length() > 10_000) { "rectified image not written" }
             page.release(); photo.release()
         }

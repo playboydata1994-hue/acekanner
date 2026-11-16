@@ -5,6 +5,36 @@ and the next step.
 
 ---
 
+## 2026-11-16 · Answer sheet design 3: back to circles
+
+Requested: "make it circle". The ovals of 0.5.1 were replaced by circles. Everything
+else from the redesign stays: optional logo and instructor name, the correct / wrong
+shading example and the darker outlines.
+
+### What was built
+- **Design 3** (format 3): answer circles 4.6 mm across with the letter inside,
+  6.4 mm pitch; student-number circles 3.5 mm (rows 4.6 mm apart so neighbouring
+  circles stay ≥ 1 mm apart); QR prefix `ACK3`; corner markers 50 = IDs 24–27,
+  75 = 28–31, 100 = 32–35.
+- The engine (3.0.0) knows all three designs. Sheets of design 1 (0.4–0.5) and
+  design 2 (ovals, 0.5.1) are rejected as "older sheet design, print new sheets",
+  in the camera guide and after capture.
+- Drafts: 50, 75 and 100 items on A4 with a sample logo, 100 items on 8.5×13 without.
+
+### Verification
+| Check | Result |
+|---|---|
+| `flutter analyze` | No issues |
+| `flutter test` | **145 / 145 passed** |
+| Engine `./gradlew test` | **22 / 22 passed**. 4,050 simulated questions on circles, **0 misread**; clean, phone and 1080p photos 0 flagged; difficult marks 130 / 900 flagged. Real app PDFs (two with a logo) read end to end. Design 1 and design 2 sheets → `old_sheet_design`. |
+
+### Not verified yet
+- Printing and scanning on paper with a real phone (Phase 8 protocol).
+
+### Next step: Phase 6, licensing and billing
+
+---
+
 ## 2026-11-16 · Answer sheet redesign: board-exam ovals, optional logo and instructor
 
 Requested before Phase 6: make the instructor name optional, add an optional school

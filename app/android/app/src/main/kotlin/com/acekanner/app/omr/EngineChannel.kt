@@ -142,8 +142,8 @@ object EngineChannel {
 
     /**
      * Args: bytes (luminance plane), width, height, rowStride, maxSide.
-     * Returns { ids: [..], groups: [6 counts, one per marker group: design 1 50/75/100,
-     * design 2 50/75/100], corners: [[x,y]...] (0..1) }.
+     * Returns { ids: [..], groups: [9 counts, one per marker group (ID / 4): designs 1-3,
+     * each 50/75/100 items], corners: [[x,y]...] (0..1) }.
      */
     private fun detectMarkers(call: MethodCall): Map<String, Any?> {
         check(ensureOpenCv()) { openCvError ?: "OpenCV unavailable" }

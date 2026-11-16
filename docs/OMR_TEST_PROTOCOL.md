@@ -5,7 +5,7 @@ ACEkanner never claims 100 % accuracy. This document records what has been
 tests** that must pass before release (Phase 8). Unmeasured conditions are
 listed as such.
 
-Engine version: **2.0.0** (sheet design 2, board-exam ovals) · Thresholds preset: **standard**
+Engine version: **3.0.0** (sheet design 3, circles) · Thresholds preset: **standard**
 
 ---
 
@@ -19,10 +19,10 @@ unchanged against desktop OpenCV 4.9 and run on:
   - No. 2 pencil with graphite texture
   - Black pen
   - Light pencil pressure
-  - About half-filled ovals
+  - About half-filled circles
   - Incomplete erasures (grey residue next to the final answer)
   - Check marks
-  - Shading well beyond the oval
+  - Shading well beyond the circle
   - Two clear answers
 - **Real answer-sheet PDFs** from the app, rasterized with poppler (`pdftoppm`) at
   12 px/mm on A4, Letter and 8.5×13 in, then marked.
@@ -38,14 +38,14 @@ Each sheet then goes through a **simulated phone photo**:
 
 Run: `cd omr_engine && ./gradlew test`. All random inputs use fixed seeds.
 
-### 1.1 Accuracy (16 Nov 2026 run, oval design)
+### 1.1 Accuracy (16 Nov 2026 run, circle design 3)
 
 | Scenario | Sheets | Questions | Read correctly | Flagged for review | **Misread** | Student no. | QR | Set |
 |---|---|---|---|---|---|---|---|---|
 | Clean photos (±3°) | 9 | 675 | 675 | 0 | **0** | 9/9 | 9/9 | 6/6 |
 | Hand-held phone (12 MP, all distortions above) | 18 | 1,350 | 1,350 | 0 | **0** | 18/18 | 18/18 | 12/12 |
 | 1080p capture (app setting) | 12 | 900 | 900 | 0 | **0** | 12/12 | 12/12 | 8/8 |
-| Difficult marks (35 % of items light / half / erased / check / overfilled / double) | 12 | 900 | 774 | 126 (14.0 %) | **0** | 12/12 | 12/12 | 8/8 |
+| Difficult marks (35 % of items light / half / erased / check / overfilled / double) | 12 | 900 | 770 | 130 (14.4 %) | **0** | 12/12 | 12/12 | 8/8 |
 | Real PDFs: A4 50, Letter 75 + logo, 8.5×13 100 + logo | 3 | 225 | 225 | 0 | **0** | 3/3 | 3/3 | 2/2 |
 | **Total** | **54** | **4,050** | | | **0** | | | |
 
@@ -56,11 +56,11 @@ instructor decides those. Erased residue next to a clear answer is accepted
 (standard preset) or flagged (strict preset). It is never counted as a second
 answer.
 
-The first oval run found 2 check marks read as blank (they cover less of the
-smaller oval). The standard "empty" threshold was lowered from 0.20 to 0.15, so
-they are now flagged; clean and phone photos still need no review.
+During the oval design (0.5.1), 2 check marks were read as blank. The standard
+"empty" threshold was lowered from 0.20 to 0.15, so they are now flagged; it stays
+at 0.15 for circles, and clean and phone photos still need no review.
 
-Speed: up to 180 ms per photo on a desktop CPU. Not yet measured on phones (Phase 8).
+Speed: up to 140 ms per photo on a desktop CPU. Not yet measured on phones (Phase 8).
 
 ### 1.2 Rejections (no scan is counted)
 
@@ -75,13 +75,13 @@ Speed: up to 180 ms per photo on a desktop CPU. Not yet measured on phones (Phas
 | Corner folded ~7 mm | "The sheet looks bent or folded…" |
 | Corner folded ~4 mm | Corrected by local alignment and read correctly (never misread) |
 | QR code of another examination | "This answer sheet was printed for another examination (code …)" |
-| Old circle-design sheet (test builds 0.4–0.5) | "This is an older ACEkanner answer sheet design. Print new sheets…" |
+| Sheet of an older test design (0.4–0.5 circles, 0.5.1 ovals) | "This is an older ACEkanner answer sheet design. Print new sheets…" |
 
 ### 1.3 Thresholds and how they were set
 
 | Threshold | Value | Basis |
 |---|---|---|
-| Filled ≥ / empty ≤ (normalized) | 0.55 / 0.15 | Empty ovals score 0.00 ± 0.02 and full shading about 1.0. Check marks in the oval score about 0.19–0.25, so "empty" must stay below that so they're flagged, not read as blank. That was found and fixed during testing (0.20 → 0.15 with the oval design). |
+| Filled ≥ / empty ≤ (normalized) | 0.55 / 0.15 | Empty bubbles score 0.00 ± 0.02 and full shading about 1.0. Check marks score about 0.19–0.25, so "empty" must stay below that so they're flagged, not read as blank. That was found and fixed during testing (0.20 → 0.15). |
 | Erasure auto-accept | Dominance ≥ 0.40 and residue ≤ 0.35 | Residue of a clean erasure is 0.05–0.15 |
 | Focus (marker edge width) | ≤ 0.9 mm | Blur sweep: answers still read correctly up to about 1.0 mm. The 0.9 mm limit leaves margin for real hand-shake blur. |
 | Local alignment shift | ≤ 2.0 mm | Flat sheets need 0.1–0.2 mm. Below 2.5 mm a misplaced sample can't reach a neighbouring bubble's ink. |

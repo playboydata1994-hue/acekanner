@@ -44,16 +44,17 @@ class SheetLayout(
     /** Template group of a marker ID (4 IDs per template). */
     val markerGroup: Int get() = markerIds[0] / 4
 
-    /** Sheet design of this layout (1 = circles, 2 = ovals). */
+    /** Sheet design of this layout (1 = first circles, 2 = ovals, 3 = circles with dark outline). */
     val design: Int get() = designOfGroup(markerGroup)
 
     companion object {
         /**
          * Marker groups: 4 IDs per template, 3 templates per sheet design.
-         * Design 1 (circles): IDs 0-3 = 50 items, 4-7 = 75, 8-11 = 100.
-         * Design 2 (ovals):   IDs 12-15 = 50, 16-19 = 75, 20-23 = 100.
+         * Design 1 (first circles, retired): IDs 0-3 = 50 items, 4-7 = 75, 8-11 = 100.
+         * Design 2 (ovals, retired):         IDs 12-15 = 50, 16-19 = 75, 20-23 = 100.
+         * Design 3 (circles, current):       IDs 24-27 = 50, 28-31 = 75, 32-35 = 100.
          */
-        const val MAX_MARKER_ID = 23
+        const val MAX_MARKER_ID = 35
         private val ITEMS = intArrayOf(50, 75, 100)
 
         fun itemsOfGroup(group: Int): Int? = if (group in 0..MAX_MARKER_ID / 4) ITEMS[group % 3] else null
@@ -67,7 +68,7 @@ class SheetLayout(
             val markers = o.getJSONObject("markers")
             val qr = o.getJSONObject("qr")
             val ids = markers.getJSONArray("ids")
-            // Design 2 has ovals ("bubble": {rx, ry}); design 1 had circles.
+            // Bubble half-width/half-height ("bubble": {rx, ry}); design 1 stored a radius.
             val bubble = o.optJSONObject("bubble")
             val idBubble = o.optJSONObject("idBubble")
             val r = if (bubble == null) o.getDouble("bubbleRadius") else 0.0

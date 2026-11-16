@@ -35,27 +35,30 @@ class ConsistencyTest {
 
     @Test
     fun `layout fixtures parse and validate`() {
-        for (name in listOf("ack2-50-d10-s1", "ack2-75-d9-s2", "ack2-100-d12-s4")) {
+        for (name in listOf("ack3-50-d10-s1", "ack3-75-d9-s2", "ack3-100-d12-s4")) {
             val l = loadLayout(name)
             assertEquals(l.itemCount, l.questions.size)
             assertEquals(1520, l.widthPx)
             assertEquals(2000, l.heightPx)
         }
-        val broken = JSONObject(File("src/test/resources/layouts/ack2-50-d10-s1.json").readText())
-        broken.getJSONObject("markers").put("ids", org.json.JSONArray(listOf(12, 13, 14, 19)))
+        val broken = JSONObject(File("src/test/resources/layouts/ack3-50-d10-s1.json").readText())
+        broken.getJSONObject("markers").put("ids", org.json.JSONArray(listOf(24, 25, 26, 31)))
         assertFailsWith<IllegalArgumentException> { SheetLayout.fromJson(broken) }
     }
 
     @Test
     fun `marker groups map to sheet design and item count`() {
-        val l = loadLayout("ack2-75-d9-s2")
-        assertEquals(2, l.design)
-        assertEquals(1.6, l.bubbleRyMm)
+        val l = loadLayout("ack3-75-d9-s2")
+        assertEquals(3, l.design)
+        assertEquals(2.3, l.bubbleRxMm)
+        assertEquals(2.3, l.bubbleRyMm)
         assertEquals(1, SheetLayout.designOfGroup(1)) // IDs 4-7: design 1, 75 items
         assertEquals(75, SheetLayout.itemsOfGroup(1))
         assertEquals(2, SheetLayout.designOfGroup(5)) // IDs 20-23: design 2, 100 items
         assertEquals(100, SheetLayout.itemsOfGroup(5))
-        assertEquals(null, SheetLayout.itemsOfGroup(6))
+        assertEquals(3, SheetLayout.designOfGroup(8)) // IDs 32-35: design 3, 100 items
+        assertEquals(50, SheetLayout.itemsOfGroup(6))
+        assertEquals(null, SheetLayout.itemsOfGroup(9))
     }
 
     @Test

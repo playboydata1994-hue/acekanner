@@ -35,8 +35,8 @@ class MarkerFeedback {
 
   final List<int> ids;
 
-  /// Markers found per marker group (marker ID ÷ 4): 50, 75 and 100 items
-  /// of sheet design 1 (groups 0–2), then of design 2 (groups 3–5).
+  /// Markers found per marker group (marker ID ÷ 4): 50, 75 and 100 items of
+  /// sheet design 1 (groups 0–2), design 2 (3–5) and design 3 (6–8).
   final List<int> groups;
 
   /// Marker centres, normalized 0..1 in the frame.

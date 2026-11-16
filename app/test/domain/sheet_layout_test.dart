@@ -6,9 +6,9 @@ import 'package:acekanner/domain/sheet_qr.dart';
 
 /// Layouts the Kotlin engine tests use (omr_engine/src/test/resources/layouts).
 final Map<String, SheetLayout> engineFixtures = {
-  'ack2-50-d10-s1': SheetLayout(itemCount: 50),
-  'ack2-75-d9-s2': SheetLayout(itemCount: 75, idDigits: 9, setCount: 2),
-  'ack2-100-d12-s4': SheetLayout(itemCount: 100, idDigits: 12, setCount: 4),
+  'ack3-50-d10-s1': SheetLayout(itemCount: 50),
+  'ack3-75-d9-s2': SheetLayout(itemCount: 75, idDigits: 9, setCount: 2),
+  'ack3-100-d12-s4': SheetLayout(itemCount: 100, idDigits: 12, setCount: 4),
 };
 
 void main() {
@@ -86,17 +86,17 @@ void main() {
   });
 
   test('marker IDs identify the template', () {
-    expect(ArucoMarkers.idsFor(50), [12, 13, 14, 15]);
-    expect(ArucoMarkers.idsFor(75), [16, 17, 18, 19]);
-    expect(ArucoMarkers.idsFor(100), [20, 21, 22, 23]);
-    expect(ArucoMarkers.bits, hasLength(24));
+    expect(ArucoMarkers.idsFor(50), [24, 25, 26, 27]);
+    expect(ArucoMarkers.idsFor(75), [28, 29, 30, 31]);
+    expect(ArucoMarkers.idsFor(100), [32, 33, 34, 35]);
+    expect(ArucoMarkers.bits, hasLength(36));
     expect(() => ArucoMarkers.idsFor(60), throwsArgumentError);
     expect(ArucoMarkers.bits.every((b) => RegExp(r'^[01]{16}$').hasMatch(b)), isTrue);
   });
 
   test('QR payload round-trips', () {
     const generic = SheetQr(examCode: 'K7M2Q9XA', itemCount: 75, idDigits: 9, setCount: 2);
-    expect(generic.encode(), 'ACK2|K7M2Q9XA|75|9|2|G');
+    expect(generic.encode(), 'ACK3|K7M2Q9XA|75|9|2|G');
     final parsed = SheetQr.tryParse(generic.encode())!;
     expect(parsed.examCode, 'K7M2Q9XA');
     expect(parsed.personalized, isFalse);
@@ -105,8 +105,10 @@ void main() {
     expect(SheetQr.tryParse(personal.encode())!.sheetCode, 'S3CR3T00');
 
     expect(SheetQr.tryParse('https://example.com'), isNull);
-    expect(SheetQr.tryParse('ACK2|X|50|10|1|Z'), isNull);
+    expect(SheetQr.tryParse('ACK3|X|50|10|1|Z'), isNull);
+    expect(SheetQr.tryParse('ACK2|K7M2Q9XA|50|10|1|G'), isNull);
     expect(SheetQr.isOlderDesign('ACK1|K7M2Q9XA|50|10|1|G'), isTrue);
+    expect(SheetQr.isOlderDesign('ACK2|K7M2Q9XA|50|10|1|G'), isTrue);
     expect(SheetQr.isOlderDesign(generic.encode()), isFalse);
     expect(SheetQr.tryParse(null), isNull);
   });

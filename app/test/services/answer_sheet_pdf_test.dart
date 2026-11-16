@@ -100,9 +100,9 @@ void main() {
     final dir = Directory('../omr_engine/src/test/resources/sheets')..createSync(recursive: true);
     // The engine must read sheets with and without a logo.
     final fixtures = {
-      'a4-ack2-50-d10-s1': (SheetLayout(itemCount: 50), PaperSize.a4, header),
-      'letter-ack2-75-d9-s2': (SheetLayout(itemCount: 75, idDigits: 9, setCount: 2), PaperSize.letter, withLogo()),
-      'long-ack2-100-d12-s4': (SheetLayout(itemCount: 100, idDigits: 12, setCount: 4), PaperSize.long, withLogo()),
+      'a4-ack3-50-d10-s1': (SheetLayout(itemCount: 50), PaperSize.a4, header),
+      'letter-ack3-75-d9-s2': (SheetLayout(itemCount: 75, idDigits: 9, setCount: 2), PaperSize.letter, withLogo()),
+      'long-ack3-100-d12-s4': (SheetLayout(itemCount: 100, idDigits: 12, setCount: 4), PaperSize.long, withLogo()),
     };
     for (final MapEntry(:key, value: (layout, paper, h)) in fixtures.entries) {
       final pdf = await AnswerSheetPdf.build(layout: layout, header: h, paper: paper, fonts: fonts);
@@ -115,6 +115,7 @@ void main() {
     if (out == null) return;
     final dir = Directory(out)..createSync(recursive: true);
     final drafts = {
+      'ACEkanner-draft-50-items-A4': (SheetLayout(itemCount: 50), PaperSize.a4, withLogo()),
       'ACEkanner-draft-75-items-A4': (SheetLayout(itemCount: 75), PaperSize.a4, withLogo()),
       'ACEkanner-draft-100-items-A4': (SheetLayout(itemCount: 100), PaperSize.a4, withLogo()),
       'ACEkanner-draft-100-items-long-no-logo': (

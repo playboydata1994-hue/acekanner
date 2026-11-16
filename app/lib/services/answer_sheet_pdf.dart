@@ -211,7 +211,7 @@ abstract final class AnswerSheetPdf {
                 canvas.fillPath();
               }
 
-              // Board-exam style oval with its letter or digit inside.
+              // Circle with its letter or digit inside (dark outline).
               void bubble(Mm c, double rx, double ry, String label, double labelPt) {
                 canvas
                   ..setStrokeColor(_bubble)
@@ -221,7 +221,7 @@ abstract final class AnswerSheetPdf {
                 text(label, c.x, c.y + labelPt * 0.125, labelPt, regular, _letter, center: true);
               }
 
-              // Answer area: numbers, ovals, a light rule every 5 rows.
+              // Answer area: numbers, circles, a light rule every 5 rows.
               const letters = ['A', 'B', 'C', 'D', 'E'];
               for (var q = 0; q < l.questions.length; q++) {
                 final row = l.questions[q];
@@ -314,7 +314,7 @@ abstract final class AnswerSheetPdf {
               final lines = [
                 'HOW TO MARK',
                 'Use a dark No. 2 pencil or a black pen.',
-                'Shade ONE oval completely for each item.',
+                'Shade ONE circle completely for each item.',
                 'Erase changes cleanly. Do not use check marks.',
                 if (student == null)
                   'Shade your student number, starting at the left.'
