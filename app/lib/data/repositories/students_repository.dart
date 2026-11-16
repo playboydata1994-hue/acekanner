@@ -85,6 +85,19 @@ class StudentsRepository {
   Stream<List<StudentRow>> watchRoster(String sectionId) =>
       _db.sectionRoster(sectionId: sectionId).watch();
 
+  /// Active students whose name or number contains [query] (max 50).
+  Future<List<StudentRow>> search(String query) {
+    final q = '%${query.trim()}%';
+    final key = '%${StudentNumber.normalize(query)}%';
+    return (_db.select(_db.students)
+          ..where((t) =>
+              t.deletedAt.isNull() &
+              (t.lastName.like(q) | t.firstName.like(q) | (key == '%%' ? const Constant(false) : t.studentNoKey.like(key))))
+          ..orderBy([(t) => OrderingTerm.asc(t.lastName), (t) => OrderingTerm.asc(t.firstName)])
+          ..limit(50))
+        .get();
+  }
+
   Future<StudentRow?> findByNumber(String studentNo) {
     final key = StudentNumber.normalize(studentNo);
     return (_db.select(_db.students)

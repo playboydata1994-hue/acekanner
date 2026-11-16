@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
+
+import '../domain/omr_reading.dart';
+import '../domain/sheet_layout.dart';
 
 /// Status of the native OMR engine (OpenCV) on this device.
 class EngineInfo {
@@ -24,8 +29,80 @@ class EngineInfo {
 
 /// Dart side of the `com.acekanner.app/omr` platform channel
 /// (android/app/src/main/kotlin/com/acekanner/app/omr/EngineChannel.kt).
+/// Corner markers seen in a live preview frame.
+class MarkerFeedback {
+  const MarkerFeedback({required this.ids, required this.groups, required this.centers});
+
+  final List<int> ids;
+
+  /// Markers found per template: [50-item, 75-item, 100-item].
+  final List<int> groups;
+
+  /// Marker centres, normalized 0..1 in the frame.
+  final List<(double, double)> centers;
+
+  int foundFor(int itemCount) => switch (itemCount) {
+        50 => groups[0],
+        75 => groups[1],
+        _ => groups[2],
+      };
+
+  /// Another template is clearly visible instead of the expected one.
+  bool otherTemplateFor(int itemCount) {
+    final mine = foundFor(itemCount);
+    return groups.any((g) => g >= 3) && mine < 2;
+  }
+}
+
 class OmrEngineChannel {
   const OmrEngineChannel();
+
+  /// Reads one captured photo on the native worker thread. Writes the
+  /// perspective-corrected sheet to [rectifiedPath].
+  Future<OmrReading> analyzeSheet({
+    required String imagePath,
+    required SheetLayout layout,
+    required String rectifiedPath,
+    String preset = 'standard',
+    String? customThresholds,
+  }) async {
+    final json = await _channel.invokeMethod<String>('analyzeSheet', {
+      'imagePath': imagePath,
+      'layout': jsonEncode(layout.toJson()),
+      'preset': preset,
+      'thresholds': customThresholds,
+      'rectifiedPath': rectifiedPath,
+    });
+    if (json == null) throw PlatformException(code: 'omr_failed', message: 'No result from the engine');
+    return OmrReading.parse(json);
+  }
+
+  /// Checks a preview frame (luminance plane). Returns null when the engine is
+  /// still busy with the previous frame.
+  Future<MarkerFeedback?> detectMarkers({
+    required Uint8List bytes,
+    required int width,
+    required int height,
+    required int rowStride,
+  }) async {
+    final map = await _channel.invokeMapMethod<String, Object?>('detectMarkers', {
+      'bytes': bytes,
+      'width': width,
+      'height': height,
+      'rowStride': rowStride,
+      'maxSide': 720,
+    });
+    if (map == null) return null;
+    final centers = (jsonDecode(map['centers'] as String) as List)
+        .map((c) => ((c as List)[0] as num, c[1] as num))
+        .map((c) => (c.$1.toDouble(), c.$2.toDouble()))
+        .toList();
+    return MarkerFeedback(
+      ids: [for (final i in map['ids'] as List) i as int],
+      groups: [for (final g in map['groups'] as List) g as int],
+      centers: centers,
+    );
+  }
 
   static const MethodChannel _channel = MethodChannel('com.acekanner.app/omr');
 

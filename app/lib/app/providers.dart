@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../core/util/clock.dart';
 import '../data/audit/audit_logger.dart';
@@ -6,6 +7,8 @@ import '../data/db/app_database.dart';
 import '../data/repositories/answer_key_repository.dart';
 import '../data/repositories/classes_repository.dart';
 import '../data/repositories/exams_repository.dart';
+import '../data/repositories/printed_sheets_repository.dart';
+import '../data/repositories/scan_repository.dart';
 import '../data/repositories/profile_repository.dart';
 import '../data/repositories/students_repository.dart';
 import '../data/settings/settings_repository.dart';
@@ -108,6 +111,23 @@ final answerKeyRepositoryProvider = Provider<AnswerKeyRepository>(
     ref.watch(databaseProvider),
     ref.watch(auditLoggerProvider),
     ref.watch(examsRepositoryProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final scanRepositoryProvider = Provider<ScanRepository>(
+  (ref) => ScanRepository(
+    ref.watch(databaseProvider),
+    ref.watch(auditLoggerProvider),
+    scansDirectory: scansDirectoryIn(getApplicationSupportDirectory),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final printedSheetsRepositoryProvider = Provider<PrintedSheetsRepository>(
+  (ref) => PrintedSheetsRepository(
+    ref.watch(databaseProvider),
+    ref.watch(auditLoggerProvider),
     clock: ref.watch(clockProvider),
   ),
 );

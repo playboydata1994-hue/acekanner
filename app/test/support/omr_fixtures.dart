@@ -1,0 +1,62 @@
+import 'dart:convert';
+
+import 'package:acekanner/domain/omr_reading.dart';
+
+/// Builds an engine JSON result like the native engine returns.
+String engineJson({
+  required List<int> masks,
+  Set<int> uncertain = const {},
+  Set<int> blank = const {},
+  String studentNumber = '202100123',
+  bool clear = true,
+  int? setMask,
+  String? qr,
+}) {
+  Map<String, Object?> group(int mask, String state) => {
+        'state': state,
+        'mask': mask,
+        'scores': [for (var i = 0; i < 5; i++) (mask >> i) & 1 == 1 ? 0.95 : 0.01],
+        'confidence': state == 'uncertain' ? 0.2 : 0.97,
+        'erasure': false,
+      };
+  return jsonEncode({
+    'ok': true,
+    'engineVersion': '1.0.0',
+    'template': 'ack1-${masks.length}',
+    'questions': [
+      for (var i = 0; i < masks.length; i++)
+        group(
+          masks[i],
+          uncertain.contains(i + 1) ? 'uncertain' : (blank.contains(i + 1) ? 'blank' : 'answered'),
+        ),
+    ],
+    'idColumns': const [],
+    'studentNumber': studentNumber,
+    'studentNumberClear': clear,
+    'set': setMask == null ? null : group(setMask, 'answered'),
+    'qr': qr,
+    'quality': {'edgeWidthMm': 0.25, 'contrast': 200, 'glare': 0, 'reprojectionMm': 0.2, 'brightness': 220, 'score': 0.95},
+    'rotation': 0,
+    'flagged': uncertain.length,
+    'elapsedMs': 120,
+  });
+}
+
+OmrSheetReading reading({
+  required List<int> masks,
+  Set<int> uncertain = const {},
+  Set<int> blank = const {},
+  String studentNumber = '202100123',
+  bool clear = true,
+  int? setMask,
+  String? qr,
+}) =>
+    OmrReading.parse(engineJson(
+      masks: masks,
+      uncertain: uncertain,
+      blank: blank,
+      studentNumber: studentNumber,
+      clear: clear,
+      setMask: setMask,
+      qr: qr,
+    )) as OmrSheetReading;

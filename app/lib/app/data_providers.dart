@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/db/app_database.dart';
 import '../data/repositories/classes_repository.dart';
 import '../data/repositories/exams_repository.dart';
+import '../data/repositories/scan_repository.dart';
 import 'providers.dart';
 
 /// Live lists and records shown by the management screens.
@@ -45,4 +46,8 @@ final deletedExamsProvider = StreamProvider.autoDispose<List<ExamListItem>>(
 
 final examDetailProvider = StreamProvider.autoDispose.family<ExamDetail?, String>(
   (ref, id) => ref.watch(examsRepositoryProvider).watchDetail(id),
+);
+
+final scannedPapersProvider = StreamProvider.autoDispose.family<List<ScannedPaper>, String>(
+  (ref, examId) => ref.watch(scanRepositoryProvider).watchPapers(examId),
 );
