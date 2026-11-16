@@ -13,6 +13,7 @@ import '../../domain/sheet_qr.dart';
 import '../audit/audit_logger.dart';
 import '../db/app_database.dart';
 import '../errors.dart';
+import 'grading_repository.dart';
 
 /// How the student on a paper was identified.
 enum IdentifiedBy { qrCode, studentNumber, instructor, none }
@@ -77,19 +78,25 @@ class ReviewedSheet {
 
 /// A saved paper, for lists.
 class ScannedPaper {
-  const ScannedPaper({required this.sheet, this.student, required this.versionLabel});
+  const ScannedPaper({required this.sheet, this.student, required this.versionLabel, this.result});
 
   final AnswerSheetRow sheet;
   final StudentRow? student;
   final String? versionLabel;
+
+  /// Current score; null while the paper waits for grading.
+  final ExaminationResultRow? result;
 }
 
 /// Scan sessions, student identification and saving reviewed papers.
 class ScanRepository {
-  ScanRepository(this._db, this._audit, {required this.scansDirectory, this.clock = const Clock()});
+  ScanRepository(this._db, this._audit, {required this.scansDirectory, this.grading, this.clock = const Clock()});
 
   final AppDatabase _db;
   final AuditLogger _audit;
+
+  /// Grades a saved paper immediately when the examination's key is complete.
+  final GradingRepository? grading;
   final Clock clock;
 
   /// App-private folder for corrected sheet images.
@@ -270,6 +277,10 @@ class ScanRepository {
             if (s.replaceSheetId != null) 'replaces': s.replaceSheetId,
           },
         );
+        final exam = await (_db.select(_db.examinations)..where((t) => t.id.equals(s.examId))).getSingle();
+        if (grading != null && exam.status == 'ready' && s.studentId != null) {
+          await grading!.finalize(sheetId);
+        }
       });
     } catch (_) {
       await File(imagePath).delete().catchError((_) => File(imagePath));
@@ -286,6 +297,11 @@ class ScanRepository {
         _db.examinationVersions,
         _db.examinationVersions.id.equalsExp(_db.answerSheets.examinationVersionId),
       ),
+      leftOuterJoin(
+        _db.examinationResults,
+        _db.examinationResults.answerSheetId.equalsExp(_db.answerSheets.id) &
+            _db.examinationResults.isCurrent.equals(true),
+      ),
     ])
       ..where(_db.answerSheets.examinationId.equals(examId) &
           _db.answerSheets.status.isIn(const ['needs_review', 'finalized']))
@@ -297,6 +313,7 @@ class ScanRepository {
                 sheet: r.readTable(_db.answerSheets),
                 student: r.readTableOrNull(_db.students),
                 versionLabel: r.readTableOrNull(_db.examinationVersions)?.label,
+                result: r.readTableOrNull(_db.examinationResults),
               ),
           ],
         );

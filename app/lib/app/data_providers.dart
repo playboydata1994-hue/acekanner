@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/db/app_database.dart';
 import '../data/repositories/classes_repository.dart';
 import '../data/repositories/exams_repository.dart';
+import '../data/repositories/grading_repository.dart';
 import '../data/repositories/scan_repository.dart';
 import 'providers.dart';
 
@@ -50,4 +51,12 @@ final examDetailProvider = StreamProvider.autoDispose.family<ExamDetail?, String
 
 final scannedPapersProvider = StreamProvider.autoDispose.family<List<ScannedPaper>, String>(
   (ref, examId) => ref.watch(scanRepositoryProvider).watchPapers(examId),
+);
+
+final paperDetailProvider = StreamProvider.autoDispose.family<PaperDetail?, String>(
+  (ref, sheetId) => ref.watch(gradingRepositoryProvider).watchPaper(sheetId),
+);
+
+final examAnalyticsProvider = StreamProvider.autoDispose.family<ExamAnalytics, String>(
+  (ref, examId) => ref.watch(gradingRepositoryProvider).watchAnalytics(examId),
 );

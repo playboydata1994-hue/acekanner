@@ -7,6 +7,7 @@ import '../data/db/app_database.dart';
 import '../data/repositories/answer_key_repository.dart';
 import '../data/repositories/classes_repository.dart';
 import '../data/repositories/exams_repository.dart';
+import '../data/repositories/grading_repository.dart';
 import '../data/repositories/printed_sheets_repository.dart';
 import '../data/repositories/scan_repository.dart';
 import '../data/repositories/profile_repository.dart';
@@ -98,10 +99,19 @@ final studentsRepositoryProvider = Provider<StudentsRepository>(
   ),
 );
 
+final gradingRepositoryProvider = Provider<GradingRepository>(
+  (ref) => GradingRepository(
+    ref.watch(databaseProvider),
+    ref.watch(auditLoggerProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
 final examsRepositoryProvider = Provider<ExamsRepository>(
   (ref) => ExamsRepository(
     ref.watch(databaseProvider),
     ref.watch(auditLoggerProvider),
+    grading: ref.watch(gradingRepositoryProvider),
     clock: ref.watch(clockProvider),
   ),
 );
@@ -111,6 +121,7 @@ final answerKeyRepositoryProvider = Provider<AnswerKeyRepository>(
     ref.watch(databaseProvider),
     ref.watch(auditLoggerProvider),
     ref.watch(examsRepositoryProvider),
+    grading: ref.watch(gradingRepositoryProvider),
     clock: ref.watch(clockProvider),
   ),
 );
@@ -120,6 +131,7 @@ final scanRepositoryProvider = Provider<ScanRepository>(
     ref.watch(databaseProvider),
     ref.watch(auditLoggerProvider),
     scansDirectory: scansDirectoryIn(getApplicationSupportDirectory),
+    grading: ref.watch(gradingRepositoryProvider),
     clock: ref.watch(clockProvider),
   ),
 );

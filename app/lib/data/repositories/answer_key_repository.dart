@@ -8,6 +8,7 @@ import '../audit/audit_logger.dart';
 import '../db/app_database.dart';
 import '../errors.dart';
 import 'exams_repository.dart';
+import 'grading_repository.dart';
 
 abstract final class KeyItemMode {
   static const String normal = 'normal';
@@ -88,11 +89,15 @@ class KeySaveResult {
 
 /// Answer keys: loading, validation and saving with revision history.
 class AnswerKeyRepository {
-  AnswerKeyRepository(this._db, this._audit, this._exams, {this.clock = const Clock()});
+  AnswerKeyRepository(this._db, this._audit, this._exams, {this.grading, this.clock = const Clock()});
 
   final AppDatabase _db;
   final AuditLogger _audit;
   final ExamsRepository _exams;
+
+  /// Re-grades papers on a new key revision and grades waiting papers once
+  /// the key is complete, in the same transaction as the key change.
+  final GradingRepository? grading;
   final Clock clock;
 
   Future<AnswerKeyData> load(String versionId) async {
@@ -170,6 +175,8 @@ class AnswerKeyRepository {
         );
         await _touch(examId);
         await _exams.refreshStatus(examId);
+        await grading?.regrade(examId, versionId: versionId, reason: 'answer_key.revised');
+        await grading?.gradePending(examId);
         return KeySaveResult(revision: revision, newRevision: true, changed: changed);
       }
 
@@ -188,6 +195,7 @@ class AnswerKeyRepository {
       );
       await _touch(examId);
       await _exams.refreshStatus(examId);
+      await grading?.gradePending(examId);
       return KeySaveResult(revision: current.key.revision, newRevision: false, changed: changed);
     });
   }

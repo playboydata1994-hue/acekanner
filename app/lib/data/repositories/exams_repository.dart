@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:drift/drift.dart';
 
 import '../../core/constants.dart';
@@ -10,6 +8,8 @@ import '../../domain/short_code.dart';
 import '../audit/audit_logger.dart';
 import '../db/app_database.dart';
 import '../errors.dart';
+import '../live_query.dart';
+import 'grading_repository.dart';
 
 /// Version (set) labels in order.
 const List<String> versionLabels = ['A', 'B', 'C', 'D'];
@@ -138,10 +138,13 @@ class ExamDetail {
 
 /// Examinations, their sets (versions) and section assignments.
 class ExamsRepository {
-  ExamsRepository(this._db, this._audit, {this.clock = const Clock()});
+  ExamsRepository(this._db, this._audit, {this.grading, this.clock = const Clock()});
 
   final AppDatabase _db;
   final AuditLogger _audit;
+
+  /// Re-scores papers when scoring rules change.
+  final GradingRepository? grading;
   final Clock clock;
 
   Stream<List<ExamListItem>> watchActive() => _db.activeExaminationList().watch().map(
@@ -171,59 +174,21 @@ class ExamsRepository {
       );
 
   /// Re-emits whenever anything shown on the examination screen changes.
-  /// Bursts of changes are coalesced into one reload.
-  Stream<ExamDetail?> watchDetail(String id) {
-    late final StreamController<ExamDetail?> controller;
-    StreamSubscription<Set<TableUpdate>>? updates;
-    var loading = false;
-    var again = false;
-
-    Future<void> reload() async {
-      if (loading) {
-        again = true;
-        return;
-      }
-      loading = true;
-      try {
-        do {
-          again = false;
-          final detail = await loadDetail(id);
-          if (controller.isClosed) return;
-          controller.add(detail);
-        } while (again);
-      } catch (error, stack) {
-        if (!controller.isClosed) controller.addError(error, stack);
-      } finally {
-        loading = false;
-      }
-    }
-
-    controller = StreamController<ExamDetail?>(
-      onListen: () {
-        updates = _db
-            .tableUpdates(
-              TableUpdateQuery.onAllTables([
-                _db.examinations,
-                _db.examinationVersions,
-                _db.answerKeys,
-                _db.answerKeyItems,
-                _db.examinationSections,
-                _db.sections,
-                _db.subjects,
-                _db.answerSheets,
-                _db.printedSheets,
-              ]),
-            )
-            .listen((_) => reload());
-        reload();
-      },
-      onCancel: () async {
-        await updates?.cancel();
-        await controller.close();
-      },
-    );
-    return controller.stream;
-  }
+  Stream<ExamDetail?> watchDetail(String id) => liveQuery(
+        _db,
+        [
+          _db.examinations,
+          _db.examinationVersions,
+          _db.answerKeys,
+          _db.answerKeyItems,
+          _db.examinationSections,
+          _db.sections,
+          _db.subjects,
+          _db.answerSheets,
+          _db.printedSheets,
+        ],
+        () => loadDetail(id),
+      );
 
   Future<ExamDetail?> loadDetail(String id) async {
     final exam = await _exam(id);
@@ -362,6 +327,10 @@ class ExamsRepository {
       }
       await _setSections(id, input.sectionIds);
       await refreshStatus(id);
+      final rulesChanged = exam.passingPercentage != input.passingPercentage ||
+          exam.multipleMarkPolicy != input.multipleMarkPolicy ||
+          exam.allowNegativeTotal != input.allowNegativeTotal;
+      if (rulesChanged) await grading?.regrade(id, reason: 'examination.rules_changed');
       await _audit.record(
         event: 'examination.updated',
         entityType: 'examination',
