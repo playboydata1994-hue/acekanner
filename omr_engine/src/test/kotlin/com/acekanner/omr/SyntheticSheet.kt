@@ -103,15 +103,15 @@ class SheetRenderer(private val pxPerMm: Double = 12.0, private val marginMm: Do
         for ((q, bubbles) in l.questions.withIndex()) {
             val first = bubbles[0]
             text(page, "${q + 1}", PointMm(first.x - 9.5, first.y + 1.2), 0.6, 15.0, 2)
-            for ((c, b) in bubbles.withIndex()) bubble(page, b, l.bubbleRadiusMm, letters[c])
+            for ((c, b) in bubbles.withIndex()) bubble(page, b, l.bubbleRxMm, l.bubbleRyMm, letters[c])
         }
         for ((col, digits) in l.idColumns.withIndex()) {
             val top = PointMm(digits[0].x - 2.2, 18.5)
             Imgproc.rectangle(page, toPx(top), toPx(PointMm(top.x + 4.4, top.y + 4.4)), Scalar(110.0), 1)
-            for ((d, b) in digits.withIndex()) bubble(page, b, l.idBubbleRadiusMm, "$d")
+            for ((d, b) in digits.withIndex()) bubble(page, b, l.idBubbleRxMm, l.idBubbleRyMm, "$d")
             if (col == 0) text(page, "STUDENT NUMBER", PointMm(b0x(l), 15.5), 0.45, 60.0)
         }
-        for ((i, b) in l.setBubbles.withIndex()) bubble(page, b, l.bubbleRadiusMm, letters[i])
+        for ((i, b) in l.setBubbles.withIndex()) bubble(page, b, l.bubbleRxMm, l.bubbleRyMm, letters[i])
 
         // QR code.
         if (spec.qrText != null) {
@@ -126,11 +126,11 @@ class SheetRenderer(private val pxPerMm: Double = 12.0, private val marginMm: Do
         }
 
         // Student marks.
-        for (m in spec.marks) mark(page, l.questions[m.question][m.choice], l.bubbleRadiusMm, m.style, rnd)
+        for (m in spec.marks) mark(page, l.questions[m.question][m.choice], l.bubbleRxMm, l.bubbleRyMm, m.style, rnd)
         spec.studentNumber?.forEachIndexed { col, ch ->
-            mark(page, l.idColumns[col][ch - '0'], l.idBubbleRadiusMm, spec.idStyle, rnd)
+            mark(page, l.idColumns[col][ch - '0'], l.idBubbleRxMm, l.idBubbleRyMm, spec.idStyle, rnd)
         }
-        spec.setIndex?.let { mark(page, l.setBubbles[it], l.bubbleRadiusMm, MarkStyle.PENCIL, rnd) }
+        spec.setIndex?.let { mark(page, l.setBubbles[it], l.bubbleRxMm, l.bubbleRyMm, MarkStyle.PENCIL, rnd) }
         return page
     }
 
@@ -138,14 +138,16 @@ class SheetRenderer(private val pxPerMm: Double = 12.0, private val marginMm: Do
 
     fun toPx(p: PointMm) = Point((p.x + marginMm) * pxPerMm, (p.y + marginMm) * pxPerMm)
 
-    private fun bubble(page: Mat, c: PointMm, rMm: Double, label: String) {
+    /** Printed oval outline (dark grey, ~0.3 mm) with its letter inside. */
+    private fun bubble(page: Mat, c: PointMm, rxMm: Double, ryMm: Double, label: String) {
         val center = toPx(c)
-        Imgproc.circle(page, center, (rMm * pxPerMm).roundToInt(), Scalar(135.0), 2, Imgproc.LINE_AA)
-        val scale = 0.028 * pxPerMm * rMm
+        val stroke = max(2, (0.3 * pxPerMm).roundToInt())
+        Imgproc.ellipse(page, center, Size(rxMm * pxPerMm, ryMm * pxPerMm), 0.0, 0.0, 360.0, Scalar(90.0), stroke, Imgproc.LINE_AA)
+        val scale = 0.042 * pxPerMm * ryMm
         val sz = Imgproc.getTextSize(label, Imgproc.FONT_HERSHEY_SIMPLEX, scale, 1, IntArray(1))
         Imgproc.putText(
             page, label, Point(center.x - sz.width / 2, center.y + sz.height / 2),
-            Imgproc.FONT_HERSHEY_SIMPLEX, scale, Scalar(160.0), 1, Imgproc.LINE_AA,
+            Imgproc.FONT_HERSHEY_SIMPLEX, scale, Scalar(150.0), 1, Imgproc.LINE_AA,
         )
     }
 
@@ -153,8 +155,10 @@ class SheetRenderer(private val pxPerMm: Double = 12.0, private val marginMm: Do
         Imgproc.putText(page, s, toPx(at), Imgproc.FONT_HERSHEY_SIMPLEX, scale * pxPerMm / 8.0, Scalar(grey), thickness, Imgproc.LINE_AA)
     }
 
-    private fun mark(page: Mat, c: PointMm, rMm: Double, style: MarkStyle, rnd: Random) {
-        val r = rMm * pxPerMm
+    private fun mark(page: Mat, c: PointMm, rxMm: Double, ryMm: Double, style: MarkStyle, rnd: Random) {
+        val rx = rxMm * pxPerMm
+        val ry = ryMm * pxPerMm
+        fun oval(k: Double) = Size(rx * k, ry * k)
         val jitter = 0.25 * pxPerMm
         val center = toPx(c).let { Point(it.x + rnd.nextDouble(-jitter, jitter), it.y + rnd.nextDouble(-jitter, jitter)) }
         val layer = Mat(page.size(), CvType.CV_8UC1, Scalar(0.0))
@@ -169,18 +173,18 @@ class SheetRenderer(private val pxPerMm: Double = 12.0, private val marginMm: Do
         }
         when (style) {
             MarkStyle.PARTIAL -> {
-                // Lower ~half of the bubble.
+                // About half of the oval, cut along a random chord.
                 val start = rnd.nextDouble(0.0, 360.0)
-                Imgproc.ellipse(layer, center, Size(r * 0.95, r * 0.95), start, 0.0, 190.0, Scalar(255.0), -1)
+                Imgproc.ellipse(layer, center, oval(0.95), 0.0, start, start + 190.0, Scalar(255.0), -1)
             }
             MarkStyle.CHECK -> {
                 val pts = listOf(Point(-0.6, 0.0), Point(-0.15, 0.55), Point(0.75, -0.65))
-                    .map { Point(center.x + it.x * r, center.y + it.y * r) }
+                    .map { Point(center.x + it.x * rx, center.y + it.y * ry * 1.3) }
                 Imgproc.polylines(layer, listOf(MatOfPoint(*pts.toTypedArray())), false, Scalar(255.0), max(2, (0.35 * pxPerMm).roundToInt()))
             }
-            MarkStyle.OVERFILL -> Imgproc.circle(layer, center, (r * 1.3).roundToInt(), Scalar(255.0), -1, Imgproc.LINE_AA)
-            MarkStyle.ERASED -> Imgproc.circle(layer, center, (r * rnd.nextDouble(0.8, 1.05)).roundToInt(), Scalar(255.0), -1, Imgproc.LINE_AA)
-            else -> Imgproc.circle(layer, center, (r * rnd.nextDouble(0.85, 1.02)).roundToInt(), Scalar(255.0), -1, Imgproc.LINE_AA)
+            MarkStyle.OVERFILL -> Imgproc.ellipse(layer, center, Size(rx * 1.25, ry * 1.45), 0.0, 0.0, 360.0, Scalar(255.0), -1, Imgproc.LINE_AA)
+            MarkStyle.ERASED -> Imgproc.ellipse(layer, center, oval(rnd.nextDouble(0.8, 1.05)), 0.0, 0.0, 360.0, Scalar(255.0), -1, Imgproc.LINE_AA)
+            else -> Imgproc.ellipse(layer, center, oval(rnd.nextDouble(0.85, 1.02)), 0.0, 0.0, 360.0, Scalar(255.0), -1, Imgproc.LINE_AA)
         }
         // Ink with texture, only darkening the page where the mask is set.
         val ink = Mat(page.size(), CvType.CV_8UC1)

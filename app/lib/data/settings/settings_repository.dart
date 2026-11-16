@@ -7,6 +7,12 @@ abstract final class SettingKeys {
 
   /// School student-number format, e.g. "####-#####".
   static const String studentNoFormat = 'school.student_no_format';
+
+  /// Answer sheets: print the instructor's name (default on).
+  static const String sheetsShowInstructor = 'sheets.show_instructor';
+
+  /// Answer sheets: print the school logo when one is set (default on).
+  static const String sheetsShowLogo = 'sheets.show_logo';
 }
 
 /// Typed access to the `application_settings` table.

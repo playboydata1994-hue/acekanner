@@ -30,7 +30,8 @@ enum PaperSize {
       );
 }
 
-/// Printed examination details.
+/// Printed examination details. [instructorName] and [logo] are optional:
+/// leave them null to keep them off the sheet.
 class SheetHeader {
   const SheetHeader({
     required this.examTitle,
@@ -39,6 +40,7 @@ class SheetHeader {
     this.dateText,
     this.schoolName,
     this.instructorName,
+    this.logo,
   });
 
   final String examTitle;
@@ -47,6 +49,9 @@ class SheetHeader {
   final String? dateText;
   final String? schoolName;
   final String? instructorName;
+
+  /// School logo (PNG or JPEG bytes), printed beside the title.
+  final Uint8List? logo;
 }
 
 /// One personalized sheet.
@@ -80,10 +85,13 @@ class SheetFonts {
 /// areas so it never adds darkness to a bubble except its own printed letter.
 abstract final class AnswerSheetPdf {
   static const PdfColor _ink = PdfColor.fromInt(0xFF000000);
-  static const PdfColor _bubble = PdfColor.fromInt(0xFF7A7A7A);
-  static const PdfColor _letter = PdfColor.fromInt(0xFF9A9A9A);
+  static const PdfColor _bubble = PdfColor.fromInt(0xFF4D4D4D);
+  static const PdfColor _letter = PdfColor.fromInt(0xFF8C8C8C);
   static const PdfColor _muted = PdfColor.fromInt(0xFF5F6368);
   static const PdfColor _rule = PdfColor.fromInt(0xFFC8C8C8);
+
+  /// Logo box beside the top-left marker, clear of its quiet zone (mm).
+  static const MmRect logoBox = MmRect(13, 0, 11, 11);
 
   /// Generic sheets ([students] empty: [copies] identical pages, may be
   /// photocopied) or one personalized page per student.
@@ -102,6 +110,15 @@ abstract final class AnswerSheetPdf {
       producer: 'ACEkanner',
     );
     final format = PdfPageFormat(paper.widthMm * PdfPageFormat.mm, paper.heightMm * PdfPageFormat.mm);
+    // One image object shared by every page; an unreadable logo is left out.
+    pw.ImageProvider? logo;
+    if (header.logo != null) {
+      try {
+        logo = pw.MemoryImage(header.logo!);
+      } catch (_) {
+        logo = null;
+      }
+    }
     final pages = students.isEmpty ? List<SheetStudent?>.filled(copies.clamp(1, 500), null) : students;
     for (final student in pages) {
       final qr = SheetQr(
@@ -120,7 +137,7 @@ abstract final class AnswerSheetPdf {
               pw.Positioned(
                 left: paper.frameOffset.x * PdfPageFormat.mm,
                 top: paper.frameOffset.y * PdfPageFormat.mm,
-                child: _frame(context, layout, header, fonts, qr, student),
+                child: _frame(context, layout, header, fonts, qr, student, logo),
               ),
             ],
           ),
@@ -139,6 +156,7 @@ abstract final class AnswerSheetPdf {
     SheetFonts fonts,
     String qr,
     SheetStudent? student,
+    pw.ImageProvider? logo,
   ) {
     final regular = fonts.regular.getFont(context);
     final bold = fonts.bold.getFont(context);
@@ -193,22 +211,23 @@ abstract final class AnswerSheetPdf {
                 canvas.fillPath();
               }
 
-              void bubble(Mm c, double r, String label, double labelPt) {
+              // Board-exam style oval with its letter or digit inside.
+              void bubble(Mm c, double rx, double ry, String label, double labelPt) {
                 canvas
                   ..setStrokeColor(_bubble)
-                  ..setLineWidth(0.25 * mm)
-                  ..drawEllipse(x(c.x), y(c.y), r * mm, r * mm)
+                  ..setLineWidth(0.3 * mm)
+                  ..drawEllipse(x(c.x), y(c.y), rx * mm, ry * mm)
                   ..strokePath();
                 text(label, c.x, c.y + labelPt * 0.125, labelPt, regular, _letter, center: true);
               }
 
-              // Answer area: numbers, bubbles, a light rule every 5 rows.
+              // Answer area: numbers, ovals, a light rule every 5 rows.
               const letters = ['A', 'B', 'C', 'D', 'E'];
               for (var q = 0; q < l.questions.length; q++) {
                 final row = l.questions[q];
-                text('${q + 1}', row[0].x - SheetLayout.bubbleRadius - 1.6, row[0].y + 1.2, 8, bold, _ink, right: true);
+                text('${q + 1}', row[0].x - SheetLayout.bubbleRx - 2.0, row[0].y + 1.2, 8, bold, _ink, right: true);
                 for (var c = 0; c < 5; c++) {
-                  bubble(row[c], SheetLayout.bubbleRadius, letters[c], 5.5);
+                  bubble(row[c], SheetLayout.bubbleRx, SheetLayout.bubbleRy, letters[c], 5.5);
                 }
                 if (q % SheetLayout.rowsPerColumn % 5 == 4 && q % SheetLayout.rowsPerColumn != SheetLayout.rowsPerColumn - 1) {
                   final ry = row[0].y + SheetLayout.rowPitch / 2;
@@ -216,7 +235,7 @@ abstract final class AnswerSheetPdf {
                     ..setStrokeColor(_rule)
                     ..setLineWidth(0.2 * mm)
                     ..moveTo(x(row[0].x - SheetLayout.numberWidth + 0.5), y(ry))
-                    ..lineTo(x(row[4].x + SheetLayout.bubbleRadius), y(ry))
+                    ..lineTo(x(row[4].x + SheetLayout.bubbleRx), y(ry))
                     ..strokePath();
                 }
               }
@@ -231,7 +250,7 @@ abstract final class AnswerSheetPdf {
 
               // Student-number grid: write-in boxes and digit bubbles.
               final firstCol = l.idColumns.first.first;
-              text('STUDENT NUMBER', firstCol.x - SheetLayout.idBubbleRadius, 16.2, 6.5, bold, _muted);
+              text('STUDENT NUMBER', firstCol.x - SheetLayout.idBubbleRx, 16.2, 6.5, bold, _muted);
               for (final column in l.idColumns) {
                 final cx = column.first.x;
                 canvas
@@ -245,7 +264,7 @@ abstract final class AnswerSheetPdf {
                   )
                   ..strokePath();
                 for (var d = 0; d < 10; d++) {
-                  bubble(column[d], SheetLayout.idBubbleRadius, '$d', 5);
+                  bubble(column[d], SheetLayout.idBubbleRx, SheetLayout.idBubbleRy, '$d', 5);
                 }
               }
 
@@ -253,17 +272,23 @@ abstract final class AnswerSheetPdf {
               if (l.setBubbles.isNotEmpty) {
                 text('SET', SheetLayout.qr.left, 47.2, 6.5, bold, _muted);
                 for (var i = 0; i < l.setBubbles.length; i++) {
-                  bubble(l.setBubbles[i], SheetLayout.bubbleRadius, letters[i], 5.5);
+                  bubble(l.setBubbles[i], SheetLayout.bubbleRx, SheetLayout.bubbleRy, letters[i], 5.5);
                 }
               }
               text('Code ${header.examCode}', SheetLayout.qr.left, 60, 6.5, regular, _muted);
               text('${l.itemCount} items · A–E', SheetLayout.qr.left, 64, 6.5, regular, _muted);
 
-              // Title block between the top markers.
-              text('ACEKANNER ANSWER SHEET', 14, 3.4, 6.5, bold, _muted);
-              text(_fit(header.examTitle, 60), 14, 8.6, 11, bold, _ink);
+              // Title block between the top markers, beside the logo if any.
+              final tx = logo == null ? 14.0 : logoBox.left + logoBox.width + 2.5;
+              final school = header.schoolName?.trim();
+              if (school != null && school.isNotEmpty) {
+                text(_fit(school.toUpperCase(), 70), tx, 3.6, 8, bold, _ink);
+              } else {
+                text('ANSWER SHEET', tx, 3.6, 6.5, bold, _muted);
+              }
+              text(_fit(header.examTitle, 60), tx, 8.8, 11, bold, _ink);
               final sub = [?header.subjectLine, ?header.dateText].join('  ·  ');
-              if (sub.isNotEmpty) text(_fit(sub, 90), 14, 12.6, 7.5, regular, _muted);
+              if (sub.isNotEmpty) text(_fit(sub, 90), tx, 12.8, 7.5, regular, _muted);
 
               // Write-in fields (or printed details on personalized sheets).
               final fields = <(String, String?)>[
@@ -289,7 +314,7 @@ abstract final class AnswerSheetPdf {
               final lines = [
                 'HOW TO MARK',
                 'Use a dark No. 2 pencil or a black pen.',
-                'Shade ONE bubble completely for each item.',
+                'Shade ONE oval completely for each item.',
                 'Erase changes cleanly. Do not use check marks.',
                 if (student == null)
                   'Shade your student number, starting at the left.'
@@ -301,10 +326,73 @@ abstract final class AnswerSheetPdf {
               for (var i = 0; i < lines.length; i++) {
                 text(lines[i], 0, 50.5 + i * 3.2, i == 0 ? 6.5 : 7, i == 0 ? bold : regular, i == 0 ? _muted : _ink);
               }
-              final footer = [?header.schoolName, ?header.instructorName].join('  ·  ');
-              if (footer.isNotEmpty) text(_fit(footer, 80), w / 2, h - 3, 6.5, regular, _muted, center: true);
+
+              // Shading examples, as on board-exam answer sheets. Kept left of
+              // x 88 so they stay well clear of the student-number grid.
+              const rx = SheetLayout.bubbleRx;
+              const ry = SheetLayout.bubbleRy;
+              void outline(double cx, double cy) => canvas
+                ..setStrokeColor(_bubble)
+                ..setLineWidth(0.3 * mm)
+                ..drawEllipse(x(cx), y(cy), rx * mm, ry * mm)
+                ..strokePath();
+              void stroke(List<(double, double)> pts) {
+                canvas
+                  ..setStrokeColor(_ink)
+                  ..setLineWidth(0.35 * mm)
+                  ..moveTo(x(pts.first.$1), y(pts.first.$2));
+                for (final (px, py) in pts.skip(1)) {
+                  canvas.lineTo(x(px), y(py));
+                }
+                canvas.strokePath();
+              }
+
+              text('CORRECT', 64, 51, 5.5, bold, _muted);
+              canvas
+                ..setFillColor(_ink)
+                ..drawEllipse(x(81), y(50.2), rx * mm, ry * mm)
+                ..fillPath();
+              text('WRONG', 64, 56.5, 5.5, bold, _muted);
+              const wy = 60.5;
+              const wx = [66.0, 73.0, 80.0, 87.0];
+              for (final cx in wx) {
+                outline(cx, wy);
+              }
+              stroke([(wx[0] - 1.2, wy), (wx[0] - 0.3, wy + 1.0), (wx[0] + 1.4, wy - 1.3)]); // check
+              stroke([(wx[1] - 1.2, wy - 1.0), (wx[1] + 1.2, wy + 1.0)]); // cross
+              stroke([(wx[1] - 1.2, wy + 1.0), (wx[1] + 1.2, wy - 1.0)]);
+              canvas
+                ..saveContext()
+                ..drawRect(x(wx[2] - rx), y(wy + ry), rx * mm, 2 * ry * mm) // half shaded
+                ..clipPath()
+                ..setFillColor(_ink)
+                ..drawEllipse(x(wx[2]), y(wy), rx * mm, ry * mm)
+                ..fillPath()
+                ..restoreContext()
+                ..setFillColor(_ink)
+                ..drawEllipse(x(wx[3]), y(wy), 0.6 * mm, 0.6 * mm) // dot
+                ..fillPath();
+              text('check', wx[0], wy + 4, 4.5, regular, _muted, center: true);
+              text('cross', wx[1], wy + 4, 4.5, regular, _muted, center: true);
+              text('half', wx[2], wy + 4, 4.5, regular, _muted, center: true);
+              text('dot', wx[3], wy + 4, 4.5, regular, _muted, center: true);
+              final footer = [
+                if (header.instructorName case final name? when name.trim().isNotEmpty) 'Instructor: ${name.trim()}',
+                'ACEkanner form ${l.templateId.toUpperCase()}',
+              ].join('   ·   ');
+              text(_fit(footer, 100), w / 2, h - 3, 6.5, regular, _muted, center: true);
             },
           ),
+          if (logo != null)
+            pw.Positioned(
+              left: logoBox.left * mm,
+              top: logoBox.top * mm,
+              child: pw.SizedBox(
+                width: logoBox.width * mm,
+                height: logoBox.height * mm,
+                child: pw.Image(logo, fit: pw.BoxFit.contain),
+              ),
+            ),
           pw.Positioned(
             left: SheetLayout.qr.left * mm,
             top: SheetLayout.qr.top * mm,

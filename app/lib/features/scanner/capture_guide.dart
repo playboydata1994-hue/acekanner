@@ -10,6 +10,9 @@ enum GuideStatus {
   /// Markers of a different answer-sheet template are visible.
   otherTemplate,
 
+  /// An older ACEkanner sheet design (circle bubbles) is visible.
+  olderDesign,
+
   /// All four markers visible and steady.
   ready,
 }
@@ -27,6 +30,7 @@ class GuideState {
         GuideStatus.searching => 'Fit the whole answer sheet in the frame',
         GuideStatus.partial => '$cornersFound of 4 corners found — move back a little',
         GuideStatus.otherTemplate => 'This answer sheet is a different type than this examination',
+        GuideStatus.olderDesign => 'This is an older ACEkanner sheet design — print new sheets',
         GuideStatus.ready => 'All corners found — hold steady',
       };
 }
@@ -48,7 +52,10 @@ class CaptureGuide {
   GuideState update(MarkerFeedback f) {
     if (f.otherTemplateFor(itemCount)) {
       _reset();
-      return GuideState(GuideStatus.otherTemplate, f.foundFor(itemCount));
+      return GuideState(
+        f.olderDesignFor(itemCount) ? GuideStatus.olderDesign : GuideStatus.otherTemplate,
+        f.foundFor(itemCount),
+      );
     }
     final found = f.foundFor(itemCount);
     if (found < 4) {

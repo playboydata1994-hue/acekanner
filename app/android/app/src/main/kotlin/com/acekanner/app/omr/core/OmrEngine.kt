@@ -51,7 +51,7 @@ class DetectedMarker(val id: Int, val corners: Array<Point>) {
  */
 class OmrEngine(private val thresholds: OmrThresholds = OmrThresholds.STANDARD) {
     companion object {
-        const val VERSION = "1.0.0"
+        const val VERSION = "2.0.0"
 
         /** Marker detection runs on images no larger than this (long side, px). */
         private const val DETECT_MAX_SIDE = 2000.0
@@ -70,7 +70,7 @@ class OmrEngine(private val thresholds: OmrThresholds = OmrThresholds.STANDARD) 
         ArucoDetector(Objdetect.getPredefinedDictionary(Objdetect.DICT_4X4_50), params)
     }
 
-    /** Finds ACEkanner corner markers (IDs 0-11) in an 8-bit grey image. */
+    /** Finds ACEkanner corner markers (IDs 0-23, every sheet design) in an 8-bit grey image. */
     fun detectMarkers(gray: Mat): List<DetectedMarker> {
         val corners = ArrayList<Mat>()
         val ids = Mat()
@@ -79,7 +79,7 @@ class OmrEngine(private val thresholds: OmrThresholds = OmrThresholds.STANDARD) 
         for (i in 0 until ids.rows()) {
             val id = ids.get(i, 0)[0].toInt()
             val c = corners[i]
-            if (id in 0..11) {
+            if (id in 0..SheetLayout.MAX_MARKER_ID) {
                 found.add(DetectedMarker(id, Array(4) { k -> c.get(0, k).let { Point(it[0], it[1]) } }))
             }
             c.release()
@@ -131,9 +131,9 @@ class OmrEngine(private val thresholds: OmrThresholds = OmrThresholds.STANDARD) 
             val other = byGroup.filterKeys { it != layout.markerGroup }.maxByOrNull { it.value.size }
             return when {
                 other != null && other.value.size >= 3 && mine.size < 2 -> OmrOutcome.Failure(
-                    OmrError.WRONG_TEMPLATE,
+                    if (SheetLayout.designOfGroup(other.key) < layout.design) OmrError.OLD_SHEET_DESIGN else OmrError.WRONG_TEMPLATE,
                     markersFound = mine.size,
-                    detectedItemCount = SheetLayout.ITEMS_BY_GROUP.getOrNull(other.key),
+                    detectedItemCount = SheetLayout.itemsOfGroup(other.key),
                 )
                 globalBrightness < 35.0 -> OmrOutcome.Failure(OmrError.TOO_DARK, mine.size)
                 looksBlurredSheet -> OmrOutcome.Failure(OmrError.TOO_BLURRY, mine.size)
@@ -239,8 +239,9 @@ class OmrEngine(private val thresholds: OmrThresholds = OmrThresholds.STANDARD) 
                 normalized.get(0, 0, pixels)
                 val sampler = Sampler(pixels, layout.widthPx, layout.heightPx, px)
 
-                // ---- 4b. Local alignment on the printed bubble rings ----------
-                val r = layout.bubbleRadiusMm
+                // ---- 4b. Local alignment on the printed oval outlines ----------
+                val rx = layout.bubbleRxMm
+                val ry = layout.bubbleRyMm
                 val alignment = LocalAlignment.estimate(sampler, layout)
                 if (alignment.maxShiftMm > thresholds.maxLocalShiftMm) {
                     normalized.release()
@@ -250,7 +251,7 @@ class OmrEngine(private val thresholds: OmrThresholds = OmrThresholds.STANDARD) 
                 // ---- 5-7. Score, calibrate, classify -------------------------
                 val raw = layout.questions.mapIndexed { qi, q ->
                     val (dx, dy) = alignment.questionOffset(qi)
-                    DoubleArray(5) { sampler.darkness(PointMm(q[it].x + dx, q[it].y + dy), r) }
+                    DoubleArray(5) { sampler.darkness(PointMm(q[it].x + dx, q[it].y + dy), rx, ry) }
                 }
                 val all = raw.flatMap { it.asList() }.sorted()
                 val emptyLevel = percentile(all, 0.40)
@@ -264,7 +265,9 @@ class OmrEngine(private val thresholds: OmrThresholds = OmrThresholds.STANDARD) 
 
                 val (idDx, idDy) = alignment.headerOffset
                 val idRaw = layout.idColumns.map { c ->
-                    DoubleArray(10) { sampler.darkness(PointMm(c[it].x + idDx, c[it].y + idDy), layout.idBubbleRadiusMm) }
+                    DoubleArray(10) {
+                        sampler.darkness(PointMm(c[it].x + idDx, c[it].y + idDy), layout.idBubbleRxMm, layout.idBubbleRyMm)
+                    }
                 }
                 val idEmpty = percentile(idRaw.flatMap { it.asList() }.sorted(), 0.40)
                 val idColumns = idRaw.map { d -> classify(DoubleArray(10) { norm(d[it], idEmpty) }) }
@@ -274,7 +277,7 @@ class OmrEngine(private val thresholds: OmrThresholds = OmrThresholds.STANDARD) 
                     null
                 } else {
                     val d = DoubleArray(layout.setBubbles.size) {
-                        sampler.darkness(PointMm(layout.setBubbles[it].x + idDx, layout.setBubbles[it].y + idDy), r)
+                        sampler.darkness(PointMm(layout.setBubbles[it].x + idDx, layout.setBubbles[it].y + idDy), rx, ry)
                     }
                     classify(DoubleArray(d.size) { norm(d[it], emptyLevel) })
                 }
@@ -503,24 +506,24 @@ class OmrEngine(private val thresholds: OmrThresholds = OmrThresholds.STANDARD) 
 
 /** Reads darkness from the normalized canonical image (paper = 0, black = 1). */
 internal class Sampler(val pixels: ByteArray, val width: Int, val height: Int, val pxPerMm: Double) {
-    /** 1 - mean brightness of the bubble's inner disc. */
-    fun darkness(center: PointMm, radiusMm: Double): Double {
+    /** 1 - mean brightness of the oval's inner area (half-axes [rxMm], [ryMm]). */
+    fun darkness(center: PointMm, rxMm: Double, ryMm: Double): Double {
         val cx = center.x * pxPerMm
         val cy = center.y * pxPerMm
-        val r = radiusMm * INNER_FRACTION * pxPerMm
-        val r2 = r * r
-        val x0 = (cx - r).toInt().coerceAtLeast(0)
-        val x1 = (cx + r).toInt().coerceAtMost(width - 1)
-        val y0 = (cy - r).toInt().coerceAtLeast(0)
-        val y1 = (cy + r).toInt().coerceAtMost(height - 1)
+        val rx = rxMm * INNER_FRACTION * pxPerMm
+        val ry = ryMm * INNER_FRACTION * pxPerMm
+        val x0 = (cx - rx).toInt().coerceAtLeast(0)
+        val x1 = (cx + rx).toInt().coerceAtMost(width - 1)
+        val y0 = (cy - ry).toInt().coerceAtLeast(0)
+        val y1 = (cy + ry).toInt().coerceAtMost(height - 1)
         var sum = 0L
         var n = 0
         for (y in y0..y1) {
-            val dy = y + 0.5 - cy
+            val dy = (y + 0.5 - cy) / ry
             val row = y * width
             for (x in x0..x1) {
-                val dx = x + 0.5 - cx
-                if (dx * dx + dy * dy <= r2) {
+                val dx = (x + 0.5 - cx) / rx
+                if (dx * dx + dy * dy <= 1.0) {
                     sum += pixels[row + x].toInt() and 0xFF
                     n++
                 }
@@ -538,14 +541,14 @@ internal class Sampler(val pixels: ByteArray, val width: Int, val height: Int, v
     }
 
     companion object {
-        /** Inner disc sampled for darkness, as a fraction of the bubble radius. */
+        /** Inner area sampled for darkness, as a fraction of the oval's half-axes. */
         const val INNER_FRACTION = 0.62
     }
 }
 
 /**
  * Local alignment: for blocks of bubbles, finds the small shift (mm) at which
- * the printed bubble rings line up best with the layout. Corrects residual
+ * the printed oval outlines line up best with the layout. Corrects residual
  * misalignment (slight curl, lens distortion, corner noise) and exposes folds:
  * a block that has to move more than a couple of millimetres means the sheet
  * is not flat.
@@ -583,16 +586,16 @@ internal class LocalAlignment private constructor(
                 blocks[b].addAll(bubbles)
                 blockOf[q] = b
             }
-            val shifts = blocks.map { best(s, it, layout.bubbleRadiusMm) }
-            val header = best(s, layout.idColumns.flatten(), layout.idBubbleRadiusMm)
+            val shifts = blocks.map { best(s, it, layout.bubbleRxMm, layout.bubbleRyMm) }
+            val header = best(s, layout.idColumns.flatten(), layout.idBubbleRxMm, layout.idBubbleRyMm)
             return LocalAlignment(blockOf, shifts, header)
         }
 
         /** Coarse-to-fine search for the shift maximizing ring contrast. */
-        private fun best(s: Sampler, bubbles: List<PointMm>, r: Double): Pair<Double, Double> {
+        private fun best(s: Sampler, bubbles: List<PointMm>, rx: Double, ry: Double): Pair<Double, Double> {
             var bestX = 0.0
             var bestY = 0.0
-            var bestScore = score(s, bubbles, r, 0.0, 0.0)
+            var bestScore = score(s, bubbles, rx, ry, 0.0, 0.0)
             var step = 0.5
             var cx = 0.0
             var cy = 0.0
@@ -602,7 +605,7 @@ internal class LocalAlignment private constructor(
                 while (dy <= reach + 1e-9) {
                     var dx = -reach
                     while (dx <= reach + 1e-9) {
-                        val v = score(s, bubbles, r, cx + dx, cy + dy)
+                        val v = score(s, bubbles, rx, ry, cx + dx, cy + dy)
                         // Prefer the smaller shift on ties (stable on blank areas).
                         if (v > bestScore + 1e-6) {
                             bestScore = v; bestX = cx + dx; bestY = cy + dy
@@ -619,14 +622,13 @@ internal class LocalAlignment private constructor(
         }
 
         /**
-         * Mean of (darkness on a band across the printed ring) minus (darkness
-         * on a band just outside it). Several radii make the peak about 1 mm
-         * wide, so the 0.5 mm coarse search cannot step over it; letters inside
-         * the bubble (radius < 1.3 mm) are never sampled.
+         * Mean of (darkness on a band across the printed outline) minus
+         * (darkness on a band just outside it), on ovals grown or shrunk by
+         * the given offsets. Several offsets make the peak about 1 mm wide, so
+         * the 0.5 mm coarse search cannot step over it; the letter inside the
+         * oval (within ~0.7 mm of its centre) is never sampled.
          */
-        private fun score(s: Sampler, bubbles: List<PointMm>, r: Double, dx: Double, dy: Double): Double {
-            val ringRadii = doubleArrayOf(r - 0.35, r - 0.1, r + 0.15)
-            val outRadii = doubleArrayOf(r + 0.75, r + 1.1)
+        private fun score(s: Sampler, bubbles: List<PointMm>, rx: Double, ry: Double, dx: Double, dy: Double): Double {
             var total = 0.0
             for (b in bubbles) {
                 val x = b.x + dx
@@ -634,13 +636,16 @@ internal class LocalAlignment private constructor(
                 var ring = 0.0
                 var out = 0.0
                 for (i in 0 until RING) {
-                    for (rr in ringRadii) ring += s.at(x + rr * COS[i], y + rr * SIN[i])
-                    for (rr in outRadii) out += s.at(x + rr * COS[i], y + rr * SIN[i])
+                    for (d in RING_OFFSETS) ring += s.at(x + (rx + d) * COS[i], y + (ry + d) * SIN[i])
+                    for (d in OUT_OFFSETS) out += s.at(x + (rx + d) * COS[i], y + (ry + d) * SIN[i])
                 }
-                total += ring / (RING * ringRadii.size) - out / (RING * outRadii.size)
+                total += ring / (RING * RING_OFFSETS.size) - out / (RING * OUT_OFFSETS.size)
             }
             return total / bubbles.size
         }
+
+        private val RING_OFFSETS = doubleArrayOf(-0.35, -0.1, 0.15)
+        private val OUT_OFFSETS = doubleArrayOf(0.7, 1.0)
     }
 }
 

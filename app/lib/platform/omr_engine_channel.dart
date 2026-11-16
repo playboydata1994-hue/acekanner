@@ -35,22 +35,36 @@ class MarkerFeedback {
 
   final List<int> ids;
 
-  /// Markers found per template: [50-item, 75-item, 100-item].
+  /// Markers found per marker group (marker ID ÷ 4): 50, 75 and 100 items
+  /// of sheet design 1 (groups 0–2), then of design 2 (groups 3–5).
   final List<int> groups;
 
   /// Marker centres, normalized 0..1 in the frame.
   final List<(double, double)> centers;
 
-  int foundFor(int itemCount) => switch (itemCount) {
-        50 => groups[0],
-        75 => groups[1],
-        _ => groups[2],
-      };
+  static int groupFor(int itemCount) => ArucoMarkers.idsFor(itemCount).first ~/ 4;
 
-  /// Another template is clearly visible instead of the expected one.
-  bool otherTemplateFor(int itemCount) {
-    final mine = foundFor(itemCount);
-    return groups.any((g) => g >= 3) && mine < 2;
+  int _count(int group) => group < groups.length ? groups[group] : 0;
+
+  int foundFor(int itemCount) => _count(groupFor(itemCount));
+
+  /// The marker group clearly visible instead of the expected one, if any.
+  int? _otherGroup(int itemCount) {
+    final mine = groupFor(itemCount);
+    if (foundFor(itemCount) >= 2) return null;
+    for (var g = 0; g < groups.length; g++) {
+      if (g != mine && groups[g] >= 3) return g;
+    }
+    return null;
+  }
+
+  /// Another template (item count) is clearly visible instead of the expected one.
+  bool otherTemplateFor(int itemCount) => _otherGroup(itemCount) != null;
+
+  /// The sheet in view is an older ACEkanner design (e.g. circle bubbles).
+  bool olderDesignFor(int itemCount) {
+    final g = _otherGroup(itemCount);
+    return g != null && g ~/ 3 < groupFor(itemCount) ~/ 3;
   }
 }
 

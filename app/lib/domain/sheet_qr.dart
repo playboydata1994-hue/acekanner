@@ -35,6 +35,12 @@ class SheetQr {
         sheetCode == null ? 'G' : 'P$sheetCode',
       ].join('|');
 
+  /// True for a QR code from an older ACEkanner sheet design (e.g. `ACK1|…`).
+  static bool isOlderDesign(String? text) {
+    final m = RegExp(r'^ACK(\d+)\|').firstMatch(text?.trim() ?? '');
+    return m != null && int.parse(m.group(1)!) < SheetLayout.formatVersion;
+  }
+
   /// Parses a decoded QR string; returns null when it is not an ACEkanner code.
   static SheetQr? tryParse(String? text) {
     if (text == null) return null;

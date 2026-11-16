@@ -2,7 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:acekanner/features/scanner/capture_guide.dart';
 import 'package:acekanner/platform/omr_engine_channel.dart';
 
-MarkerFeedback frame({List<int> groups = const [4, 0, 0], double shift = 0}) => MarkerFeedback(
+// Marker groups: design 1 (50, 75, 100 items), then design 2 (50, 75, 100).
+MarkerFeedback frame({List<int> groups = const [0, 0, 0, 4, 0, 0], double shift = 0}) => MarkerFeedback(
       ids: const [],
       groups: groups,
       centers: [
@@ -16,11 +17,20 @@ MarkerFeedback frame({List<int> groups = const [4, 0, 0], double shift = 0}) => 
 void main() {
   test('reports missing corners and the wrong sheet type', () {
     final g = CaptureGuide(itemCount: 50);
-    expect(g.update(frame(groups: [0, 0, 0])).status, GuideStatus.searching);
-    final partial = g.update(frame(groups: [3, 0, 0]));
+    expect(g.update(frame(groups: [0, 0, 0, 0, 0, 0])).status, GuideStatus.searching);
+    final partial = g.update(frame(groups: [0, 0, 0, 3, 0, 0]));
     expect(partial.status, GuideStatus.partial);
     expect(partial.message, contains('3 of 4'));
-    expect(g.update(frame(groups: [0, 0, 4])).status, GuideStatus.otherTemplate);
+    expect(g.update(frame(groups: [0, 0, 0, 0, 0, 4])).status, GuideStatus.otherTemplate);
+  });
+
+  test('an old circle-design sheet is recognised, not treated as missing corners', () {
+    final g = CaptureGuide(itemCount: 75);
+    final old = g.update(frame(groups: [0, 4, 0, 0, 0, 0]));
+    expect(old.status, GuideStatus.olderDesign);
+    expect(old.message, contains('print new sheets'));
+    expect(MarkerFeedback.groupFor(50), 3);
+    expect(MarkerFeedback.groupFor(100), 5);
   });
 
   test('auto-capture fires once after three steady frames, then re-arms', () {
@@ -37,10 +47,10 @@ void main() {
 
   test('movement resets the steadiness count', () {
     final g = CaptureGuide(itemCount: 75);
-    final steady = frame(groups: [0, 4, 0]);
+    final steady = frame(groups: [0, 0, 0, 0, 4, 0]);
     g.update(steady);
     g.update(steady);
-    final moved = MarkerFeedback(ids: const [], groups: const [0, 4, 0], centers: [
+    final moved = MarkerFeedback(ids: const [], groups: const [0, 0, 0, 0, 4, 0], centers: [
       for (final c in steady.centers) (c.$1 + 0.1, c.$2),
     ]);
     expect(g.update(moved).autoCapture, isFalse);

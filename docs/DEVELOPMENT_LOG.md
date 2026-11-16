@@ -5,6 +5,55 @@ and the next step.
 
 ---
 
+## 2026-11-16 · Answer sheet redesign: board-exam ovals, optional logo and instructor
+
+Requested before Phase 6: make the instructor name optional, add an optional school
+logo, make the bubbles look like a board-exam answer sheet, and show drafts of the
+75- and 100-item sheets.
+
+### What was built
+- **Sheet design 2** (`lib/domain/sheet_layout.dart`, format 2):
+  - Answer ovals 5.0 × 3.2 mm with the letter inside, 6.8 mm pitch; student-number
+    ovals 4.2 × 2.8 mm; dark-grey 0.3 mm outlines.
+  - A "correct / wrong" shading example (filled vs. check, cross, half, dot).
+  - New corner-marker IDs (50 = 12–15, 75 = 16–19, 100 = 20–23) and QR prefix `ACK2`.
+- **Optional school logo.** Added in Profile (any picture; reduced to at most
+  600 px and stored as PNG in app-private storage, `branding/`). Printed 11 × 11 mm
+  beside the top-left marker. The school name moved to the top of the header.
+- **Optional instructor name**, now in the footer. Answer sheets screen: chips
+  "Instructor name" and "School logo" switch each on or off; the choice is saved
+  (`sheets.show_instructor`, `sheets.show_logo`). A shortcut opens Profile when no
+  name or logo is set yet.
+- **Engine 2.0.0** reads ovals (elliptical sampling and elliptical outline alignment).
+  It recognises all 24 marker IDs, so a sheet printed by test builds 0.4–0.5
+  (circles) is rejected with "older sheet design, print new sheets" instead of
+  being read with the wrong geometry. The live camera guide says the same.
+- Review screen highlights answers with ovals.
+
+### Verification
+| Check | Result |
+|---|---|
+| `flutter analyze` | No issues |
+| `flutter test` | **145 / 145 passed** (new: logo storage and resizing, logo path, PDF with/without/broken logo, old-design QR and camera guide, oval geometry: every oval inside the frame, clear of markers and QR, ≥ 1 mm apart) |
+| Engine `./gradlew test` | **22 / 22 passed**. 4,050 simulated questions on ovals, **0 misread**; clean, phone and 1080p photos 0 flagged. Real app PDFs read end to end, two of them with a logo. Old circle sheet → `old_sheet_design`. |
+| Drafts | 75 and 100 items (A4, with sample logo) and 100 items on 8.5×13 without logo, rendered and checked visually |
+
+### Changed during testing
+- Check marks inside the smaller oval scored 0.19–0.20 (just under the old 0.20
+  "empty" limit) and were read as blank in 2 of 900 difficult marks. The standard
+  empty limit is now 0.15 (strict 0.12), so they are flagged for review.
+
+### Not verified yet
+- Printing and scanning the new design on paper with a real phone (Phase 8 protocol).
+- Logo picking from the phone gallery (system picker; tested only through the
+  storage code).
+
+### Next step: Phase 6, licensing and billing
+See the Phase 6 setup list (Supabase project, Google OAuth client, Play Console
+subscription, internal test upload, service-account key into Supabase only).
+
+---
+
 ## 2026-11-16 · Phase 5: grading, results and class analytics
 
 ### What was built

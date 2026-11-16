@@ -40,7 +40,7 @@ private class Tally {
 
 class EngineAccuracyTest {
     private lateinit var renderer: SheetRenderer
-    private val layouts = listOf("ack1-50-d10-s1", "ack1-75-d9-s2", "ack1-100-d12-s4")
+    private val layouts = listOf("ack2-50-d10-s1", "ack2-75-d9-s2", "ack2-100-d12-s4")
 
     @BeforeTest
     fun setUp() {
@@ -89,7 +89,7 @@ class EngineAccuracyTest {
         }
         val digits = (1..layout.idDigits).map { rnd.nextInt(10) }.joinToString("")
         val set = if (layout.setCount > 1) rnd.nextInt(layout.setCount) else null
-        val spec = SheetSpec(layout, marks, studentNumber = digits, setIndex = set, qrText = "ACK1|K7M2Q9XA|${layout.itemCount}|${layout.idDigits}|${layout.setCount}|G")
+        val spec = SheetSpec(layout, marks, studentNumber = digits, setIndex = set, qrText = "ACK2|K7M2Q9XA|${layout.itemCount}|${layout.idDigits}|${layout.setCount}|G")
         return spec to truth
     }
 

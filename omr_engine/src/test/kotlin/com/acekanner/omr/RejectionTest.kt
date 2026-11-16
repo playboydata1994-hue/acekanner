@@ -21,8 +21,8 @@ import org.opencv.imgproc.Imgproc
 /** Bad photos must be rejected with the reason the instructor can act on. */
 class RejectionTest {
     private lateinit var renderer: SheetRenderer
-    private val layout50 by lazy { loadLayout("ack1-50-d10-s1") }
-    private val layout100 by lazy { loadLayout("ack1-100-d12-s4") }
+    private val layout50 by lazy { loadLayout("ack2-50-d10-s1") }
+    private val layout100 by lazy { loadLayout("ack2-100-d12-s4") }
 
     @BeforeTest
     fun setUp() {
@@ -66,6 +66,19 @@ class RejectionTest {
         val f = failure(photo, layout50)
         assertEquals(OmrError.WRONG_TEMPLATE, f.error)
         assertEquals(100, f.detectedItemCount)
+    }
+
+    @Test
+    fun `an old circle-design sheet from test builds 0_4 to 0_5 is not misread`() {
+        val rnd = Random(19)
+        // Same geometry, but the design-1 corner markers (IDs 4-7, 75 items).
+        val json = org.json.JSONObject(java.io.File("src/test/resources/layouts/ack2-75-d9-s2.json").readText())
+        json.getJSONObject("markers").put("ids", org.json.JSONArray(listOf(4, 5, 6, 7)))
+        val old = SheetLayout.fromJson(json)
+        val photo = PhotoSimulator.photograph(sheet(old, rnd), PhotoParams(), rnd)
+        val f = failure(photo, loadLayout("ack2-75-d9-s2"))
+        assertEquals(OmrError.OLD_SHEET_DESIGN, f.error)
+        assertEquals(75, f.detectedItemCount)
     }
 
     @Test

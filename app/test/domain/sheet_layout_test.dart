@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:acekanner/domain/sheet_layout.dart';
@@ -7,9 +6,9 @@ import 'package:acekanner/domain/sheet_qr.dart';
 
 /// Layouts the Kotlin engine tests use (omr_engine/src/test/resources/layouts).
 final Map<String, SheetLayout> engineFixtures = {
-  'ack1-50-d10-s1': SheetLayout(itemCount: 50),
-  'ack1-75-d9-s2': SheetLayout(itemCount: 75, idDigits: 9, setCount: 2),
-  'ack1-100-d12-s4': SheetLayout(itemCount: 100, idDigits: 12, setCount: 4),
+  'ack2-50-d10-s1': SheetLayout(itemCount: 50),
+  'ack2-75-d9-s2': SheetLayout(itemCount: 75, idDigits: 9, setCount: 2),
+  'ack2-100-d12-s4': SheetLayout(itemCount: 100, idDigits: 12, setCount: 4),
 };
 
 void main() {
@@ -24,50 +23,54 @@ void main() {
           expect(l.idColumns, hasLength(digits));
           expect(l.setBubbles, hasLength(sets == 1 ? 0 : sets));
 
-          final circles = <(Mm, double)>[
+          // Every oval as (centre, half-width, half-height).
+          final ovals = <(Mm, double, double)>[
             for (final q in l.questions)
-              for (final b in q) (b, SheetLayout.bubbleRadius),
+              for (final b in q) (b, SheetLayout.bubbleRx, SheetLayout.bubbleRy),
             for (final c in l.idColumns)
-              for (final b in c) (b, SheetLayout.idBubbleRadius),
-            for (final b in l.setBubbles) (b, SheetLayout.bubbleRadius),
+              for (final b in c) (b, SheetLayout.idBubbleRx, SheetLayout.idBubbleRy),
+            for (final b in l.setBubbles) (b, SheetLayout.bubbleRx, SheetLayout.bubbleRy),
           ];
 
-          for (final (p, r) in circles) {
+          for (final (p, rx, ry) in ovals) {
             // Inside the frame.
-            expect(p.x - r, greaterThanOrEqualTo(0));
-            expect(p.y - r, greaterThanOrEqualTo(0));
-            expect(p.x + r, lessThanOrEqualTo(SheetLayout.frameWidth));
-            expect(p.y + r, lessThanOrEqualTo(SheetLayout.frameHeight));
+            expect(p.x - rx, greaterThanOrEqualTo(0));
+            expect(p.y - ry, greaterThanOrEqualTo(0));
+            expect(p.x + rx, lessThanOrEqualTo(SheetLayout.frameWidth));
+            expect(p.y + ry, lessThanOrEqualTo(SheetLayout.frameHeight));
             // Clear of every marker and its quiet zone.
             for (final o in l.markerOrigins) {
-              final inside = p.x + r > o.x - quiet &&
-                  p.x - r < o.x + SheetLayout.markerSize + quiet &&
-                  p.y + r > o.y - quiet &&
-                  p.y - r < o.y + SheetLayout.markerSize + quiet;
+              final inside = p.x + rx > o.x - quiet &&
+                  p.x - rx < o.x + SheetLayout.markerSize + quiet &&
+                  p.y + ry > o.y - quiet &&
+                  p.y - ry < o.y + SheetLayout.markerSize + quiet;
               expect(inside, isFalse, reason: 'bubble $p touches a marker');
             }
             // Clear of the QR code.
             const q = SheetLayout.qr;
-            final inQr = p.x + r > q.left && p.x - r < q.left + q.width && p.y + r > q.top && p.y - r < q.top + q.height;
+            final inQr = p.x + rx > q.left && p.x - rx < q.left + q.width && p.y + ry > q.top && p.y - ry < q.top + q.height;
             expect(inQr, isFalse, reason: 'bubble $p overlaps the QR code');
           }
 
-          // No two bubbles overlap; answer bubbles keep a 1.5 mm gap.
-          for (var i = 0; i < circles.length; i++) {
-            for (var j = i + 1; j < circles.length; j++) {
-              final (a, ra) = circles[i];
-              final (b, rb) = circles[j];
-              final d = sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
-              expect(d - ra - rb, greaterThanOrEqualTo(0.5), reason: '$a and $b too close');
+          // No two ovals overlap: at least 1 mm apart horizontally or vertically
+          // (the engine samples just outside each ring when aligning).
+          for (var i = 0; i < ovals.length; i++) {
+            for (var j = i + 1; j < ovals.length; j++) {
+              final (a, arx, ary) = ovals[i];
+              final (b, brx, bry) = ovals[j];
+              final gapX = (a.x - b.x).abs() - arx - brx;
+              final gapY = (a.y - b.y).abs() - ary - bry;
+              expect(gapX >= 1.0 || gapY >= 1.0, isTrue, reason: '$a and $b too close');
             }
           }
 
           // Answer area below the header; ID grid and set row inside it.
           for (final q in l.questions) {
-            expect(q.first.y - SheetLayout.bubbleRadius, greaterThan(SheetLayout.headerBottom));
+            expect(q.first.y - SheetLayout.bubbleRy, greaterThan(SheetLayout.headerBottom));
           }
           for (final c in l.idColumns) {
-            expect(c.last.y + SheetLayout.idBubbleRadius, lessThan(SheetLayout.headerBottom));
+            expect(c.last.y + SheetLayout.idBubbleRy, lessThan(SheetLayout.headerBottom));
+            expect(c.first.x + SheetLayout.idBubbleRx, lessThan(SheetLayout.qr.left - 2));
           }
         });
       }
@@ -83,16 +86,17 @@ void main() {
   });
 
   test('marker IDs identify the template', () {
-    expect(ArucoMarkers.idsFor(50), [0, 1, 2, 3]);
-    expect(ArucoMarkers.idsFor(75), [4, 5, 6, 7]);
-    expect(ArucoMarkers.idsFor(100), [8, 9, 10, 11]);
+    expect(ArucoMarkers.idsFor(50), [12, 13, 14, 15]);
+    expect(ArucoMarkers.idsFor(75), [16, 17, 18, 19]);
+    expect(ArucoMarkers.idsFor(100), [20, 21, 22, 23]);
+    expect(ArucoMarkers.bits, hasLength(24));
     expect(() => ArucoMarkers.idsFor(60), throwsArgumentError);
     expect(ArucoMarkers.bits.every((b) => RegExp(r'^[01]{16}$').hasMatch(b)), isTrue);
   });
 
   test('QR payload round-trips', () {
     const generic = SheetQr(examCode: 'K7M2Q9XA', itemCount: 75, idDigits: 9, setCount: 2);
-    expect(generic.encode(), 'ACK1|K7M2Q9XA|75|9|2|G');
+    expect(generic.encode(), 'ACK2|K7M2Q9XA|75|9|2|G');
     final parsed = SheetQr.tryParse(generic.encode())!;
     expect(parsed.examCode, 'K7M2Q9XA');
     expect(parsed.personalized, isFalse);
@@ -101,7 +105,9 @@ void main() {
     expect(SheetQr.tryParse(personal.encode())!.sheetCode, 'S3CR3T00');
 
     expect(SheetQr.tryParse('https://example.com'), isNull);
-    expect(SheetQr.tryParse('ACK1|X|50|10|1|Z'), isNull);
+    expect(SheetQr.tryParse('ACK2|X|50|10|1|Z'), isNull);
+    expect(SheetQr.isOlderDesign('ACK1|K7M2Q9XA|50|10|1|G'), isTrue);
+    expect(SheetQr.isOlderDesign(generic.encode()), isFalse);
     expect(SheetQr.tryParse(null), isNull);
   });
 

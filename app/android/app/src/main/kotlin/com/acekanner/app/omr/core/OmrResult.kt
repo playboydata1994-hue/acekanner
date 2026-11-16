@@ -41,6 +41,7 @@ enum class OmrError(val code: String, val message: String) {
     NO_MARKERS("no_markers", "No answer sheet found. Fit the whole sheet, including the four black corner squares, in the frame."),
     PARTIAL_MARKERS("partial_markers", "Not all four corner squares are visible. Move back a little so the whole sheet fits."),
     WRONG_TEMPLATE("wrong_template", "This is a different answer sheet type than this examination uses."),
+    OLD_SHEET_DESIGN("old_sheet_design", "This is an older ACEkanner answer sheet design. Print new sheets for this examination."),
     TOO_BLURRY("too_blurry", "The photo is blurry. Hold the phone steady and tap to focus."),
     TOO_DARK("too_dark", "The photo is too dark or low in contrast. Move to better light."),
     GLARE("glare", "There is glare on the sheet. Tilt the sheet or phone away from the light."),

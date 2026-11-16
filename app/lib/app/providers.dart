@@ -14,6 +14,7 @@ import '../data/repositories/profile_repository.dart';
 import '../data/repositories/students_repository.dart';
 import '../data/settings/settings_repository.dart';
 import '../platform/omr_engine_channel.dart';
+import '../services/branding_store.dart';
 import 'bootstrap.dart';
 
 final clockProvider = Provider<Clock>((ref) => const Clock());
@@ -143,3 +144,5 @@ final printedSheetsRepositoryProvider = Provider<PrintedSheetsRepository>(
     clock: ref.watch(clockProvider),
   ),
 );
+
+final brandingStoreProvider = Provider<BrandingStore>((ref) => BrandingStore(getApplicationSupportDirectory));

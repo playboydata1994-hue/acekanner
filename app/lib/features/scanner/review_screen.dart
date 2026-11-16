@@ -629,7 +629,7 @@ class _StudentPickerState extends ConsumerState<_StudentPicker> {
   }
 }
 
-/// Circles what was read on the corrected sheet image.
+/// Rings what was read on the corrected sheet image.
 class _OverlayPainter extends CustomPainter {
   _OverlayPainter({
     required this.layout,
@@ -651,16 +651,17 @@ class _OverlayPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final sx = size.width / SheetLayout.frameWidth;
     final sy = size.height / SheetLayout.frameHeight;
-    final r = SheetLayout.bubbleRadius * sx * 1.35;
+    final ringW = (SheetLayout.bubbleRx + 0.9) * 2 * sx;
+    final ringH = (SheetLayout.bubbleRy + 0.9) * 2 * sy;
     for (var q = 0; q < layout.questions.length; q++) {
       final row = layout.questions[q];
       final a = answers[q + 1];
       final isFlagged = reading.questions[q].state == MarkState.uncertain;
       if (isFlagged) {
-        final left = (row.first.x - SheetLayout.bubbleRadius - 1) * sx;
-        final top = (row.first.y - SheetLayout.bubbleRadius - 0.8) * sy;
-        final right = (row.last.x + SheetLayout.bubbleRadius + 1) * sx;
-        final bottom = (row.first.y + SheetLayout.bubbleRadius + 0.8) * sy;
+        final left = (row.first.x - SheetLayout.bubbleRx - 1) * sx;
+        final top = (row.first.y - SheetLayout.bubbleRy - 1.2) * sy;
+        final right = (row.last.x + SheetLayout.bubbleRx + 1) * sx;
+        final bottom = (row.first.y + SheetLayout.bubbleRy + 1.2) * sy;
         canvas.drawRRect(
           RRect.fromLTRBR(left, top, right, bottom, Radius.circular(3 * sx)),
           Paint()
@@ -674,7 +675,9 @@ class _OverlayPainter extends CustomPainter {
         ..strokeWidth = 2
         ..color = AnswerMask.count(a) > 1 ? multiple : answered;
       for (var c = 0; c < 5; c++) {
-        if (AnswerMask.has(a, c)) canvas.drawCircle(Offset(row[c].x * sx, row[c].y * sy), r, paint);
+        if (AnswerMask.has(a, c)) {
+          canvas.drawOval(Rect.fromCenter(center: Offset(row[c].x * sx, row[c].y * sy), width: ringW, height: ringH), paint);
+        }
       }
     }
   }

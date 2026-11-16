@@ -81,7 +81,12 @@ void main() {
     await tester.enterText(find.widgetWithText(TextFormField, 'Student number format'), '####-#####');
     await tester.pumpAndSettle();
     expect(find.textContaining('Example: 2021-00123'), findsOneWidget);
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    expect(find.text('School logo (optional)'), findsOneWidget);
+    expect(find.widgetWithText(TextButton, 'Add logo'), findsOneWidget);
+    final save = find.widgetWithText(FilledButton, 'Save');
+    final list = find.ancestor(of: find.text('School logo (optional)'), matching: find.byType(Scrollable)).first;
+    await tester.scrollUntilVisible(save, 200, scrollable: list);
+    await tester.tap(save);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Maria'), findsWidgets);

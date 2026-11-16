@@ -1,3 +1,5 @@
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -8,6 +10,7 @@ import '../../core/widgets/section_header.dart';
 import '../../data/repositories/profile_repository.dart';
 import '../../domain/student_number.dart';
 import '../../domain/validators.dart';
+import '../../services/branding_store.dart';
 
 /// Instructor details and school information printed on sheets and reports.
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -30,6 +33,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _loading = true;
   bool _saving = false;
 
+  /// Logo shown in the form; [_logoChanged] means Save must store or clear it.
+  Uint8List? _logo;
+  bool _logoChanged = false;
+  bool _pickingLogo = false;
+
   List<TextEditingController> get _all =>
       [_name, _honorific, _email, _employeeNo, _school, _address, _department, _format];
 
@@ -50,6 +58,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _address.text = p?.schoolAddress ?? '';
     _department.text = p?.department ?? '';
     _format.text = await repo.studentNoFormat();
+    _logo = await ref.read(brandingStoreProvider).read(p?.logoPath);
     _format.addListener(() => setState(() {}));
     if (mounted) setState(() => _loading = false);
   }
@@ -79,11 +88,42 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
       );
       await repo.setStudentNoFormat(_format.text);
+      if (_logoChanged) {
+        final store = ref.read(brandingStoreProvider);
+        final path = _logo == null ? null : await store.saveLogo(_logo!);
+        final previous = await repo.setLogoPath(path);
+        if (previous != path) await store.delete(previous);
+      }
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) showError(context, e);
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _pickLogo() async {
+    if (_pickingLogo) return;
+    setState(() => _pickingLogo = true);
+    try {
+      final file = await FilePicker.pickFile(type: FileType.image);
+      if (file == null) return;
+      final bytes = await file.xFile.readAsBytes();
+      if (bytes.length > BrandingStore.maxSourceBytes) {
+        throw const FormatException('Choose a picture smaller than 15 MB.');
+      }
+      final png = await BrandingStore.normalize(bytes);
+      if (mounted) {
+        setState(() {
+          _logo = png;
+          _logoChanged = true;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      e is FormatException ? showMessage(context, e.message) : showError(context, e);
+    } finally {
+      if (mounted) setState(() => _pickingLogo = false);
     }
   }
 
@@ -165,6 +205,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     textCapitalization: TextCapitalization.words,
                     validator: (v) => Validators.optional(v, max: 240),
                   ),
+                  const SizedBox(height: Space.l),
+                  _LogoField(
+                    logo: _logo,
+                    busy: _pickingLogo,
+                    onPick: _pickLogo,
+                    onRemove: () => setState(() {
+                      _logo = null;
+                      _logoChanged = true;
+                    }),
+                  ),
                   const SectionHeader('Student numbers'),
                   TextFormField(
                     controller: _format,
@@ -190,6 +240,58 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ],
               ),
             ),
+    );
+  }
+}
+
+/// Optional school logo, printed on answer sheets when switched on there.
+class _LogoField extends StatelessWidget {
+  const _LogoField({required this.logo, required this.busy, required this.onPick, required this.onRemove});
+
+  final Uint8List? logo;
+  final bool busy;
+  final VoidCallback onPick;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.colorScheme.outlineVariant),
+            borderRadius: BorderRadius.circular(8),
+            color: Colors.white,
+          ),
+          padding: const EdgeInsets.all(4),
+          child: logo == null
+              ? Icon(Icons.image_outlined, color: theme.colorScheme.onSurfaceVariant)
+              : Image.memory(logo!, fit: BoxFit.contain, semanticLabel: 'School logo'),
+        ),
+        const SizedBox(width: Space.l),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('School logo (optional)', style: theme.textTheme.titleSmall),
+              Text('Printed at the top of answer sheets.', style: theme.textTheme.bodySmall),
+              Wrap(
+                spacing: Space.s,
+                children: [
+                  TextButton(
+                    onPressed: busy ? null : onPick,
+                    child: Text(logo == null ? 'Add logo' : 'Change'),
+                  ),
+                  if (logo != null) TextButton(onPressed: busy ? null : onRemove, child: const Text('Remove')),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

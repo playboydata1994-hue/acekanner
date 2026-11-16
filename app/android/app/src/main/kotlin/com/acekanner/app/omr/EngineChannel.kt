@@ -142,7 +142,8 @@ object EngineChannel {
 
     /**
      * Args: bytes (luminance plane), width, height, rowStride, maxSide.
-     * Returns { ids: [..], groups: [count50, count75, count100], corners: [[x,y]...] (0..1) }.
+     * Returns { ids: [..], groups: [6 counts, one per marker group: design 1 50/75/100,
+     * design 2 50/75/100], corners: [[x,y]...] (0..1) }.
      */
     private fun detectMarkers(call: MethodCall): Map<String, Any?> {
         check(ensureOpenCv()) { openCvError ?: "OpenCV unavailable" }
@@ -159,8 +160,8 @@ object EngineChannel {
         Imgproc.resize(frame, small, Size(), scale, scale, Imgproc.INTER_AREA)
         try {
             val markers = previewEngine.detectMarkers(small)
-            val groups = IntArray(3)
-            markers.forEach { if (it.id / 4 < 3) groups[it.id / 4]++ }
+            val groups = IntArray(SheetLayout.MAX_MARKER_ID / 4 + 1)
+            markers.forEach { groups[it.id / 4]++ }
             val corners = JSONArray()
             markers.forEach { m ->
                 corners.put(JSONArray(listOf(m.center.x / small.cols(), m.center.y / small.rows())))

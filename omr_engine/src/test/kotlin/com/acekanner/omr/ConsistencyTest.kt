@@ -23,9 +23,9 @@ class ConsistencyTest {
     fun `app marker bits match the OpenCV dictionary`() {
         val dart = File("../app/lib/domain/sheet_layout.dart").readText()
         val bits = Regex("'([01]{16})', // (\\d+)").findAll(dart).associate { it.groupValues[2].toInt() to it.groupValues[1] }
-        assertEquals((0..11).toSet(), bits.keys)
+        assertEquals((0..SheetLayout.MAX_MARKER_ID).toSet(), bits.keys)
         val dict = Objdetect.getPredefinedDictionary(Objdetect.DICT_4X4_50)
-        for (id in 0..11) {
+        for (id in 0..SheetLayout.MAX_MARKER_ID) {
             val img = Mat()
             dict.generateImageMarker(id, 6, img, 1)
             val expected = (1..4).joinToString("") { r -> (1..4).joinToString("") { c -> if (img.get(r, c)[0] > 127) "1" else "0" } }
@@ -35,15 +35,27 @@ class ConsistencyTest {
 
     @Test
     fun `layout fixtures parse and validate`() {
-        for (name in listOf("ack1-50-d10-s1", "ack1-75-d9-s2", "ack1-100-d12-s4")) {
+        for (name in listOf("ack2-50-d10-s1", "ack2-75-d9-s2", "ack2-100-d12-s4")) {
             val l = loadLayout(name)
             assertEquals(l.itemCount, l.questions.size)
             assertEquals(1520, l.widthPx)
             assertEquals(2000, l.heightPx)
         }
-        val broken = JSONObject(File("src/test/resources/layouts/ack1-50-d10-s1.json").readText())
-        broken.getJSONObject("markers").put("ids", org.json.JSONArray(listOf(0, 1, 2, 7)))
+        val broken = JSONObject(File("src/test/resources/layouts/ack2-50-d10-s1.json").readText())
+        broken.getJSONObject("markers").put("ids", org.json.JSONArray(listOf(12, 13, 14, 19)))
         assertFailsWith<IllegalArgumentException> { SheetLayout.fromJson(broken) }
+    }
+
+    @Test
+    fun `marker groups map to sheet design and item count`() {
+        val l = loadLayout("ack2-75-d9-s2")
+        assertEquals(2, l.design)
+        assertEquals(1.6, l.bubbleRyMm)
+        assertEquals(1, SheetLayout.designOfGroup(1)) // IDs 4-7: design 1, 75 items
+        assertEquals(75, SheetLayout.itemsOfGroup(1))
+        assertEquals(2, SheetLayout.designOfGroup(5)) // IDs 20-23: design 2, 100 items
+        assertEquals(100, SheetLayout.itemsOfGroup(5))
+        assertEquals(null, SheetLayout.itemsOfGroup(6))
     }
 
     @Test

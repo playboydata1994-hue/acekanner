@@ -34,6 +34,16 @@ void main() {
     expect(rows.single.schoolName, isNull, reason: 'cleared on second save');
   });
 
+  test('school logo path is set, kept across profile saves, and cleared', () async {
+    await expectLater(profiles.setLogoPath('/x/logo.png'), throwsStateError);
+    await profiles.save(const ProfileInput(fullName: 'Maria Santos'));
+    expect(await profiles.setLogoPath('/data/branding/logo-a.png'), isNull);
+    await profiles.save(const ProfileInput(fullName: 'Maria Santos', schoolName: 'SSU'));
+    expect((await profiles.get())!.logoPath, '/data/branding/logo-a.png', reason: 'profile save keeps the logo');
+    expect(await profiles.setLogoPath(null), '/data/branding/logo-a.png', reason: 'returns the old path');
+    expect((await profiles.get())!.logoPath, isNull);
+  });
+
   test('student number format defaults to 10 digits and persists', () async {
     expect(await profiles.studentNoFormat(), '##########');
     await profiles.setStudentNoFormat(' ####-##### ');

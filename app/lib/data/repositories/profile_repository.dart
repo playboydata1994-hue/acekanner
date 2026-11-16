@@ -74,6 +74,19 @@ class ProfileRepository {
     });
   }
 
+  /// Sets or clears the stored school logo (a file written by BrandingStore).
+  /// Returns the previous path so the caller can delete the old file.
+  Future<String?> setLogoPath(String? path) {
+    return _db.transaction(() async {
+      final existing = await get();
+      if (existing == null) throw StateError('Save the profile before adding a logo.');
+      await (_db.update(_db.instructorProfiles)..where((t) => t.id.equals(existing.id))).write(
+        InstructorProfilesCompanion(logoPath: Value(path), updatedAt: Value(clock.now())),
+      );
+      return existing.logoPath;
+    });
+  }
+
   /// The school's student-number format, e.g. "####-#####" ('#' = digit).
   Stream<String> watchStudentNoFormat() => _settings
       .watchString(SettingKeys.studentNoFormat)

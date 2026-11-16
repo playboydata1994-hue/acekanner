@@ -1,16 +1,19 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:printing/printing.dart';
 
 import '../../app/data_providers.dart';
 import '../../app/providers.dart';
+import '../../app/router.dart';
 import '../../core/theme/spacing.dart';
 import '../../core/widgets/feedback.dart';
 import '../../data/db/app_database.dart';
 import '../../data/repositories/exams_repository.dart';
 import '../../data/repositories/students_repository.dart';
+import '../../data/settings/settings_repository.dart';
 import '../../domain/personal_sheet_code.dart';
 import '../../domain/sheet_layout.dart';
 import '../../services/answer_sheet_pdf.dart';
@@ -34,11 +37,48 @@ class _SheetsScreenState extends ConsumerState<SheetsScreen> {
   final Set<String> _sectionIds = {};
   SheetFonts? _fonts;
   List<StudentRow> _students = const [];
+  bool _showInstructor = true;
+  bool _showLogo = true;
+  String? _instructor;
+  Uint8List? _logo;
+  bool _brandingLoaded = false;
 
   @override
   void initState() {
     super.initState();
     _loadFonts();
+    _loadBranding();
+  }
+
+  /// Instructor name, logo and the saved show/hide choices.
+  Future<void> _loadBranding() async {
+    final settings = ref.read(settingsRepositoryProvider);
+    final profile = await ref.read(profileRepositoryProvider).get();
+    final logo = await ref.read(brandingStoreProvider).read(profile?.logoPath);
+    final showInstructor = await settings.getBool(SettingKeys.sheetsShowInstructor, defaultValue: true);
+    final showLogo = await settings.getBool(SettingKeys.sheetsShowLogo, defaultValue: true);
+    if (!mounted) return;
+    setState(() {
+      _instructor = profile == null ? null : [profile.honorific, profile.fullName].whereType<String>().join(' ');
+      _logo = logo;
+      _showInstructor = showInstructor;
+      _showLogo = showLogo;
+      _brandingLoaded = true;
+    });
+  }
+
+  Future<void> _setShow(String key, bool value) async {
+    setState(() => key == SettingKeys.sheetsShowLogo ? _showLogo = value : _showInstructor = value);
+    try {
+      await ref.read(settingsRepositoryProvider).setBool(key, value);
+    } catch (e) {
+      if (mounted) showError(context, e);
+    }
+  }
+
+  Future<void> _openProfile() async {
+    await context.push(Routes.profile);
+    if (mounted) await _loadBranding();
   }
 
   Future<void> _loadFonts() async {
@@ -62,9 +102,6 @@ class _SheetsScreenState extends ConsumerState<SheetsScreen> {
   Future<Uint8List> _build(ExamDetail d) async {
     final profile = await ref.read(profileRepositoryProvider).get();
     final exam = d.exam;
-    final instructor = profile == null
-        ? null
-        : [profile.honorific, profile.fullName].whereType<String>().join(' ');
     return AnswerSheetPdf.build(
       layout: SheetLayout(itemCount: exam.itemCount, idDigits: exam.studentIdDigits, setCount: d.versions.length),
       header: SheetHeader(
@@ -73,7 +110,8 @@ class _SheetsScreenState extends ConsumerState<SheetsScreen> {
         subjectLine: d.subject == null ? null : '${d.subject!.code} — ${d.subject!.title}',
         dateText: exam.examDate == null ? null : DateFormat('d MMMM y').format(exam.examDate!),
         schoolName: profile?.schoolName,
-        instructorName: instructor,
+        instructorName: _showInstructor ? _instructor : null,
+        logo: _showLogo ? _logo : null,
       ),
       paper: _paper,
       fonts: _fonts!,
@@ -108,12 +146,16 @@ class _SheetsScreenState extends ConsumerState<SheetsScreen> {
   Widget build(BuildContext context) {
     final detail = ref.watch(examDetailProvider(widget.examId)).value;
     final theme = Theme.of(context);
-    if (detail == null || _fonts == null) {
+    if (detail == null || _fonts == null || !_brandingLoaded) {
       return Scaffold(appBar: AppBar(title: const Text('Answer sheets')), body: const Center(child: CircularProgressIndicator()));
     }
     final canPersonalize = detail.sections.isNotEmpty;
     final ready = _kind == SheetKind.generic || _students.isNotEmpty;
-    final key = ValueKey('${_paper.code}-${_kind.name}-$_copies-${_students.length}-${_sectionIds.join(',')}');
+    final key = ValueKey(
+      '${_paper.code}-${_kind.name}-$_copies-${_students.length}-${_sectionIds.join(',')}'
+      '-$_showInstructor-$_showLogo-${_logo?.length}-$_instructor',
+    );
+    final hasInstructor = _instructor != null && _instructor!.trim().isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Answer sheets')),
@@ -181,6 +223,27 @@ class _SheetsScreenState extends ConsumerState<SheetsScreen> {
                         ),
                     ],
                   ),
+                Wrap(
+                  spacing: Space.s,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    FilterChip(
+                      label: const Text('Instructor name'),
+                      selected: hasInstructor && _showInstructor,
+                      onSelected: hasInstructor ? (on) => _setShow(SettingKeys.sheetsShowInstructor, on) : null,
+                    ),
+                    FilterChip(
+                      label: const Text('School logo'),
+                      selected: _logo != null && _showLogo,
+                      onSelected: _logo != null ? (on) => _setShow(SettingKeys.sheetsShowLogo, on) : null,
+                    ),
+                    if (_logo == null || !hasInstructor)
+                      TextButton(
+                        onPressed: _openProfile,
+                        child: Text(_logo == null ? 'Add a logo' : 'Add your name'),
+                      ),
+                  ],
+                ),
                 Text(
                   _kind == SheetKind.generic
                       ? 'Blank sheets can be photocopied. Students shade their student number.'

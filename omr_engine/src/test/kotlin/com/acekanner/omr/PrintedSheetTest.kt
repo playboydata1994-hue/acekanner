@@ -6,7 +6,6 @@ import com.acekanner.app.omr.core.OmrOutcome
 import com.acekanner.app.omr.core.PointMm
 import com.acekanner.app.omr.core.SheetLayout
 import java.io.File
-import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -17,6 +16,7 @@ import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.core.Point
 import org.opencv.core.Scalar
+import org.opencv.core.Size
 import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 
@@ -34,9 +34,10 @@ class PrintedSheetTest {
     private class Fixture(val png: String, val layout: String, val pageW: Double, val pageH: Double)
 
     private val fixtures = listOf(
-        Fixture("a4-ack1-50-d10-s1", "ack1-50-d10-s1", 210.0, 297.0),
-        Fixture("letter-ack1-75-d9-s2", "ack1-75-d9-s2", 215.9, 279.4),
-        Fixture("long-ack1-100-d12-s4", "ack1-100-d12-s4", 215.9, 330.2),
+        Fixture("a4-ack2-50-d10-s1", "ack2-50-d10-s1", 210.0, 297.0),
+        // These two carry the sample school logo beside the top-left marker.
+        Fixture("letter-ack2-75-d9-s2", "ack2-75-d9-s2", 215.9, 279.4),
+        Fixture("long-ack2-100-d12-s4", "ack2-100-d12-s4", 215.9, 330.2),
     )
 
     @Test
@@ -52,10 +53,11 @@ class PrintedSheetTest {
             val digits = (1..layout.idDigits).map { rnd.nextInt(10) }.joinToString("")
             val set = if (layout.setCount > 1) rnd.nextInt(layout.setCount) else null
 
-            fun shade(c: PointMm, rMm: Double) {
+            fun shade(c: PointMm, rxMm: Double, ryMm: Double) {
                 val center = Point((c.x + offset.x) * pxPerMm, (c.y + offset.y) * pxPerMm)
                 val mask = Mat(page.size(), CvType.CV_8UC1, Scalar(0.0))
-                Imgproc.circle(mask, center, (rMm * 0.95 * pxPerMm).roundToInt(), Scalar(255.0), -1, Imgproc.LINE_AA)
+                val axes = Size(rxMm * 0.95 * pxPerMm, ryMm * 0.95 * pxPerMm)
+                Imgproc.ellipse(mask, center, axes, 0.0, 0.0, 360.0, Scalar(255.0), -1, Imgproc.LINE_AA)
                 val ink = Mat(page.size(), CvType.CV_8UC1)
                 Core.randn(ink, 70.0, 20.0)
                 val darker = Mat()
@@ -63,9 +65,9 @@ class PrintedSheetTest {
                 darker.copyTo(page, mask)
                 mask.release(); ink.release(); darker.release()
             }
-            answers.forEachIndexed { q, c -> shade(layout.questions[q][c], layout.bubbleRadiusMm) }
-            digits.forEachIndexed { col, ch -> shade(layout.idColumns[col][ch - '0'], layout.idBubbleRadiusMm) }
-            set?.let { shade(layout.setBubbles[it], layout.bubbleRadiusMm) }
+            answers.forEachIndexed { q, c -> shade(layout.questions[q][c], layout.bubbleRxMm, layout.bubbleRyMm) }
+            digits.forEachIndexed { col, ch -> shade(layout.idColumns[col][ch - '0'], layout.idBubbleRxMm, layout.idBubbleRyMm) }
+            set?.let { shade(layout.setBubbles[it], layout.bubbleRxMm, layout.bubbleRyMm) }
 
             val photo = PhotoSimulator.photograph(
                 page,
@@ -83,7 +85,7 @@ class PrintedSheetTest {
             }
             assertEquals(digits, result.studentNumber, "${f.png} student number")
             if (set != null) assertEquals(1 shl set, result.set!!.mask)
-            assertEquals("ACK1|K7M2Q9XA|${layout.itemCount}|${layout.idDigits}|${layout.setCount}|G", result.qrText)
+            assertEquals("ACK2|K7M2Q9XA|${layout.itemCount}|${layout.idDigits}|${layout.setCount}|G", result.qrText)
             check(File(out).length() > 10_000) { "rectified image not written" }
             page.release(); photo.release()
         }

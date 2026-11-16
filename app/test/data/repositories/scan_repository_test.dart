@@ -94,6 +94,8 @@ void main() {
     final stale = SheetQr(examCode: ctx.exam.shortCode, itemCount: 50, idDigits: 10, setCount: 2).encode();
     expect(scans.sheetMismatch(ctx, reading(masks: List.filled(50, 1), qr: stale)), contains('Print new sheets'));
     expect(scans.sheetMismatch(ctx, reading(masks: List.filled(50, 1))), isNull);
+    final oldDesign = 'ACK1|${ctx.exam.shortCode}|50|9|2|G';
+    expect(scans.sheetMismatch(ctx, reading(masks: List.filled(50, 1), qr: oldDesign)), contains('older ACEkanner'));
   });
 
   test('saving stores answers, image, session counts and an audit entry; a re-scan replaces', () async {

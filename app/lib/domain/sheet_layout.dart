@@ -45,15 +45,29 @@ abstract final class ArucoMarkers {
     '1100111101010110', // 9
     '1111100110010001', // 10
     '0001000110100111', // 11
+    '0000111010110111', // 12
+    '0010101000001111', // 13
+    '0010010010110001', // 14
+    '0010011000111110', // 15
+    '0100011001100101', // 16
+    '0110011000000000', // 17
+    '0110110001011110', // 18
+    '0111011010101111', // 19
+    '1000011010001011', // 20
+    '1011000000101011', // 21
+    '1100110011010101', // 22
+    '1101110110000010', // 23
   ];
 
   /// Marker IDs (top-left, top-right, bottom-right, bottom-left) for each
-  /// template. Reading the IDs tells the engine which template it sees and
-  /// how the photo is rotated.
+  /// template of the current sheet design. Reading the IDs tells the engine
+  /// which template and design it sees and how the photo is rotated.
+  /// Design 1 (circles, IDs 0–11) is retired: the engine rejects those sheets
+  /// with "older sheet design" instead of misreading them.
   static List<int> idsFor(int itemCount) => switch (itemCount) {
-        50 => const [0, 1, 2, 3],
-        75 => const [4, 5, 6, 7],
-        100 => const [8, 9, 10, 11],
+        50 => const [12, 13, 14, 15],
+        75 => const [16, 17, 18, 19],
+        100 => const [20, 21, 22, 23],
         _ => throw ArgumentError('Unsupported item count $itemCount'),
       };
 }
@@ -86,7 +100,7 @@ class SheetLayout {
     // Answer columns of 25 rows, centred horizontally.
     final columns = (itemCount / rowsPerColumn).ceil();
     final pitch = switch (columns) { 2 => 72.0, 3 => 60.0, _ => 47.0 };
-    const columnWidth = numberWidth + 4 * choicePitch + bubbleRadius;
+    const columnWidth = numberWidth + 4 * choicePitch + bubbleRx;
     final total = (columns - 1) * pitch + columnWidth;
     final left = (frameWidth - total) / 2;
     final columnLeft = [for (var c = 0; c < columns; c++) left + c * pitch];
@@ -128,8 +142,9 @@ class SheetLayout {
     );
   }
 
-  /// Bumped whenever geometry changes; printed sheets carry it in the QR.
-  static const int formatVersion = 1;
+  /// Bumped whenever geometry changes; printed sheets carry it in the QR and
+  /// in their marker IDs. 2 = board-exam style oval bubbles.
+  static const int formatVersion = 2;
 
   static const double frameWidth = 190;
   static const double frameHeight = 250;
@@ -138,18 +153,23 @@ class SheetLayout {
   /// Resolution of the corrected image the engine works on.
   static const int pxPerMm = 8;
 
-  static const double bubbleRadius = 2.3;
-  static const double idBubbleRadius = 1.9;
+  /// Answer ovals: 5.0 × 3.2 mm (half-axes), like board-exam answer sheets.
+  static const double bubbleRx = 2.5;
+  static const double bubbleRy = 1.6;
+
+  /// Student-number ovals: 4.2 × 2.8 mm.
+  static const double idBubbleRx = 2.1;
+  static const double idBubbleRy = 1.4;
   static const int rowsPerColumn = 25;
   static const double rowPitch = 6.4;
-  static const double choicePitch = 6.4;
+  static const double choicePitch = 6.8;
   static const double firstRowY = 79;
 
   /// From a column's left edge to its first bubble centre (room for "100").
   static const double numberWidth = 10.5;
 
   static const double idFirstX = 98.5;
-  static const double idPitch = 5.0;
+  static const double idPitch = 5.4;
   static const double idFirstY = 27;
   static const double idRowPitch = 4.4;
   static const double idBoxTop = 18.5;
@@ -198,8 +218,8 @@ class SheetLayout {
           'origins': [for (final o in markerOrigins) o.toJson()],
         },
         'qr': qr.toJson(),
-        'bubbleRadius': bubbleRadius,
-        'idBubbleRadius': idBubbleRadius,
+        'bubble': {'rx': bubbleRx, 'ry': bubbleRy},
+        'idBubble': {'rx': idBubbleRx, 'ry': idBubbleRy},
         'questions': [
           for (final q in questions) [for (final b in q) b.toJson()],
         ],

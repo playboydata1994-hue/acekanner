@@ -131,6 +131,10 @@ class ScanRepository {
   /// Returns an explanation when the sheet's QR code belongs to another
   /// examination or layout; null when it matches or has no readable QR.
   String? sheetMismatch(ScanContext ctx, OmrSheetReading reading) {
+    if (SheetQr.isOlderDesign(reading.qr)) {
+      return 'This is an older ACEkanner answer sheet design that this version no longer reads. '
+          'Print new sheets for this examination.';
+    }
     final qr = SheetQr.tryParse(reading.qr);
     if (qr == null) return null;
     if (qr.examCode != ctx.exam.shortCode) {

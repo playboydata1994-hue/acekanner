@@ -19,6 +19,20 @@ const header = SheetHeader(
   instructorName: 'Prof. Maria Peña Santos',
 );
 
+final Uint8List sampleLogo = File('test/assets/sample_logo.png').readAsBytesSync();
+
+SheetHeader withLogo({bool instructor = true}) => SheetHeader(
+      examTitle: header.examTitle,
+      examCode: header.examCode,
+      subjectLine: header.subjectLine,
+      dateText: header.dateText,
+      schoolName: 'Sample State University',
+      instructorName: instructor ? header.instructorName : null,
+      logo: sampleLogo,
+    );
+
+int imageCount(Uint8List pdf) => RegExp(r'/Subtype\s*/Image\b').allMatches(String.fromCharCodes(pdf)).length;
+
 int pageCount(Uint8List pdf) => RegExp(r'/Type\s*/Page\b').allMatches(String.fromCharCodes(pdf)).length;
 
 void main() {
@@ -56,6 +70,22 @@ void main() {
     expect(pageCount(pdf), 2);
   });
 
+  test('optional school logo: embedded once for all pages, skipped when absent or unreadable', () async {
+    final layout = SheetLayout(itemCount: 75);
+    final plain = await AnswerSheetPdf.build(layout: layout, header: header, paper: PaperSize.a4, fonts: fonts, copies: 2);
+    expect(imageCount(plain), 0);
+
+    final logo = await AnswerSheetPdf.build(layout: layout, header: withLogo(), paper: PaperSize.a4, fonts: fonts, copies: 3);
+    expect(pageCount(logo), 3);
+    expect(imageCount(logo), greaterThanOrEqualTo(1));
+    expect(imageCount(logo), lessThanOrEqualTo(2)); // image (+ its alpha mask), shared by all pages
+
+    final broken = SheetHeader(examTitle: 'X', examCode: 'K7M2Q9XA', logo: Uint8List.fromList([1, 2, 3, 4]));
+    final pdf = await AnswerSheetPdf.build(layout: layout, header: broken, paper: PaperSize.a4, fonts: fonts);
+    expect(pageCount(pdf), 1);
+    expect(imageCount(pdf), 0);
+  });
+
   test('frame is centred on every paper size', () {
     expect(PaperSize.a4.frameOffset.x, closeTo(10, 1e-9));
     expect(PaperSize.a4.frameOffset.y, closeTo(23.5, 1e-9));
@@ -68,13 +98,39 @@ void main() {
   test('engine PDF fixtures (exported with ACEK_EXPORT_FIXTURES=1)', () async {
     if (Platform.environment['ACEK_EXPORT_FIXTURES'] != '1') return;
     final dir = Directory('../omr_engine/src/test/resources/sheets')..createSync(recursive: true);
+    // The engine must read sheets with and without a logo.
     final fixtures = {
-      'a4-ack1-50-d10-s1': (SheetLayout(itemCount: 50), PaperSize.a4),
-      'letter-ack1-75-d9-s2': (SheetLayout(itemCount: 75, idDigits: 9, setCount: 2), PaperSize.letter),
-      'long-ack1-100-d12-s4': (SheetLayout(itemCount: 100, idDigits: 12, setCount: 4), PaperSize.long),
+      'a4-ack2-50-d10-s1': (SheetLayout(itemCount: 50), PaperSize.a4, header),
+      'letter-ack2-75-d9-s2': (SheetLayout(itemCount: 75, idDigits: 9, setCount: 2), PaperSize.letter, withLogo()),
+      'long-ack2-100-d12-s4': (SheetLayout(itemCount: 100, idDigits: 12, setCount: 4), PaperSize.long, withLogo()),
     };
-    for (final MapEntry(:key, value: (layout, paper)) in fixtures.entries) {
-      final pdf = await AnswerSheetPdf.build(layout: layout, header: header, paper: paper, fonts: fonts);
+    for (final MapEntry(:key, value: (layout, paper, h)) in fixtures.entries) {
+      final pdf = await AnswerSheetPdf.build(layout: layout, header: h, paper: paper, fonts: fonts);
+      File('${dir.path}/$key.pdf').writeAsBytesSync(pdf);
+    }
+  });
+
+  test('review drafts (exported with ACEK_EXPORT_DRAFTS=<folder>)', () async {
+    final out = Platform.environment['ACEK_EXPORT_DRAFTS'];
+    if (out == null) return;
+    final dir = Directory(out)..createSync(recursive: true);
+    final drafts = {
+      'ACEkanner-draft-75-items-A4': (SheetLayout(itemCount: 75), PaperSize.a4, withLogo()),
+      'ACEkanner-draft-100-items-A4': (SheetLayout(itemCount: 100), PaperSize.a4, withLogo()),
+      'ACEkanner-draft-100-items-long-no-logo': (
+        SheetLayout(itemCount: 100, setCount: 2),
+        PaperSize.long,
+        const SheetHeader(
+          examTitle: 'Final Examination',
+          examCode: 'K7M2Q9XA',
+          subjectLine: 'IT 203 — Data Structures',
+          dateText: '12 December 2026',
+          schoolName: 'Sample State University',
+        ),
+      ),
+    };
+    for (final MapEntry(:key, value: (layout, paper, h)) in drafts.entries) {
+      final pdf = await AnswerSheetPdf.build(layout: layout, header: h, paper: paper, fonts: fonts);
       File('${dir.path}/$key.pdf').writeAsBytesSync(pdf);
     }
   });

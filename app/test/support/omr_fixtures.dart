@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:acekanner/domain/omr_reading.dart';
+import 'package:acekanner/domain/sheet_layout.dart';
 
 /// Builds an engine JSON result like the native engine returns.
 String engineJson({
@@ -22,7 +23,7 @@ String engineJson({
   return jsonEncode({
     'ok': true,
     'engineVersion': '1.0.0',
-    'template': 'ack1-${masks.length}',
+    'template': 'ack${SheetLayout.formatVersion}-${masks.length}',
     'questions': [
       for (var i = 0; i < masks.length; i++)
         group(

@@ -214,10 +214,19 @@ centered on A4, Letter or 8.5×13 paper, so the OMR geometry is identical for ev
 size.
 
 - **Four ArUco corner markers** (OpenCV `DICT_4X4_50`, 10 mm), one in each frame corner.
-  The marker IDs encode the template and orientation: 50-item = IDs 0–3, 75-item = 4–7,
-  100-item = 8–11 (TL, TR, BR, BL). A photo taken upside down or of the wrong template is
-  detected immediately.
-- **QR code** (top right): `ACK1|<exam short id>|<version>|<template>|<sheet code>|<check>`.
+  The marker IDs encode the sheet design, template and orientation (TL, TR, BR, BL):
+
+  | Design | 50 items | 75 items | 100 items |
+  |---|---|---|---|
+  | 2 — board-exam ovals (current) | IDs 12–15 | 16–19 | 20–23 |
+  | 1 — circles (test builds 0.4–0.5, retired) | 0–3 | 4–7 | 8–11 |
+
+  A photo taken upside down or of the wrong template is detected immediately. A sheet of
+  the retired design is rejected with "older sheet design, print new sheets" and is never
+  read with the wrong geometry.
+- **QR code** (top right): `ACK2|<exam code>|<items>|<id digits>|<sets>|G` on generic
+  sheets, or `…|P<sheet code>` on personalized ones. The number after `ACK` is the
+  sheet design.
   Generic sheets carry the exam identity. Personalized sheets also carry a per-student sheet
   code, which links the paper to the roster with no shading needed.
 - **Student-number grid**: one column of bubbles 0–9 per digit. The number of columns
@@ -225,10 +234,18 @@ size.
   12 supported). Write-in boxes sit above each column.
 - **Exam set row** (A–D) for exams with shuffled versions.
 - **Answer area**: 25 rows per column. 50 items = 2 columns, 75 = 3, 100 = 4.
-  5 bubbles (A–E) per item, 4.6 mm bubble diameter, 6.4 mm horizontal pitch, 6.6 mm row pitch.
-  Bubble outlines are printed in mid-grey so they add little "ink" to the reading.
-- Student instructions printed on the sheet (fill completely, dark pencil or pen, erase
-  cleanly, don't fold across the markers).
+  5 board-exam style **ovals** (A–E) per item, 5.0 × 3.2 mm, with the letter printed
+  inside; 6.8 mm horizontal pitch, 6.4 mm row pitch. Student-number ovals are
+  4.2 × 2.8 mm at 5.4 mm pitch. Outlines are dark grey (0.3 mm) and the letters light
+  grey, so they add little "ink" to the reading.
+- Student instructions printed on the sheet (shade one oval completely, dark pencil or
+  pen, erase cleanly, don't fold across the markers), with a **correct / wrong shading
+  example** (filled oval vs. check, cross, half and dot).
+- **Header**: school name, examination title, subject and date. An optional **school
+  logo** (11 × 11 mm, beside the top-left marker, outside its quiet zone) and an
+  optional **instructor name** (footer). Both are switched on or off on the Answer
+  sheets screen; the logo is added in Profile. The footer also names the form
+  (e.g. `ACK2-75`) so a sheet's design can be identified on paper.
 
 The exact coordinates come from one Dart layout function. It produces both the PDF and a
 JSON geometry file that the Kotlin engine reads. A unit test fails the build if the two ever
@@ -244,9 +261,10 @@ in steps 4 and 5, because of what the tests showed.
    downscaled to 720 px) only run marker detection, to drive the on-screen guidance and
    auto-capture (all four corners found and steady for 3 frames).
 2. **Marker detection.** ArUco `DICT_4X4_50` with sub-pixel corner refinement. All
-   four markers of the template must be found. Their IDs give the template
-   (50/75/100) and the orientation, so a sheet photographed sideways or upside
-   down is fine.
+   four markers of the template must be found. Their IDs give the sheet design,
+   the template (50/75/100) and the orientation, so a sheet photographed sideways
+   or upside down is fine. Markers of another template give "wrong sheet type";
+   markers of an older design give "older sheet design".
 3. **Perspective correction.** A homography from the 16 marker corners to the
    canonical frame (8 px/mm), then `warpPerspective`. A leave-one-out marker check
    rejects only gross distortion: at phone resolutions, extrapolating one corner
@@ -258,11 +276,11 @@ in steps 4 and 5, because of what the tests showed.
 5. **Flat-field normalization**, then **local alignment.** For each block of about
    40 answer bubbles (each column split into thirds) and for the student-number
    grid, the engine searches ±2.5 mm for the shift that best aligns the printed
-   bubble rings. This corrects slight curl, lens distortion and corner noise; flat
+   oval outlines. This corrects slight curl, lens distortion and corner noise; flat
    sheets need about 0.2 mm. A block needing more than 2 mm means a folded or
    curled sheet, and the photo is rejected.
-6. **Bubble scoring**: darkness of the inner disc (62 % of the radius, so it excludes the
-   printed outline), at the aligned position.
+6. **Bubble scoring**: darkness of the inner oval (62 % of each half-axis, so it excludes
+   the printed outline), at the aligned position.
 7. **Per-sheet calibration**: the empty level is the 40th percentile of all bubble
    scores. The filled level is the median of the clearly marked per-question maxima.
 8. **Classification**: see §5.3. Then the student-number columns, the set row,
@@ -279,8 +297,8 @@ Scores are normalized per sheet: 0 is this sheet's empty level, 1 its filled lev
 | Preset | Filled ≥ | Empty ≤ | Erasure auto-accept |
 |---|---|---|---|
 | Lenient | 0.50 | 0.28 | yes (dominance 0.30, residue ≤ 0.45) |
-| **Standard** (default) | 0.55 | 0.20 | yes (dominance 0.40, residue ≤ 0.35) |
-| Strict | 0.60 | 0.15 | no |
+| **Standard** (default) | 0.55 | 0.15 | yes (dominance 0.40, residue ≤ 0.35) |
+| Strict | 0.60 | 0.12 | no |
 
 - One filled bubble, others empty: **answered**.
 - None filled, all empty: **blank**.

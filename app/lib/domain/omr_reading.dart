@@ -112,9 +112,14 @@ class OmrFailure extends OmrReading {
   final int? detectedItemCount;
 
   /// The instructor-facing explanation, with detail where it helps.
-  String get explanation => code == 'wrong_template' && detectedItemCount != null
-      ? 'This is a $detectedItemCount-item answer sheet, but this examination uses a different one.'
-      : message;
+  String get explanation => switch (code) {
+        'wrong_template' when detectedItemCount != null =>
+          'This is a $detectedItemCount-item answer sheet, but this examination uses a different one.',
+        'old_sheet_design' =>
+          'This answer sheet was printed from an older version of ACEkanner (round bubbles). '
+              'Print new sheets for this examination from Answer sheets.',
+        _ => message,
+      };
 }
 
 class OmrSheetReading extends OmrReading {

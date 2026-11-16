@@ -29,8 +29,8 @@ data class OmrThresholds(
 ) {
     companion object {
         val LENIENT = OmrThresholds(fill = 0.50, empty = 0.28, autoResolveErasures = true, dominance = 0.30, erasureMax = 0.45)
-        val STANDARD = OmrThresholds(fill = 0.55, empty = 0.20, autoResolveErasures = true, dominance = 0.40, erasureMax = 0.35)
-        val STRICT = OmrThresholds(fill = 0.60, empty = 0.15, autoResolveErasures = false, dominance = 1.0, erasureMax = 0.0)
+        val STANDARD = OmrThresholds(fill = 0.55, empty = 0.15, autoResolveErasures = true, dominance = 0.40, erasureMax = 0.35)
+        val STRICT = OmrThresholds(fill = 0.60, empty = 0.12, autoResolveErasures = false, dominance = 1.0, erasureMax = 0.0)
 
         /** `lenient`, `standard`, `strict`, or a JSON object of custom values. */
         fun fromSpec(preset: String?, custom: JSONObject? = null): OmrThresholds {
