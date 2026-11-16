@@ -38,5 +38,7 @@ comment at the top of `app/android/app/build.gradle.kts`.
 
 ## Status
 
-Phases 1–2 of 9 are complete: architecture, project setup, encrypted database, design
-system, navigation, onboarding and dashboard. See the development log for what's next.
+Phases 1–3 of 9 are complete: architecture, project setup, encrypted database, design
+system, navigation, onboarding, dashboard, and examination management (profile, classes
+and rosters with CSV import, examinations with sets A–D, answer-key editor). See the
+development log for what's next.

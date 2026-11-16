@@ -36,6 +36,12 @@ abstract final class StudentNumber {
     return null;
   }
 
+  /// A sample number in [format], e.g. "2021-00123" for "####-#####".
+  static String example(String format) {
+    final n = digitsIn(format);
+    return applyFormat('202100123456'.substring(0, n.clamp(0, 12)), format);
+  }
+
   static int digitsIn(String format) => '#'.allMatches(format).length;
 
   /// Formats shaded digits for display ("202100123" + "####-#####" →

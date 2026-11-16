@@ -1,7 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/util/clock.dart';
+import '../data/audit/audit_logger.dart';
 import '../data/db/app_database.dart';
+import '../data/repositories/answer_key_repository.dart';
+import '../data/repositories/classes_repository.dart';
+import '../data/repositories/exams_repository.dart';
+import '../data/repositories/profile_repository.dart';
+import '../data/repositories/students_repository.dart';
 import '../data/settings/settings_repository.dart';
 import '../platform/omr_engine_channel.dart';
 import 'bootstrap.dart';
@@ -64,3 +70,44 @@ final settingsRepositoryProvider = Provider<SettingsRepository>(
 
 final omrEngineChannelProvider =
     Provider<OmrEngineChannel>((ref) => const OmrEngineChannel());
+
+final auditLoggerProvider = Provider<AuditLogger>(
+  (ref) => AuditLogger(ref.watch(databaseProvider), clock: ref.watch(clockProvider)),
+);
+
+final profileRepositoryProvider = Provider<ProfileRepository>(
+  (ref) => ProfileRepository(
+    ref.watch(databaseProvider),
+    ref.watch(settingsRepositoryProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final classesRepositoryProvider = Provider<ClassesRepository>(
+  (ref) => ClassesRepository(ref.watch(databaseProvider), clock: ref.watch(clockProvider)),
+);
+
+final studentsRepositoryProvider = Provider<StudentsRepository>(
+  (ref) => StudentsRepository(
+    ref.watch(databaseProvider),
+    ref.watch(auditLoggerProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final examsRepositoryProvider = Provider<ExamsRepository>(
+  (ref) => ExamsRepository(
+    ref.watch(databaseProvider),
+    ref.watch(auditLoggerProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final answerKeyRepositoryProvider = Provider<AnswerKeyRepository>(
+  (ref) => AnswerKeyRepository(
+    ref.watch(databaseProvider),
+    ref.watch(auditLoggerProvider),
+    ref.watch(examsRepositoryProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);

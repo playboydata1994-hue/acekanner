@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../app/data_providers.dart';
 import '../../app/providers.dart';
 import '../../app/router.dart';
 import '../../core/constants.dart';
@@ -25,6 +26,7 @@ class DashboardScreen extends ConsumerWidget {
     final stats = ref.watch(dashboardStatsProvider);
     final recent = ref.watch(recentExaminationsProvider);
     final now = ref.watch(clockProvider).now();
+    final profile = ref.watch(profileProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -36,14 +38,6 @@ class DashboardScreen extends ConsumerWidget {
             AcekannerWordmark(fontSize: 22),
           ],
         ),
-        actions: [
-          IconButton(
-            tooltip: 'Settings',
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => context.push(Routes.settings),
-          ),
-          const SizedBox(width: Space.xs),
-        ],
       ),
       body: SafeArea(
         top: false,
@@ -55,13 +49,23 @@ class DashboardScreen extends ConsumerWidget {
             Space.xxl,
           ),
           children: [
-            _Greeting(now: now),
+            _Greeting(now: now, name: profile.value?.fullName),
             const SizedBox(height: Space.l),
+            if (profile.hasValue && profile.value == null) ...[
+              const _ProfilePrompt(),
+              const SizedBox(height: Space.m),
+            ],
             switch (stats) {
               AsyncData(:final value) => _DashboardBody(stats: value),
               AsyncError() => const _LoadError(),
               _ => const _LoadingBlock(height: 260),
             },
+            const SizedBox(height: Space.m),
+            FilledButton.icon(
+              onPressed: () => context.push(Routes.newExam),
+              icon: const Icon(Icons.add),
+              label: const Text('Create examination'),
+            ),
             const SectionHeader('Recent examinations'),
             switch (recent) {
               AsyncData(:final value) when value.isEmpty => const EmptyState(
@@ -83,9 +87,10 @@ class DashboardScreen extends ConsumerWidget {
 }
 
 class _Greeting extends StatelessWidget {
-  const _Greeting({required this.now});
+  const _Greeting({required this.now, this.name});
 
   final DateTime now;
+  final String? name;
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +104,10 @@ class _Greeting extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(greeting, style: theme.textTheme.headlineSmall),
+        Text(
+          name == null ? greeting : '$greeting, ${name!.split(' ').first}',
+          style: theme.textTheme.headlineSmall,
+        ),
         const SizedBox(height: Space.xs),
         Text(
           DateFormat('EEEE, d MMMM y').format(now),
@@ -172,11 +180,16 @@ class _PlanCard extends StatelessWidget {
                   color: scheme.primary,
                   icon: Icons.verified_outlined,
                 ),
-                const Spacer(),
-                Text(
-                  'Premium · PHP ${AppConstants.premiumPricePhp}/year',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: context.statusColors.premium,
+                const SizedBox(width: Space.s),
+                Expanded(
+                  child: Text(
+                    'Premium · PHP ${AppConstants.premiumPricePhp}/year',
+                    textAlign: TextAlign.end,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: context.statusColors.premium,
+                    ),
                   ),
                 ),
               ],
@@ -252,6 +265,8 @@ class _RecentList extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               subtitle: Text(_subtitle(items[i])),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go(Routes.exam(items[i].id)),
             ),
           ],
         ],
@@ -266,6 +281,31 @@ class _RecentList extends StatelessWidget {
       '${e.finalizedCount} ${e.finalizedCount == 1 ? 'paper' : 'papers'}',
     ];
     return parts.join(' · ');
+  }
+}
+
+class _ProfilePrompt extends StatelessWidget {
+  const _ProfilePrompt();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      color: scheme.primaryContainer,
+      child: ListTile(
+        leading: Icon(Icons.badge_outlined, color: scheme.onPrimaryContainer),
+        title: Text(
+          'Add your name and school',
+          style: TextStyle(color: scheme.onPrimaryContainer, fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          'They appear on answer sheets and reports.',
+          style: TextStyle(color: scheme.onPrimaryContainer),
+        ),
+        trailing: Icon(Icons.chevron_right, color: scheme.onPrimaryContainer),
+        onTap: () => _openProfile(context),
+      ),
+    );
   }
 }
 
@@ -314,4 +354,13 @@ class _LoadError extends StatelessWidget {
         title: 'Could not load this section',
         message: 'Your data is safe. Close and reopen ACEkanner to try again.',
       );
+}
+
+Future<void> _openProfile(BuildContext context) async {
+  final saved = await context.push<bool>(Routes.profile);
+  if (saved == true && context.mounted) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Profile saved')));
+  }
 }

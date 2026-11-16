@@ -1,16 +1,20 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../app/data_providers.dart';
 import '../../app/router.dart';
 import '../../core/theme/spacing.dart';
 import '../../core/widgets/section_header.dart';
 
 /// Settings hub. Items are added here as each feature ships.
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(profileProvider).value;
+    final format = ref.watch(studentNoFormatProvider).value;
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: SafeArea(
@@ -18,6 +22,30 @@ class SettingsScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: Space.page),
           children: [
+            const SectionHeader('Instructor'),
+            _Group(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.badge_outlined),
+                  title: const Text('Profile and school'),
+                  subtitle: Text(
+                    profile == null
+                        ? 'Not set up yet'
+                        : [profile.fullName, ?profile.schoolName].join(' · '),
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _openProfile(context),
+                ),
+                const Divider(indent: Space.l, endIndent: Space.l),
+                ListTile(
+                  leading: const Icon(Icons.pin_outlined),
+                  title: const Text('Student number format'),
+                  subtitle: Text(format ?? '…'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _openProfile(context),
+                ),
+              ],
+            ),
             const SectionHeader('Help'),
             _Group(
               children: [
@@ -82,4 +110,13 @@ class _Group extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Column(children: children),
       );
+}
+
+Future<void> _openProfile(BuildContext context) async {
+  final saved = await context.push<bool>(Routes.profile);
+  if (saved == true && context.mounted) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Profile saved')));
+  }
 }

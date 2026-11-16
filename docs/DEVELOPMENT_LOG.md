@@ -5,6 +5,118 @@ and the next step.
 
 ---
 
+## 2026-11-16 · Phase 3: examination management
+
+### What was built
+**Data layer** (`app/lib/data/repositories/`, `app/lib/domain/`)
+- `ProfileRepository`: one instructor profile (name, title, email, employee no., school,
+  department, address) plus the school's **student-number format**, e.g. `####-#####`.
+  The format sets the number of digit columns on new sheets.
+- `ClassesRepository`: subjects, courses, sections.
+  - Codes are upper-cased and unique among active records, case-insensitively.
+  - Section names are unique per school year and term.
+  - Delete is soft: existing examinations keep their references.
+- `StudentsRepository`:
+  - Adding a number that already exists enrolls the existing student instead of
+    creating a duplicate.
+  - CSV roster import runs in one transaction and returns counts: added, updated,
+    already saved, unchanged.
+  - Existing emails are never erased by a file without an email column.
+- `ExamsRepository`:
+  - Creates an examination with its sets A–D, a current key per set, and an item per
+    question, using the default points and deduction.
+  - Item count and number of sets can change until any sheet is printed or scanned,
+    then they lock (`LockedException`).
+  - Deleting moves an exam to the trash. It can then be restored or deleted
+    permanently, which erases its papers and results but keeps scan charges.
+  - The live detail stream coalesces bursts of database changes.
+- `AnswerKeyRepository`:
+  - Validates every item: answers A–E (more than one allowed), points and deduction
+    0–100, modes normal/bonus/dropped.
+  - Before any paper is finalized, edits update the key in place. Afterwards they
+    create revision N+1 with a required reason.
+  - The exam status becomes `ready` when every item of every set is complete.
+- `AuditLogger`: hash-chained entries for exam create/update/trash/restore/purge,
+  key updates and revisions (with the questions changed), and roster imports.
+  Tamper detection is tested.
+- Roster CSV parser:
+  - Finds the header row even under a title line, and accepts many header spellings.
+  - Handles comma, semicolon and tab separators, BOM, and Windows-1252 files from
+    Excel's plain "CSV" export.
+  - Accepts a single "Last, First M." column.
+  - Keeps leading zeros, reports problems per line, and skips duplicates.
+- Quick answer-key entry: `ABCDA…` (`-` skips a question) or `1A 2B 10AC`.
+
+**Screens**
+- Bottom navigation: Home · Exams · Classes · Settings.
+- Dashboard:
+  - "Create examination" button.
+  - Greeting by name.
+  - "Add your name and school" prompt until the profile exists.
+  - Recent examinations open their detail.
+- Exams:
+  - List with status ("Key incomplete" / "Key complete").
+  - Create/edit form: title, subject (with inline "New subject"), date, 50/75/100
+    items, sets A–D, student-number digits, sections, passing %, points, deduction,
+    multiple-mark policy, negative totals.
+  - Detail screen with per-set key progress.
+  - Recently deleted, with Restore and Delete permanently.
+- Answer-key editor:
+  - Five 46 dp A–E bubbles per question.
+  - Per-question menu: more than one answer, bonus, drop, points.
+  - Quick entry, and points for all questions at once.
+  - A revision reason is required once papers exist.
+  - Unsaved-changes guard.
+- Classes: sections, subjects and courses with forms.
+  - Section roster with add, edit, and remove from section.
+  - Students whose number can't be shaded (letters, or too many digits) are flagged
+    "needs a personalized (QR) sheet".
+  - CSV import screen with instructions, preview, skipped-line list, and an
+    "update names" switch.
+- Settings: Profile and school, Student number format.
+
+### Bugs found and fixed during this phase
+- Layout overflows at realistic phone widths (415 dp and 320 dp), which also hit large
+  system fonts:
+  - dashboard plan header
+  - exam-detail status row
+  - answer-key row (bubbles now scale down below ~330 dp)
+- Confirmation messages covered the floating "Add" buttons for about four seconds.
+  - Cause: the tab container was a Scaffold sharing one message area with every tab.
+  - Fix: each tab and each full-screen editor now has its own message area, and
+    results are shown by the screen that opened the editor.
+- Duplicate-hero crash when leaving the key editor while a message was showing, caused
+  by the same shared message area. Fixed by the same change, and hidden tabs no longer
+  take part in hero transitions.
+- Live exam-detail stream could hang on cancel. Rewritten with an explicit controller.
+
+### Verification
+| Check | Result |
+|---|---|
+| `flutter analyze` | No issues |
+| `flutter test` | **81 / 81 passed**. 46 are new: domain helpers, audit chain, repositories (duplicates, roster import merge, structure lock, revisions, trash), and widget flows at 415 dp and 320 dp. |
+| Release APK | Builds: arm64 49.3 MB, armv7 37.1 MB. Permissions unchanged. |
+
+### Not verified yet (needs your phone)
+- Picking a CSV with the Android file picker (all parsing is tested; the system picker
+  itself can't run here).
+- Look and feel on a real screen and with the system font enlarged.
+
+### Known limitations
+- Regrading after a key revision is Phase 5. Until then no paper can be finalized
+  (scanning arrives in Phase 4), so the revision path is tested but not reachable in
+  the app yet.
+- Section and student deletion is soft. A "delete student permanently" option for
+  privacy requests comes with data retention tools in Phase 7/8.
+
+### Next step: Phase 4, OMR
+- Answer-sheet layout and PDF generator (A4 / Letter / 8.5×13, ArUco corners, QR,
+  student-number grid, set row).
+- Kotlin OpenCV engine with a synthetic-image test suite.
+- Camera screen with live guidance, and the verification screen.
+
+---
+
 ## 2026-11-16 · Phases 1 and 2: architecture, project setup, encrypted database, UI foundation
 
 ### Decisions confirmed with the owner

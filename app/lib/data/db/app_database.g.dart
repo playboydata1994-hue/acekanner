@@ -12766,6 +12766,122 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     );
   }
 
+  Selectable<SectionSummariesResult> sectionSummaries() {
+    return customSelect(
+      'SELECT"s"."id" AS "nested_0.id", "s"."course_id" AS "nested_0.course_id", "s"."name" AS "nested_0.name", "s"."year_level" AS "nested_0.year_level", "s"."school_year" AS "nested_0.school_year", "s"."term" AS "nested_0.term", "s"."created_at" AS "nested_0.created_at", "s"."updated_at" AS "nested_0.updated_at", "s"."deleted_at" AS "nested_0.deleted_at", c.code AS course_code, (SELECT COUNT(*) FROM section_students AS ss INNER JOIN students AS st ON st.id = ss.student_id WHERE ss.section_id = s.id AND st.deleted_at IS NULL) AS student_count FROM sections AS s LEFT JOIN courses AS c ON c.id = s.course_id WHERE s.deleted_at IS NULL ORDER BY s.name COLLATE NOCASE, s.school_year DESC',
+      variables: [],
+      readsFrom: {
+        this.courses,
+        this.sectionStudents,
+        this.students,
+        this.sections,
+      },
+    ).asyncMap(
+      (QueryRow row) async => SectionSummariesResult(
+        s: await this.sections.mapFromRow(row, tablePrefix: 'nested_0'),
+        courseCode: row.readNullable<String>('course_code'),
+        studentCount: row.read<int>('student_count'),
+      ),
+    );
+  }
+
+  Selectable<StudentRow> sectionRoster({required String sectionId}) {
+    return customSelect(
+      'SELECT st.* FROM students AS st INNER JOIN section_students AS ss ON ss.student_id = st.id WHERE ss.section_id = ?1 AND st.deleted_at IS NULL ORDER BY st.last_name COLLATE NOCASE, st.first_name COLLATE NOCASE, st.student_no',
+      variables: [Variable<String>(sectionId)],
+      readsFrom: {this.students, this.sectionStudents},
+    ).asyncMap(this.students.mapFromRow);
+  }
+
+  Selectable<ActiveExaminationListResult> activeExaminationList() {
+    return customSelect(
+      'SELECT"e"."id" AS "nested_0.id", "e"."short_code" AS "nested_0.short_code", "e"."title" AS "nested_0.title", "e"."subject_id" AS "nested_0.subject_id", "e"."instructor_id" AS "nested_0.instructor_id", "e"."exam_date" AS "nested_0.exam_date", "e"."item_count" AS "nested_0.item_count", "e"."choice_count" AS "nested_0.choice_count", "e"."passing_percentage" AS "nested_0.passing_percentage", "e"."multiple_mark_policy" AS "nested_0.multiple_mark_policy", "e"."allow_negative_total" AS "nested_0.allow_negative_total", "e"."omr_preset" AS "nested_0.omr_preset", "e"."omr_thresholds" AS "nested_0.omr_thresholds", "e"."student_id_digits" AS "nested_0.student_id_digits", "e"."status" AS "nested_0.status", "e"."created_at" AS "nested_0.created_at", "e"."updated_at" AS "nested_0.updated_at", "e"."deleted_at" AS "nested_0.deleted_at", sub.code AS subject_code, sub.title AS subject_title, (SELECT COUNT(*) FROM examination_versions AS v WHERE v.examination_id = e.id) AS version_count, (SELECT COUNT(*) FROM answer_sheets AS a WHERE a.examination_id = e.id AND a.status = \'finalized\') AS paper_count FROM examinations AS e LEFT JOIN subjects AS sub ON sub.id = e.subject_id WHERE e.deleted_at IS NULL ORDER BY e.updated_at DESC',
+      variables: [],
+      readsFrom: {
+        this.subjects,
+        this.examinationVersions,
+        this.examinations,
+        this.answerSheets,
+      },
+    ).asyncMap(
+      (QueryRow row) async => ActiveExaminationListResult(
+        e: await this.examinations.mapFromRow(row, tablePrefix: 'nested_0'),
+        subjectCode: row.readNullable<String>('subject_code'),
+        subjectTitle: row.readNullable<String>('subject_title'),
+        versionCount: row.read<int>('version_count'),
+        paperCount: row.read<int>('paper_count'),
+      ),
+    );
+  }
+
+  Selectable<DeletedExaminationListResult> deletedExaminationList() {
+    return customSelect(
+      'SELECT"e"."id" AS "nested_0.id", "e"."short_code" AS "nested_0.short_code", "e"."title" AS "nested_0.title", "e"."subject_id" AS "nested_0.subject_id", "e"."instructor_id" AS "nested_0.instructor_id", "e"."exam_date" AS "nested_0.exam_date", "e"."item_count" AS "nested_0.item_count", "e"."choice_count" AS "nested_0.choice_count", "e"."passing_percentage" AS "nested_0.passing_percentage", "e"."multiple_mark_policy" AS "nested_0.multiple_mark_policy", "e"."allow_negative_total" AS "nested_0.allow_negative_total", "e"."omr_preset" AS "nested_0.omr_preset", "e"."omr_thresholds" AS "nested_0.omr_thresholds", "e"."student_id_digits" AS "nested_0.student_id_digits", "e"."status" AS "nested_0.status", "e"."created_at" AS "nested_0.created_at", "e"."updated_at" AS "nested_0.updated_at", "e"."deleted_at" AS "nested_0.deleted_at", sub.code AS subject_code, sub.title AS subject_title, (SELECT COUNT(*) FROM examination_versions AS v WHERE v.examination_id = e.id) AS version_count, (SELECT COUNT(*) FROM answer_sheets AS a WHERE a.examination_id = e.id AND a.status = \'finalized\') AS paper_count FROM examinations AS e LEFT JOIN subjects AS sub ON sub.id = e.subject_id WHERE e.deleted_at IS NOT NULL ORDER BY e.deleted_at DESC',
+      variables: [],
+      readsFrom: {
+        this.subjects,
+        this.examinationVersions,
+        this.examinations,
+        this.answerSheets,
+      },
+    ).asyncMap(
+      (QueryRow row) async => DeletedExaminationListResult(
+        e: await this.examinations.mapFromRow(row, tablePrefix: 'nested_0'),
+        subjectCode: row.readNullable<String>('subject_code'),
+        subjectTitle: row.readNullable<String>('subject_title'),
+        versionCount: row.read<int>('version_count'),
+        paperCount: row.read<int>('paper_count'),
+      ),
+    );
+  }
+
+  Selectable<VersionKeyStatusResult> versionKeyStatus({
+    required String examinationId,
+  }) {
+    return customSelect(
+      'SELECT"v"."id" AS "nested_0.id", "v"."examination_id" AS "nested_0.examination_id", "v"."label" AS "nested_0.label", "v"."created_at" AS "nested_0.created_at", k.id AS key_id, k.revision AS revision, (SELECT COUNT(*) FROM answer_key_items AS i WHERE i.answer_key_id = k.id AND(i.mode <> \'normal\' OR i.correct_mask <> 0)) AS complete_count, (SELECT COUNT(*) FROM answer_key_items AS i WHERE i.answer_key_id = k.id) AS item_total FROM examination_versions AS v INNER JOIN answer_keys AS k ON k.examination_version_id = v.id AND k.is_current = 1 WHERE v.examination_id = ?1 ORDER BY v.label',
+      variables: [Variable<String>(examinationId)],
+      readsFrom: {
+        this.answerKeys,
+        this.answerKeyItems,
+        this.examinationVersions,
+      },
+    ).asyncMap(
+      (QueryRow row) async => VersionKeyStatusResult(
+        v: await this.examinationVersions.mapFromRow(
+          row,
+          tablePrefix: 'nested_0',
+        ),
+        keyId: row.read<String>('key_id'),
+        revision: row.read<int>('revision'),
+        completeCount: row.read<int>('complete_count'),
+        itemTotal: row.read<int>('item_total'),
+      ),
+    );
+  }
+
+  Selectable<SectionRow> examinationSectionList({
+    required String examinationId,
+  }) {
+    return customSelect(
+      'SELECT s.* FROM sections AS s INNER JOIN examination_sections AS es ON es.section_id = s.id WHERE es.examination_id = ?1 ORDER BY s.name COLLATE NOCASE',
+      variables: [Variable<String>(examinationId)],
+      readsFrom: {this.sections, this.examinationSections},
+    ).asyncMap(this.sections.mapFromRow);
+  }
+
+  Selectable<int> incompleteKeyItemCount({required String examinationId}) {
+    return customSelect(
+      'SELECT COUNT(*) AS _c0 FROM answer_key_items AS i INNER JOIN answer_keys AS k ON k.id = i.answer_key_id AND k.is_current = 1 INNER JOIN examination_versions AS v ON v.id = k.examination_version_id WHERE v.examination_id = ?1 AND i.mode = \'normal\' AND i.correct_mask = 0',
+      variables: [Variable<String>(examinationId)],
+      readsFrom: {
+        this.answerKeyItems,
+        this.answerKeys,
+        this.examinationVersions,
+      },
+    ).map((QueryRow row) => row.read<int>('_c0'));
+  }
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -13002,5 +13118,61 @@ class RecentExaminationsResult {
     required this.updatedAt,
     this.subjectCode,
     required this.finalizedCount,
+  });
+}
+
+class SectionSummariesResult {
+  final SectionRow s;
+  final String? courseCode;
+  final int studentCount;
+  SectionSummariesResult({
+    required this.s,
+    this.courseCode,
+    required this.studentCount,
+  });
+}
+
+class ActiveExaminationListResult {
+  final ExaminationRow e;
+  final String? subjectCode;
+  final String? subjectTitle;
+  final int versionCount;
+  final int paperCount;
+  ActiveExaminationListResult({
+    required this.e,
+    this.subjectCode,
+    this.subjectTitle,
+    required this.versionCount,
+    required this.paperCount,
+  });
+}
+
+class DeletedExaminationListResult {
+  final ExaminationRow e;
+  final String? subjectCode;
+  final String? subjectTitle;
+  final int versionCount;
+  final int paperCount;
+  DeletedExaminationListResult({
+    required this.e,
+    this.subjectCode,
+    this.subjectTitle,
+    required this.versionCount,
+    required this.paperCount,
+  });
+}
+
+class VersionKeyStatusResult {
+  final ExaminationVersionRow v;
+  final String keyId;
+  final int revision;
+  final int completeCount;
+  final int itemTotal;
+  VersionKeyStatusResult({
+    required this.v,
+    required this.keyId,
+    required this.revision,
+    required this.completeCount,
+    required this.itemTotal,
   });
 }
