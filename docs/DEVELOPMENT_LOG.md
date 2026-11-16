@@ -5,6 +5,89 @@ and the next step.
 
 ---
 
+## 2026-11-16 · Phase 5: grading, results and class analytics
+
+### What was built
+**Grading engine** (`lib/domain/grading.dart`, pure and deterministic)
+- Each question is one of: correct, wrong, no answer, more than one, bonus
+  (everyone earns it), or dropped (excluded from the total).
+- Accepted alternatives (any one is correct), points per item and negative
+  marking.
+- The exam's rules: more than one mark counts as wrong (deduction applies) or as
+  zero; whether totals may go below zero; the pass mark (inclusive).
+- Percentage = earned points ÷ total possible points × 100, with sums rounded to 4
+  decimals so 0.1 + 0.2 adds up exactly.
+
+**Grading workflow** (`lib/data/repositories/grading_repository.dart`)
+- **Finalize.** A paper is graded with the current key of its set as soon as it is
+  saved, if the key is complete. Otherwise it waits and is graded automatically
+  the moment the key is finished.
+- **One submission per student per exam** (submission key = exam + student). A
+  re-scan replaces the earlier paper, which is kept as `superseded`. Phase 6 will
+  charge scans on this key, so a re-scan is never charged twice.
+- **Key revision.** In the same transaction as the key change, every paper of that
+  set is re-graded. The new result becomes current, and the old result is kept as
+  history. Audited with a count of changed scores.
+- **Rule change** (pass mark, multiple-mark policy, negative totals): current
+  results are recomputed in place and audited.
+- **Correct a reading** after grading: the score updates immediately; audited
+  (`answer.corrected`).
+
+**Class analytics** (`lib/domain/analytics.dart`)
+- Papers, mean, median, standard deviation, highest, lowest, pass count and pass
+  rate, and a score distribution in 10-point bands.
+- **Item analysis per exam set:**
+  - % correct (Easy / Moderate / Difficult)
+  - discrimination (top 27 % minus bottom 27 %; shown with 10+ papers)
+  - how many chose each option, blank and multiple counts
+  - the most-chosen wrong answer
+  - a "Review this question" flag when discrimination is under 0.2
+
+**Screens**
+- **Exam:** each paper shows its score and PASSED/FAILED (icon and label, never
+  colour alone). The "Class results and question analysis" button appears once
+  papers exist.
+- **Paper result:**
+  - Percentage, points, pass/fail, and counts of correct / wrong / no answer / more
+    than one.
+  - Which key revision graded it.
+  - The scanned sheet (zoomable).
+  - Question by question (answer, key, outcome), filtered by All / Not correct /
+    Changed by you. Tap a question to correct it.
+- **Class results:**
+  - Filters for section and set.
+  - Summary tiles and the score distribution (tap a column for its count; table
+    view; pass mark marked).
+  - Most-missed questions with % correct bars; all questions on request.
+  - A ranked list of papers.
+- **Charts** follow the dataviz checks: one series, no legend; thin columns with a
+  4 px cap, 2 px gaps and a hairline grid; text in text colours; a table
+  alternative. Chart colours were validated: light `#1D4ED8`. The dark theme's
+  primary `#B7C4FF` failed the lightness and chroma checks, so dark charts use
+  `#3B82F6`, which passes.
+
+### Verification
+| Check | Result |
+|---|---|
+| `flutter test` | **139 / 139 passed**. New: 10 grading/analytics rule tests (including the specification's example), 8 repository workflow tests, 2 end-to-end results flows. |
+| `flutter analyze` | No issues |
+| Release APK | Builds |
+
+### Known limitations
+- Item analysis is per exam set, because each set has its own key. "All sets" shows
+  score statistics only.
+- Discrimination needs at least 10 graded papers.
+- PDF/Excel/CSV reports of these results come in Phase 7.
+
+### Next step: Phase 6, licensing and Google Play Billing
+- Supabase backend: Google sign-in, signed entitlement tokens, lifetime free-scan
+  ledger, purchase verification, Real-time Developer Notifications.
+- In the app: scan ledger consumption at finalization (using the submission key
+  above), the 100 lifetime free scans, Premium PHP 399/year, the 30-day offline
+  window, restore purchases, and the subscription screen.
+
+---
+
 ## 2026-11-16 · Phase 4: answer sheets, OMR engine, scanner and review
 
 ### What was built

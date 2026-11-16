@@ -41,7 +41,8 @@ comment at the top of `app/android/app/build.gradle.kts`.
 
 ## Status
 
-Phases 1–4 of 9 are complete: architecture, setup, encrypted database, examination
+Phases 1–5 of 9 are complete: architecture, setup, encrypted database, examination
 management, printable answer sheets, the OMR engine (0 misread answers in 4,050
-simulated questions; physical tests pending), the camera scanner and the review screen.
+simulated questions; physical tests pending), the camera scanner and review screen,
+grading with key revisions, and class analytics.
 See the development log for what's next.

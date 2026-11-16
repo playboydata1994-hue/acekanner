@@ -14,6 +14,8 @@ import '../features/exams/exams_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/recovery/recovery_screen.dart';
+import '../features/results/analytics_screen.dart';
+import '../features/results/paper_result_screen.dart';
 import '../features/scanner/scan_screen.dart';
 import '../features/sheets/sheets_screen.dart';
 import '../features/settings/about_screen.dart';
@@ -45,6 +47,8 @@ abstract final class Routes {
   static String section(String id) => '/classes/sections/$id';
   static String rosterImport(String sectionId) => '/roster-import/$sectionId';
   static String sheets(String examId) => '/sheets/$examId';
+  static String analytics(String examId) => '/exams/$examId/analytics';
+  static String paper(String examId, String sheetId) => '/exams/$examId/papers/$sheetId';
   static String scan(String examId) => '/scan/$examId';
 }
 
@@ -102,6 +106,16 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: ':examId',
                     builder: (_, state) => ExamDetailScreen(examId: state.pathParameters['examId']!),
+                    routes: [
+                      GoRoute(
+                        path: 'analytics',
+                        builder: (_, state) => AnalyticsScreen(examId: state.pathParameters['examId']!),
+                      ),
+                      GoRoute(
+                        path: 'papers/:sheetId',
+                        builder: (_, state) => PaperResultScreen(sheetId: state.pathParameters['sheetId']!),
+                      ),
+                    ],
                   ),
                 ],
               ),

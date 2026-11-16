@@ -11,6 +11,7 @@ import '../../core/widgets/info_row.dart';
 import '../../core/widgets/section_header.dart';
 import '../../data/repositories/scan_repository.dart';
 import '../../data/repositories/students_repository.dart';
+import '../results/result_widgets.dart';
 import '../../data/repositories/exams_repository.dart';
 import 'exam_widgets.dart';
 
@@ -152,6 +153,14 @@ class _DetailBody extends StatelessWidget {
               ),
             ],
           ),
+          if (detail.paperCount > 0) ...[
+            const SizedBox(height: Space.s),
+            OutlinedButton.icon(
+              onPressed: () => context.push('/exams/${exam.id}/analytics'),
+              icon: const Icon(Icons.insights_outlined),
+              label: const Text('Class results and question analysis'),
+            ),
+          ],
           const SizedBox(height: Space.m),
           _PapersList(examId: exam.id),
           const SectionHeader('Details'),
@@ -227,16 +236,17 @@ class _PaperTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = paper.student;
     final sheet = paper.sheet;
+    final r = paper.result;
     return ListTile(
       leading: CircleAvatar(child: Text(paper.versionLabel ?? '?')),
       title: Text(s == null ? 'Student not identified' : studentDisplayName(s)),
       subtitle: Text(
-        [
-          s?.studentNo ?? sheet.detectedStudentNo ?? 'no number',
-          if (sheet.flaggedCount > 0) '${sheet.flaggedCount} reviewed',
-          sheet.status == 'finalized' ? 'Graded' : 'Awaiting grading',
-        ].join(' · '),
+        r == null
+            ? [s?.studentNo ?? sheet.detectedStudentNo ?? 'no number', 'Awaiting grading'].join(' · ')
+            : '${fmtNumber(r.earnedPoints)} / ${fmtNumber(r.possiblePoints)} · ${fmtPercent(r.percentage)}',
       ),
+      trailing: r == null ? const Icon(Icons.hourglass_top) : PassPill(passed: r.passed),
+      onTap: () => context.push('/exams/${sheet.examinationId}/papers/${sheet.id}'),
     );
   }
 }

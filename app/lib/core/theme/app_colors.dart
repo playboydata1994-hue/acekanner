@@ -21,6 +21,9 @@ class AcekannerColors extends ThemeExtension<AcekannerColors> {
     required this.blank,
     required this.premium,
     required this.onStatus,
+    required this.chart,
+    required this.chartTrack,
+    required this.chartGrid,
   });
 
   static const AcekannerColors light = AcekannerColors(
@@ -30,6 +33,9 @@ class AcekannerColors extends ThemeExtension<AcekannerColors> {
     blank: Color(0xFF64748B),
     premium: Color(0xFFB45309),
     onStatus: Color(0xFFFFFFFF),
+    chart: Color(0xFF1D4ED8),
+    chartTrack: Color(0xFFDBE4FB),
+    chartGrid: Color(0xFFE2E8F0),
   );
 
   static const AcekannerColors dark = AcekannerColors(
@@ -39,6 +45,9 @@ class AcekannerColors extends ThemeExtension<AcekannerColors> {
     blank: Color(0xFF94A3B8),
     premium: Color(0xFFFBBF24),
     onStatus: Color(0xFF0B1220),
+    chart: Color(0xFF3B82F6),
+    chartTrack: Color(0xFF1C2A44),
+    chartGrid: Color(0xFF1E293B),
   );
 
   /// Answer matches the key.
@@ -59,6 +68,16 @@ class AcekannerColors extends ThemeExtension<AcekannerColors> {
   /// Text/icons drawn on a solid status color.
   final Color onStatus;
 
+  /// Single-series chart marks (validated with the dataviz palette checks:
+  /// light #1D4ED8 on white, dark #3B82F6 on #0B1220).
+  final Color chart;
+
+  /// Unfilled track of meters: a lighter step of the chart hue.
+  final Color chartTrack;
+
+  /// Hairline gridlines.
+  final Color chartGrid;
+
   @override
   AcekannerColors copyWith({
     Color? correct,
@@ -67,6 +86,9 @@ class AcekannerColors extends ThemeExtension<AcekannerColors> {
     Color? blank,
     Color? premium,
     Color? onStatus,
+    Color? chart,
+    Color? chartTrack,
+    Color? chartGrid,
   }) {
     return AcekannerColors(
       correct: correct ?? this.correct,
@@ -75,6 +97,9 @@ class AcekannerColors extends ThemeExtension<AcekannerColors> {
       blank: blank ?? this.blank,
       premium: premium ?? this.premium,
       onStatus: onStatus ?? this.onStatus,
+      chart: chart ?? this.chart,
+      chartTrack: chartTrack ?? this.chartTrack,
+      chartGrid: chartGrid ?? this.chartGrid,
     );
   }
 
@@ -88,6 +113,9 @@ class AcekannerColors extends ThemeExtension<AcekannerColors> {
       blank: Color.lerp(blank, other.blank, t)!,
       premium: Color.lerp(premium, other.premium, t)!,
       onStatus: Color.lerp(onStatus, other.onStatus, t)!,
+      chart: Color.lerp(chart, other.chart, t)!,
+      chartTrack: Color.lerp(chartTrack, other.chartTrack, t)!,
+      chartGrid: Color.lerp(chartGrid, other.chartGrid, t)!,
     );
   }
 }
