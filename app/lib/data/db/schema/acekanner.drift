@@ -1,0 +1,464 @@
+-- ACEkanner local database - schema version 1.
+--
+-- This file is the single source of truth for the on-device schema. Drift
+-- generates the Dart data classes from it, and docs/sql/v1_schema.sql is an
+-- export of it. Every table is documented in docs/DATABASE.md.
+--
+-- Conventions
+--   * Primary keys: UUID v7 text (time-ordered, merge-safe for backup/restore).
+--   * Timestamps: DATETIME = Unix epoch seconds (UTC).
+--   * Booleans: stored as INTEGER 0/1.
+--   * Soft delete: deleted_at on instructor-managed master data.
+--   * Bitmask answers: A=1, B=2, C=4, D=8, E=16.
+--   * Foreign keys are enforced (PRAGMA foreign_keys = ON in beforeOpen).
+--     NO ACTION (the default) is used where two cascade paths meet, because
+--     SQLite checks it at the end of the statement, after cascades finish.
+
+------------------------------------------------------------------------------
+-- 1. Instructor and school
+------------------------------------------------------------------------------
+CREATE TABLE instructor_profiles (
+    id TEXT NOT NULL PRIMARY KEY,
+    full_name TEXT NOT NULL CHECK (length(trim(full_name)) BETWEEN 1 AND 120),
+    honorific TEXT CHECK (honorific IS NULL OR length(honorific) <= 20),
+    email TEXT CHECK (email IS NULL OR length(email) <= 254),
+    employee_no TEXT CHECK (employee_no IS NULL OR length(employee_no) <= 40),
+    school_name TEXT CHECK (school_name IS NULL OR length(school_name) <= 160),
+    school_address TEXT CHECK (school_address IS NULL OR length(school_address) <= 240),
+    department TEXT CHECK (department IS NULL OR length(department) <= 160),
+    logo_path TEXT,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    deleted_at DATETIME
+) AS InstructorProfileRow;
+
+------------------------------------------------------------------------------
+-- 2-4. Subjects, courses (degree programs) and sections (class blocks)
+------------------------------------------------------------------------------
+CREATE TABLE subjects (
+    id TEXT NOT NULL PRIMARY KEY,
+    code TEXT NOT NULL CHECK (length(trim(code)) BETWEEN 1 AND 30),
+    title TEXT NOT NULL CHECK (length(trim(title)) BETWEEN 1 AND 160),
+    description TEXT CHECK (description IS NULL OR length(description) <= 1000),
+    units REAL CHECK (units IS NULL OR units BETWEEN 0 AND 12),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    deleted_at DATETIME
+) AS SubjectRow;
+
+CREATE UNIQUE INDEX subjects_code_active ON subjects (code COLLATE NOCASE)
+    WHERE deleted_at IS NULL;
+
+CREATE TABLE courses (
+    id TEXT NOT NULL PRIMARY KEY,
+    code TEXT NOT NULL CHECK (length(trim(code)) BETWEEN 1 AND 30),
+    name TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 160),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    deleted_at DATETIME
+) AS CourseRow;
+
+CREATE UNIQUE INDEX courses_code_active ON courses (code COLLATE NOCASE)
+    WHERE deleted_at IS NULL;
+
+CREATE TABLE sections (
+    id TEXT NOT NULL PRIMARY KEY,
+    course_id TEXT REFERENCES courses (id),
+    name TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 60),
+    year_level INTEGER CHECK (year_level IS NULL OR year_level BETWEEN 1 AND 6),
+    school_year TEXT CHECK (school_year IS NULL OR length(school_year) <= 20),
+    term TEXT CHECK (term IS NULL OR length(term) <= 40),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    deleted_at DATETIME
+) AS SectionRow;
+
+CREATE INDEX sections_course ON sections (course_id);
+CREATE UNIQUE INDEX sections_name_term_active
+    ON sections (name COLLATE NOCASE, ifnull(school_year, ''), ifnull(term, ''))
+    WHERE deleted_at IS NULL;
+
+------------------------------------------------------------------------------
+-- 9. Students and section rosters
+------------------------------------------------------------------------------
+CREATE TABLE students (
+    id TEXT NOT NULL PRIMARY KEY,
+    -- Official number exactly as the school writes it, e.g. "2021-00123".
+    student_no TEXT NOT NULL CHECK (length(trim(student_no)) BETWEEN 1 AND 30),
+    -- Normalized for matching: upper-case letters and digits only, e.g. "202100123".
+    -- The shaded grid on the answer sheet is matched against this value.
+    student_no_key TEXT NOT NULL CHECK (length(student_no_key) BETWEEN 1 AND 30),
+    last_name TEXT NOT NULL CHECK (length(trim(last_name)) BETWEEN 1 AND 80),
+    first_name TEXT NOT NULL CHECK (length(trim(first_name)) BETWEEN 1 AND 80),
+    middle_name TEXT CHECK (middle_name IS NULL OR length(middle_name) <= 80),
+    suffix TEXT CHECK (suffix IS NULL OR length(suffix) <= 10),
+    email TEXT CHECK (email IS NULL OR length(email) <= 254),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    deleted_at DATETIME
+) AS StudentRow;
+
+CREATE UNIQUE INDEX students_no_key_active ON students (student_no_key)
+    WHERE deleted_at IS NULL;
+CREATE INDEX students_name ON students (last_name COLLATE NOCASE, first_name COLLATE NOCASE);
+
+CREATE TABLE section_students (
+    section_id TEXT NOT NULL REFERENCES sections (id) ON DELETE CASCADE,
+    student_id TEXT NOT NULL REFERENCES students (id) ON DELETE CASCADE,
+    enrolled_at DATETIME NOT NULL,
+    PRIMARY KEY (section_id, student_id)
+) AS SectionStudentRow;
+
+CREATE INDEX section_students_student ON section_students (student_id);
+
+------------------------------------------------------------------------------
+-- 5-8. Examinations, versions (sets A-D), answer keys and key items
+------------------------------------------------------------------------------
+CREATE TABLE examinations (
+    id TEXT NOT NULL PRIMARY KEY,
+    -- Short code printed on the sheet and inside the QR code (8 chars, Crockford base32).
+    short_code TEXT NOT NULL UNIQUE CHECK (length(short_code) = 8),
+    title TEXT NOT NULL CHECK (length(trim(title)) BETWEEN 1 AND 160),
+    subject_id TEXT REFERENCES subjects (id),
+    instructor_id TEXT REFERENCES instructor_profiles (id) ON DELETE SET NULL,
+    exam_date DATETIME,
+    item_count INTEGER NOT NULL CHECK (item_count IN (50, 75, 100)),
+    choice_count INTEGER NOT NULL DEFAULT 5 CHECK (choice_count BETWEEN 2 AND 5),
+    passing_percentage REAL NOT NULL DEFAULT 75
+        CHECK (passing_percentage BETWEEN 0 AND 100),
+    -- How a question with two or more shaded bubbles is scored.
+    multiple_mark_policy TEXT NOT NULL DEFAULT 'incorrect'
+        CHECK (multiple_mark_policy IN ('incorrect', 'zero')),
+    allow_negative_total BOOLEAN NOT NULL DEFAULT FALSE,
+    -- Recognition sensitivity preset; omr_thresholds holds JSON when 'custom'.
+    omr_preset TEXT NOT NULL DEFAULT 'standard'
+        CHECK (omr_preset IN ('lenient', 'standard', 'strict', 'custom')),
+    omr_thresholds TEXT,
+    -- Number of digit columns in the student-number grid on this exam's sheets.
+    student_id_digits INTEGER NOT NULL DEFAULT 10 CHECK (student_id_digits BETWEEN 4 AND 12),
+    status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'ready', 'closed')),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    deleted_at DATETIME
+) AS ExaminationRow;
+
+CREATE INDEX examinations_subject ON examinations (subject_id);
+CREATE INDEX examinations_recent ON examinations (deleted_at, updated_at);
+
+CREATE TABLE examination_sections (
+    examination_id TEXT NOT NULL REFERENCES examinations (id) ON DELETE CASCADE,
+    section_id TEXT NOT NULL REFERENCES sections (id),
+    PRIMARY KEY (examination_id, section_id)
+) AS ExaminationSectionRow;
+
+CREATE INDEX examination_sections_section ON examination_sections (section_id);
+
+CREATE TABLE examination_versions (
+    id TEXT NOT NULL PRIMARY KEY,
+    examination_id TEXT NOT NULL REFERENCES examinations (id) ON DELETE CASCADE,
+    label TEXT NOT NULL CHECK (label IN ('A', 'B', 'C', 'D')),
+    created_at DATETIME NOT NULL,
+    UNIQUE (examination_id, label)
+) AS ExaminationVersionRow;
+
+CREATE TABLE answer_keys (
+    id TEXT NOT NULL PRIMARY KEY,
+    examination_version_id TEXT NOT NULL
+        REFERENCES examination_versions (id) ON DELETE CASCADE,
+    -- Every edit after scanning starts creates a new revision; old revisions are
+    -- kept so earlier results remain explainable (see audit_logs).
+    revision INTEGER NOT NULL CHECK (revision >= 1),
+    is_current BOOLEAN NOT NULL DEFAULT TRUE,
+    change_note TEXT CHECK (change_note IS NULL OR length(change_note) <= 500),
+    created_at DATETIME NOT NULL,
+    UNIQUE (examination_version_id, revision)
+) AS AnswerKeyRow;
+
+CREATE UNIQUE INDEX answer_keys_one_current ON answer_keys (examination_version_id)
+    WHERE is_current = 1;
+
+CREATE TABLE answer_key_items (
+    answer_key_id TEXT NOT NULL REFERENCES answer_keys (id) ON DELETE CASCADE,
+    question_no INTEGER NOT NULL CHECK (question_no BETWEEN 1 AND 100),
+    -- Accepted answer(s) as a bitmask. 0 = not yet set (draft key).
+    correct_mask INTEGER NOT NULL DEFAULT 0 CHECK (correct_mask BETWEEN 0 AND 31),
+    points REAL NOT NULL DEFAULT 1 CHECK (points BETWEEN 0 AND 100),
+    negative_points REAL NOT NULL DEFAULT 0 CHECK (negative_points BETWEEN 0 AND 100),
+    -- normal: graded; bonus: everyone earns the points; dropped: excluded from totals.
+    mode TEXT NOT NULL DEFAULT 'normal' CHECK (mode IN ('normal', 'bonus', 'dropped')),
+    PRIMARY KEY (answer_key_id, question_no)
+) AS AnswerKeyItemRow;
+
+------------------------------------------------------------------------------
+-- Printed sheets (generated PDFs). Personalized sheets carry a student.
+------------------------------------------------------------------------------
+CREATE TABLE printed_sheets (
+    id TEXT NOT NULL PRIMARY KEY,
+    examination_id TEXT NOT NULL REFERENCES examinations (id) ON DELETE CASCADE,
+    examination_version_id TEXT REFERENCES examination_versions (id),
+    student_id TEXT REFERENCES students (id) ON DELETE SET NULL,
+    -- Unique code inside the sheet's QR; identifies a personalized paper.
+    sheet_code TEXT NOT NULL UNIQUE CHECK (length(sheet_code) BETWEEN 6 AND 32),
+    paper_size TEXT NOT NULL CHECK (paper_size IN ('a4', 'letter', 'long')),
+    copies INTEGER NOT NULL DEFAULT 1 CHECK (copies BETWEEN 1 AND 1000),
+    generated_at DATETIME NOT NULL
+) AS PrintedSheetRow;
+
+CREATE INDEX printed_sheets_exam ON printed_sheets (examination_id);
+CREATE INDEX printed_sheets_student ON printed_sheets (student_id);
+
+------------------------------------------------------------------------------
+-- 11. Scan sessions (one camera session, single or batch)
+------------------------------------------------------------------------------
+CREATE TABLE scan_sessions (
+    id TEXT NOT NULL PRIMARY KEY,
+    examination_id TEXT NOT NULL REFERENCES examinations (id) ON DELETE CASCADE,
+    mode TEXT NOT NULL CHECK (mode IN ('single', 'batch')),
+    started_at DATETIME NOT NULL,
+    ended_at DATETIME,
+    captures_attempted INTEGER NOT NULL DEFAULT 0 CHECK (captures_attempted >= 0),
+    captures_rejected INTEGER NOT NULL DEFAULT 0 CHECK (captures_rejected >= 0),
+    sheets_finalized INTEGER NOT NULL DEFAULT 0 CHECK (sheets_finalized >= 0),
+    device_model TEXT,
+    app_version TEXT
+) AS ScanSessionRow;
+
+CREATE INDEX scan_sessions_exam ON scan_sessions (examination_id, started_at);
+
+------------------------------------------------------------------------------
+-- 10, 12. Answer sheets (one scanned student paper) and per-question answers
+------------------------------------------------------------------------------
+CREATE TABLE answer_sheets (
+    id TEXT NOT NULL PRIMARY KEY,
+    examination_id TEXT NOT NULL REFERENCES examinations (id) ON DELETE CASCADE,
+    examination_version_id TEXT REFERENCES examination_versions (id),
+    scan_session_id TEXT REFERENCES scan_sessions (id) ON DELETE SET NULL,
+    printed_sheet_id TEXT REFERENCES printed_sheets (id) ON DELETE SET NULL,
+    student_id TEXT REFERENCES students (id) ON DELETE SET NULL,
+    -- Number read from the shaded grid or QR, kept even if no roster match.
+    detected_student_no TEXT CHECK (detected_student_no IS NULL OR length(detected_student_no) <= 30),
+    status TEXT NOT NULL
+        CHECK (status IN ('needs_review', 'finalized', 'rejected', 'superseded')),
+    -- SHA-256 hex of (exam, version, student identity, paper identity); set on finalize.
+    submission_key TEXT CHECK (submission_key IS NULL OR length(submission_key) = 64),
+    image_path TEXT,
+    rectified_image_path TEXT,
+    omr_engine_version TEXT,
+    omr_payload TEXT,
+    quality_score REAL CHECK (quality_score IS NULL OR quality_score BETWEEN 0 AND 1),
+    flagged_count INTEGER NOT NULL DEFAULT 0 CHECK (flagged_count >= 0),
+    captured_at DATETIME NOT NULL,
+    finalized_at DATETIME,
+    updated_at DATETIME NOT NULL,
+    CHECK (status <> 'finalized' OR (submission_key IS NOT NULL AND finalized_at IS NOT NULL))
+) AS AnswerSheetRow;
+
+-- At most one finalized paper per submission: re-scans replace, never duplicate.
+CREATE UNIQUE INDEX answer_sheets_one_final ON answer_sheets (submission_key)
+    WHERE status = 'finalized';
+CREATE INDEX answer_sheets_exam_status ON answer_sheets (examination_id, status);
+CREATE INDEX answer_sheets_student ON answer_sheets (student_id);
+
+CREATE TABLE student_answers (
+    answer_sheet_id TEXT NOT NULL REFERENCES answer_sheets (id) ON DELETE CASCADE,
+    question_no INTEGER NOT NULL CHECK (question_no BETWEEN 1 AND 100),
+    detected_state TEXT NOT NULL
+        CHECK (detected_state IN ('answered', 'blank', 'multiple', 'uncertain')),
+    detected_mask INTEGER NOT NULL DEFAULT 0 CHECK (detected_mask BETWEEN 0 AND 31),
+    -- JSON array with one normalized darkness score (0..1) per choice.
+    bubble_scores TEXT NOT NULL,
+    confidence REAL NOT NULL CHECK (confidence BETWEEN 0 AND 1),
+    -- Answer used for grading. NULL while an uncertain answer is unresolved.
+    final_mask INTEGER CHECK (final_mask IS NULL OR final_mask BETWEEN 0 AND 31),
+    resolved_by TEXT CHECK (resolved_by IS NULL OR resolved_by IN ('engine', 'instructor')),
+    review_note TEXT CHECK (review_note IS NULL OR length(review_note) <= 300),
+    PRIMARY KEY (answer_sheet_id, question_no)
+) AS StudentAnswerRow;
+
+------------------------------------------------------------------------------
+-- 13. Examination results (one row per paper per answer-key revision)
+------------------------------------------------------------------------------
+CREATE TABLE examination_results (
+    id TEXT NOT NULL PRIMARY KEY,
+    answer_sheet_id TEXT NOT NULL REFERENCES answer_sheets (id) ON DELETE CASCADE,
+    answer_key_id TEXT NOT NULL REFERENCES answer_keys (id),
+    correct_count INTEGER NOT NULL CHECK (correct_count >= 0),
+    incorrect_count INTEGER NOT NULL CHECK (incorrect_count >= 0),
+    blank_count INTEGER NOT NULL CHECK (blank_count >= 0),
+    multiple_count INTEGER NOT NULL CHECK (multiple_count >= 0),
+    earned_points REAL NOT NULL,
+    possible_points REAL NOT NULL CHECK (possible_points >= 0),
+    percentage REAL NOT NULL CHECK (percentage <= 100),
+    passed BOOLEAN NOT NULL,
+    is_current BOOLEAN NOT NULL DEFAULT TRUE,
+    graded_at DATETIME NOT NULL,
+    UNIQUE (answer_sheet_id, answer_key_id)
+) AS ExaminationResultRow;
+
+CREATE UNIQUE INDEX examination_results_one_current ON examination_results (answer_sheet_id)
+    WHERE is_current = 1;
+CREATE INDEX examination_results_key ON examination_results (answer_key_id);
+
+------------------------------------------------------------------------------
+-- 14. Subscription entitlements (server-signed tokens; the token is the truth)
+------------------------------------------------------------------------------
+CREATE TABLE subscription_entitlements (
+    id TEXT NOT NULL PRIMARY KEY,
+    account_id TEXT NOT NULL,
+    -- Compact JWS signed with the server's Ed25519 key. Every other column is a
+    -- cache that is re-derived from a successfully verified token on load.
+    token TEXT NOT NULL,
+    tier TEXT NOT NULL CHECK (tier IN ('free', 'premium')),
+    free_limit INTEGER NOT NULL CHECK (free_limit >= 0),
+    free_used INTEGER NOT NULL CHECK (free_used >= 0),
+    lease INTEGER NOT NULL CHECK (lease >= 0),
+    premium_until DATETIME,
+    verified_at DATETIME NOT NULL,
+    offline_until DATETIME NOT NULL,
+    issued_at DATETIME NOT NULL,
+    token_id TEXT NOT NULL UNIQUE,
+    received_at DATETIME NOT NULL,
+    is_current BOOLEAN NOT NULL DEFAULT TRUE
+) AS SubscriptionEntitlementRow;
+
+CREATE UNIQUE INDEX subscription_entitlements_one_current
+    ON subscription_entitlements (is_current) WHERE is_current = 1;
+
+------------------------------------------------------------------------------
+-- 15. Scan ledger (append-only, hash-chained, HMAC-signed)
+------------------------------------------------------------------------------
+CREATE TABLE scan_ledger (
+    seq INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    id TEXT NOT NULL UNIQUE,
+    account_id TEXT,
+    -- One charge per submission: re-scanning the same paper cannot charge again.
+    submission_key TEXT NOT NULL UNIQUE CHECK (length(submission_key) = 64),
+    answer_sheet_id TEXT REFERENCES answer_sheets (id) ON DELETE SET NULL,
+    tier TEXT NOT NULL CHECK (tier IN ('free', 'premium')),
+    entitlement_token_id TEXT,
+    consumed_at DATETIME NOT NULL,
+    -- entry_hash = SHA-256(prev_hash | id | account_id | submission_key | tier |
+    --                      entitlement_token_id | consumed_at)
+    prev_hash TEXT NOT NULL CHECK (length(prev_hash) = 64),
+    entry_hash TEXT NOT NULL UNIQUE CHECK (length(entry_hash) = 64),
+    -- HMAC-SHA256(entry_hash) with the per-install key from the Android Keystore.
+    mac TEXT NOT NULL CHECK (length(mac) = 64),
+    synced_at DATETIME,
+    server_receipt TEXT
+) AS ScanLedgerRow;
+
+CREATE INDEX scan_ledger_unsynced ON scan_ledger (synced_at, seq);
+
+CREATE TRIGGER scan_ledger_no_delete BEFORE DELETE ON scan_ledger
+BEGIN
+    SELECT RAISE(ABORT, 'scan_ledger is append-only');
+END;
+
+-- Only sync bookkeeping may change: synced_at/server_receipt once, and
+-- answer_sheet_id may be cleared when its exam is purged.
+CREATE TRIGGER scan_ledger_immutable BEFORE UPDATE ON scan_ledger
+WHEN NEW.seq IS NOT OLD.seq
+  OR NEW.id IS NOT OLD.id
+  OR NEW.account_id IS NOT OLD.account_id
+  OR NEW.submission_key IS NOT OLD.submission_key
+  OR NEW.tier IS NOT OLD.tier
+  OR NEW.entitlement_token_id IS NOT OLD.entitlement_token_id
+  OR NEW.consumed_at IS NOT OLD.consumed_at
+  OR NEW.prev_hash IS NOT OLD.prev_hash
+  OR NEW.entry_hash IS NOT OLD.entry_hash
+  OR NEW.mac IS NOT OLD.mac
+  OR (NEW.answer_sheet_id IS NOT OLD.answer_sheet_id AND NEW.answer_sheet_id IS NOT NULL)
+  OR (OLD.synced_at IS NOT NULL AND NEW.synced_at IS NOT OLD.synced_at)
+  OR (OLD.server_receipt IS NOT NULL AND NEW.server_receipt IS NOT OLD.server_receipt)
+BEGIN
+    SELECT RAISE(ABORT, 'scan_ledger rows are immutable');
+END;
+
+------------------------------------------------------------------------------
+-- 16. Audit log (append-only, hash-chained). Holds IDs, never student names.
+------------------------------------------------------------------------------
+CREATE TABLE audit_logs (
+    seq INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    id TEXT NOT NULL UNIQUE,
+    occurred_at DATETIME NOT NULL,
+    actor TEXT NOT NULL CHECK (actor IN ('instructor', 'system')),
+    -- Dotted event name, e.g. 'answer_key.revised', 'answer.overridden'.
+    event TEXT NOT NULL CHECK (length(event) BETWEEN 1 AND 80),
+    entity_type TEXT NOT NULL CHECK (length(entity_type) BETWEEN 1 AND 60),
+    entity_id TEXT,
+    -- Not a foreign key on purpose: history must outlive purged examinations.
+    examination_id TEXT,
+    details TEXT,
+    prev_hash TEXT NOT NULL CHECK (length(prev_hash) = 64),
+    entry_hash TEXT NOT NULL UNIQUE CHECK (length(entry_hash) = 64)
+) AS AuditLogRow;
+
+CREATE INDEX audit_logs_exam ON audit_logs (examination_id, seq);
+CREATE INDEX audit_logs_entity ON audit_logs (entity_type, entity_id);
+
+CREATE TRIGGER audit_logs_no_delete BEFORE DELETE ON audit_logs
+BEGIN
+    SELECT RAISE(ABORT, 'audit_logs is append-only');
+END;
+
+CREATE TRIGGER audit_logs_no_update BEFORE UPDATE ON audit_logs
+BEGIN
+    SELECT RAISE(ABORT, 'audit_logs is append-only');
+END;
+
+------------------------------------------------------------------------------
+-- 17. Application settings (typed access in SettingsRepository)
+------------------------------------------------------------------------------
+CREATE TABLE application_settings (
+    "key" TEXT NOT NULL PRIMARY KEY CHECK (length("key") BETWEEN 1 AND 100),
+    value TEXT NOT NULL CHECK (length(value) <= 10000),
+    updated_at DATETIME NOT NULL
+) AS AppSettingRow;
+
+------------------------------------------------------------------------------
+-- 18. Backup records
+------------------------------------------------------------------------------
+CREATE TABLE backup_records (
+    id TEXT NOT NULL PRIMARY KEY,
+    kind TEXT NOT NULL CHECK (kind IN ('local_export', 'cloud_upload', 'restore')),
+    status TEXT NOT NULL CHECK (status IN ('in_progress', 'completed', 'failed')),
+    file_name TEXT,
+    remote_ref TEXT,
+    size_bytes INTEGER CHECK (size_bytes IS NULL OR size_bytes >= 0),
+    sha256 TEXT CHECK (sha256 IS NULL OR length(sha256) = 64),
+    schema_version INTEGER NOT NULL CHECK (schema_version >= 1),
+    encrypted BOOLEAN NOT NULL DEFAULT TRUE,
+    error_message TEXT CHECK (error_message IS NULL OR length(error_message) <= 500),
+    started_at DATETIME NOT NULL,
+    completed_at DATETIME
+) AS BackupRecordRow;
+
+CREATE INDEX backup_records_started ON backup_records (started_at);
+
+------------------------------------------------------------------------------
+-- Queries
+------------------------------------------------------------------------------
+dashboardStats:
+SELECT
+    (SELECT COUNT(*) FROM examinations WHERE deleted_at IS NULL) AS exam_count,
+    (SELECT COUNT(*) FROM answer_sheets a
+        INNER JOIN examinations e ON e.id = a.examination_id
+        WHERE a.status = 'finalized' AND e.deleted_at IS NULL) AS papers_scanned,
+    (SELECT COUNT(*) FROM scan_ledger WHERE tier = 'free') AS free_scans_used_local;
+
+recentExaminations:
+SELECT
+    e.id,
+    e.title,
+    e.item_count,
+    e.status,
+    e.exam_date,
+    e.updated_at,
+    s.code AS subject_code,
+    (SELECT COUNT(*) FROM answer_sheets a
+        WHERE a.examination_id = e.id AND a.status = 'finalized') AS finalized_count
+FROM examinations e
+LEFT JOIN subjects s ON s.id = e.subject_id
+WHERE e.deleted_at IS NULL
+ORDER BY e.updated_at DESC
+LIMIT :limit;

@@ -1,0 +1,480 @@
+# ACEkanner — System Architecture (Phase 1)
+
+Status: **approved baseline for Phases 2–9.** Changes to this document are recorded in
+[`DEVELOPMENT_LOG.md`](DEVELOPMENT_LOG.md).
+
+ACEkanner is an offline-first Android app that lets college instructors print standardized
+answer sheets, scan the shaded sheets with the phone camera, grade them against an answer
+key and export reports. Scanning, recognition, grading and reporting never need the internet.
+The internet is needed only to sign in once, to buy or re-verify Premium, and for optional
+cloud backup.
+
+Confirmed product decisions (from the owner):
+
+| Decision | Value |
+|---|---|
+| Package / application ID | `com.acekanner.app` |
+| Sheet sizes (items) | 50, 75, 100 |
+| Choices per item | 5 (A–E) |
+| Language | English |
+| Student identification | Shaded student-number grid on every sheet **and** optional personalized sheets with a per-student QR code |
+| Free-scan protection | One-time Google sign-in; lifetime count kept on a Supabase backend |
+| Backend | Supabase (Auth + Postgres + Edge Functions), used only for licensing, recovery and opt-in backup |
+| Paper sizes | A4, US Letter, 8.5×13 in ("long bond") |
+
+---
+
+## 1. System architecture
+
+```
+┌──────────────────────────── Android phone (works fully offline) ───────────────────────────┐
+│                                                                                             │
+│  Flutter UI (Dart, Material 3)                                                              │
+│   screens ─ widgets ─ Riverpod controllers ─ go_router                                      │
+│        │                                                                                    │
+│  Application services (pure Dart, unit-tested)                                              │
+│   ExamService · AnswerKeyService · GradingEngine · AnalyticsService · ReportService         │
+│   ScanWorkflow · ScanLedger · EntitlementService · BackupService · AuditLog                 │
+│        │                         │                                     │                    │
+│  Data layer                      │ platform channel (binary + JSON)    │                    │
+│   Drift ORM ── SQLCipher DB      ▼                                     │                    │
+│   (AES-256, key in Keystore)   Kotlin OMR engine (OpenCV 4.14)         │                    │
+│   App-private files            · marker detection · perspective warp   │                    │
+│   (scans, reports)             · bubble scoring · QR decode            │                    │
+│   flutter_secure_storage       · image-quality checks                  │                    │
+│   (DB key, device key,                                                 │                    │
+│    signed entitlement)                                                 │                    │
+│                                                                        │ only when online   │
+└────────────────────────────────────────────────────────────────────────┼────────────────────┘
+                                                                         ▼
+              ┌──────────────────────── Supabase (licensing only) ────────────────────────┐
+              │ Auth: Google ID-token sign-in                                              │
+              │ Edge Functions: verify-purchase · play-rtdn · sync-ledger · entitlement    │
+              │ Postgres (RLS): accounts · devices · purchases · scan_consumptions         │
+              │ Ed25519 private key (secret) signs entitlement tokens                     │
+              └───────────────┬────────────────────────────────────────────────────────────┘
+                              │ service account (secret, server-side only)
+                              ▼
+              Google Play Developer API (subscriptionsv2.get, acknowledge, voided purchases)
+              Google Play Real-time Developer Notifications (Pub/Sub push → play-rtdn)
+```
+
+Principles:
+
+1. **Offline core.** Exam setup, sheet generation, scanning, OMR, grading, analytics,
+   PDF/Excel/CSV export and printing all run on the device with no network.
+2. **Deterministic recognition.** Answers are read with classical image processing
+   (OpenCV). No generative AI and no cloud recognition.
+3. **Never guess.** Any mark the engine is not sure about is flagged for the instructor.
+   It is never silently scored as correct or incorrect.
+4. **Student data stays on the phone.** Nothing about students, papers or results leaves
+   the device unless the instructor explicitly turns on cloud backup. The licensing
+   server only ever receives salted hashes and counts.
+5. **Server-trusted licensing.** Premium is granted only from a server-signed entitlement,
+   never from a client-side "purchase succeeded" callback or an editable flag.
+
+### Why the OMR engine is Kotlin + OpenCV (not a Dart OpenCV binding)
+
+The Dart OpenCV bindings (`opencv_dart`) download prebuilt native libraries from GitHub
+during the build. The official OpenCV Android library is published on Maven Central
+(`org.opencv:opencv:4.14.0`, 16 KB page-aligned as Google Play requires). Using it from a
+Kotlin module behind a platform channel gives:
+
+- the official, maintained OpenCV build;
+- full-speed native processing of 12-megapixel photos with no copying through Dart;
+- host-side unit tests: the same Kotlin sources compile against
+  `org.openpnp:opencv` (desktop OpenCV with Linux natives) for JVM tests that run in CI
+  without a phone.
+
+Trade-off: an iOS version would need the engine ported (Swift + OpenCV). The app is
+Android-first, so this is accepted.
+
+---
+
+## 2. Technology stack and dependencies
+
+Versions are the current stable releases as of November 2026 and are pinned in
+`app/pubspec.lock` and the Gradle files.
+
+| Area | Choice | Notes |
+|---|---|---|
+| SDK | Flutter 3.50.0, Dart 3.14 | Material from `package:material_ui` (the Flutter 3.47+ split) |
+| Android | compileSdk/targetSdk 36, minSdk 24, AGP 9.3, Gradle 9.5, NDK r28c | 16 KB page-size compliant |
+| State | `flutter_riverpod` 3.x | No code generation for providers |
+| Navigation | `go_router` 18.x | Declarative routes, redirect for onboarding |
+| Database | `drift` 2.35 + `sqlite3` 3.9 | Schema written in SQL (`.drift` files) |
+| DB encryption | SQLCipher 4.20 (`net.zetetic:sqlcipher-android`, Maven Central) | Loaded by `sqlite3` with `source: system, name: sqlcipher` |
+| Secrets on device | `flutter_secure_storage` 11.x | Android Keystore-backed |
+| Computer vision | OpenCV 4.14.0 (Maven Central AAR) in Kotlin | ArUco markers, homography, QR decoding |
+| Camera | `camera` 0.12 (CameraX) | Preview + still capture, focus/exposure points |
+| PDF / printing | `pdf` 3.13, `printing` 5.15 | Answer sheets and reports, Android print service |
+| Excel / CSV | `excel_plus` 2.29, `csv` 8.0 | Fully offline export. `excel_plus` (MIT) replaces `excel`, which has been unmaintained since 2024 and conflicts with the current `pdf` package. |
+| Crypto | `cryptography` 2.9 | Ed25519 verify, HMAC-SHA256, AES-GCM for backups |
+| Billing | `in_app_purchase` 3.3 (Play Billing Library 8) | Subscription `acekanner_premium_yearly` |
+| Sign-in | `google_sign_in` 7.x → Supabase `signInWithIdToken` | One-time, online |
+| Backend client | `supabase_flutter` 2.x | Licensing calls only |
+| Sharing / files | `share_plus`, `file_picker`, `path_provider` | |
+| IDs | `uuid` 4.x (UUID v7, time-ordered) | |
+
+**Play product ID correction:** Google Play product IDs must be lowercase
+(letters, digits, `_` and `.`). `ACEKANNER_PREMIUM_YEARLY` is rejected by Play Console, so
+the product is **`acekanner_premium_yearly`**, with base plan **`yearly-autorenew`**
+(PHP 399, 1-year auto-renewing).
+
+---
+
+## 3. Project directory structure
+
+```
+acekanner/
+├── README.md
+├── docs/
+│   ├── ARCHITECTURE.md          ← this file
+│   ├── DATABASE.md              ← table-by-table schema reference
+│   ├── sql/                     ← exported SQL migration scripts (v1, v2, …)
+│   ├── DEVELOPMENT_LOG.md       ← progress log, known issues, next steps
+│   └── (later) OMR_TEST_PROTOCOL.md, PLAY_RELEASE.md, PRIVACY_POLICY.md, USER_MANUAL.md
+├── app/                         ← Flutter application
+│   ├── lib/
+│   │   ├── main.dart            ← bootstrap: DB open, providers, error handling
+│   │   ├── app/                 ← AcekannerApp, router, bootstrap
+│   │   ├── core/
+│   │   │   ├── theme/           ← colors, typography, spacing, Material 3 theme
+│   │   │   ├── widgets/         ← reusable components (StatCard, SectionHeader, EmptyState…)
+│   │   │   └── util/            ← ids, clock, formatting, result types
+│   │   ├── data/
+│   │   │   ├── db/              ← Drift database, .drift schema, DAOs, migrations
+│   │   │   └── secure/          ← key management (DB key, device key)
+│   │   └── features/
+│   │       ├── splash/  onboarding/  dashboard/  settings/
+│   │       ├── exams/  answer_key/  students/          (Phase 3)
+│   │       ├── sheets/  scanner/                       (Phase 4)
+│   │       ├── grading/  analytics/                    (Phase 5)
+│   │       ├── subscription/                           (Phase 6)
+│   │       └── reports/                                (Phase 7)
+│   ├── android/app/src/main/kotlin/com/acekanner/app/
+│   │   ├── MainActivity.kt
+│   │   └── omr/                 ← OMR channel + engine (Phase 4)
+│   └── test/                    ← unit + widget tests
+├── omr_engine/                  ← (Phase 4) JVM test harness for the shared Kotlin OMR sources
+└── backend/supabase/            ← (Phase 6) SQL migrations + Edge Functions (TypeScript)
+```
+
+Layering rule: `features/*` may depend on `core/` and `data/`; `data/` never imports
+`features/`; the grading and licensing logic is pure Dart with no Flutter imports, so it is
+unit-tested without a device.
+
+---
+
+## 4. Database schema (summary)
+
+Full reference: [`DATABASE.md`](DATABASE.md). Source of truth:
+`app/lib/data/db/schema/*.drift` (plain SQL `CREATE TABLE` / `CREATE INDEX` /
+`CREATE TRIGGER`).
+
+- UUID v7 text primary keys (sortable, merge-safe for backup/restore).
+- Timestamps stored as Unix epoch seconds (`DATETIME` in Drift).
+- Foreign keys enforced (`PRAGMA foreign_keys = ON`).
+- Soft delete (`deleted_at`) on instructor-managed master data. Derived scan data is hard
+  deleted only when its examination is permanently purged.
+- `scan_ledger` and `audit_logs` are **append-only**: SQLite triggers abort `DELETE` and any
+  `UPDATE` other than sync bookkeeping. Each row stores a SHA-256 hash chain, plus an
+  HMAC (keyed by a per-install secret in the Keystore) on ledger rows.
+- Every multi-row write (finalize a scan, regrade, import roster) runs in one transaction.
+
+Tables: `instructor_profiles`, `subjects`, `courses`, `sections`, `section_students`,
+`students`, `examinations`, `examination_sections`, `examination_versions`, `answer_keys`,
+`answer_key_items`, `printed_sheets`, `scan_sessions`, `answer_sheets`, `student_answers`,
+`examination_results`, `subscription_entitlements`, `scan_ledger`, `audit_logs`,
+`application_settings`, `backup_records`.
+
+These are the 18 required tables, plus three join/support tables:
+`section_students`, `examination_sections` and `printed_sheets`.
+
+### Android permissions
+
+| Permission | Why |
+|---|---|
+| `CAMERA` | Scanning (requested only when the scanner opens) |
+| `INTERNET`, `ACCESS_NETWORK_STATE` | Sign-in, Premium verification, opt-in backup |
+| `BILLING` | Google Play subscription |
+| `USE_BIOMETRIC` / `USE_FINGERPRINT` | Optional app lock (normal permissions, never prompted) |
+
+Removed on purpose (plugins declare them for features ACEkanner doesn't use):
+`RECORD_AUDIO`, `READ_EXTERNAL_STORAGE`, `WRITE_EXTERNAL_STORAGE`.
+
+---
+
+## 5. OMR algorithm design
+
+### 5.1 Answer-sheet template (designed for machine reading)
+
+All three item counts share one **paper-size-independent frame** of 190 × 250 mm. It is
+centered on A4, Letter or 8.5×13 paper, so the OMR geometry is identical for every paper
+size.
+
+- **Four ArUco corner markers** (OpenCV `DICT_4X4_50`, 10 mm), one in each frame corner.
+  The marker IDs encode the template and orientation: 50-item = IDs 0–3, 75-item = 4–7,
+  100-item = 8–11 (TL, TR, BR, BL). A photo taken upside down or of the wrong template is
+  detected immediately.
+- **QR code** (top right): `ACK1|<exam short id>|<version>|<template>|<sheet code>|<check>`.
+  Generic sheets carry the exam identity. Personalized sheets also carry a per-student sheet
+  code, which links the paper to the roster with no shading needed.
+- **Student-number grid**: one column of bubbles 0–9 per digit. The number of columns
+  follows the school's ID format (for example `####-#####` gives 9 columns; up to
+  12 supported). Write-in boxes sit above each column.
+- **Exam set row** (A–D) for exams with shuffled versions.
+- **Answer area**: 25 rows per column. 50 items = 2 columns, 75 = 3, 100 = 4.
+  5 bubbles (A–E) per item, 4.6 mm bubble diameter, 6.4 mm horizontal pitch, 6.6 mm row pitch.
+  Bubble outlines are printed in mid-grey so they add little "ink" to the reading.
+- Student instructions printed on the sheet (fill completely, dark pencil or pen, erase
+  cleanly, don't fold across the markers).
+
+The exact coordinates come from one Dart layout function. It produces both the PDF and a
+JSON geometry file that the Kotlin engine reads. A unit test fails the build if the two ever
+disagree.
+
+### 5.2 Recognition pipeline (Kotlin, OpenCV)
+
+1. **Capture.** Full-resolution still from CameraX. Live preview frames (downscaled
+   grayscale, about 5 fps) run step 3 only, to draw the "paper found" outline and enable
+   the shutter.
+2. **Quality gate.** Blur (variance of Laplacian), exposure (mean and clipped-pixel
+   ratio) and glare (saturated blobs in the sheet area). A failing photo is rejected with a
+   specific instruction ("Hold steady", "Too dark", "Glare on the page") and **never
+   consumes a scan**.
+3. **Marker detection.** ArUco detection with sub-pixel corner refinement. All four markers
+   of one template must be found. The marker IDs fix orientation (0/90/180/270°) and
+   template.
+4. **Perspective correction.** A homography from the four marker corners to canonical
+   template coordinates (10 px/mm), then `warpPerspective`. A re-projection error check
+   rejects warped or badly curled sheets.
+5. **Sheet validation.** The QR is decoded inside its known region of the corrected image.
+   A wrong exam, template or version gives a clear error. A missing or unreadable QR is
+   allowed for generic sheets (the instructor chose the exam before scanning) but is
+   recorded.
+6. **Illumination normalization.** Flat-field correction: divide by a large-kernel blurred
+   background, which removes shadows and lighting gradients.
+7. **Bubble scoring.** For every bubble, mean darkness of the inner disc (70 % of the
+   radius, which excludes the printed outline), measured against the local paper white from
+   a surrounding ring. This gives a score from 0 (empty) to 1 (solid).
+8. **Per-sheet calibration.** Empty and filled reference levels come from this sheet's own
+   score distribution (two-cluster split). This adapts to pencil versus pen, light versus
+   heavy shading, and printer toner differences.
+9. **Classification per question**, with configurable thresholds on the normalized score
+   *s*:
+   - filled if *s* ≥ `fill` (default 0.55); empty if *s* ≤ `empty` (default 0.25);
+     anything between is **ambiguous**;
+   - exactly one filled and the rest empty → **answered**;
+   - none filled and all empty → **blank**;
+   - two or more filled → **multiple**;
+   - any ambiguous bubble, or a filled answer next to a partly dark bubble (a likely
+     erasure) → **uncertain**. The engine suggests an answer, but the instructor must
+     confirm before the paper can be finalized.
+   - Presets: *Lenient / Standard / Strict* tune `fill`, `empty` and the erasure ratio.
+     Advanced users can edit the values.
+10. **Student number and exam set.** Read with the same rules, column by column. An
+    unreadable digit flags the paper. A complete number is matched against the roster.
+11. **Output.** JSON with per-question state, the five scores and confidence, the decoded
+    student number, set, QR payload and quality metrics. The corrected image is saved
+    privately and drives the verification screen (scan beside recognized answers, with
+    flagged items highlighted).
+
+### 5.3 Accuracy targets (to be proven, not assumed)
+
+The figures below are targets only. They will be measured with the physical test protocol in
+Phase 8 (at least 30 printed sheets per condition, two or more phone models, pencil and pen,
+good and poor light). Results go into `docs/OMR_TEST_PROTOCOL.md`.
+
+| Metric | Target |
+|---|---|
+| Unflagged answers read correctly (well-printed sheet, normal indoor light) | ≥ 99.9 % |
+| Questions flagged for review on normal sheets | ≤ 2 % |
+| Silent wrong reading of a deliberately ambiguous mark | 0 (must be flagged) |
+| Capture → result on a mid-range phone | ≤ 2 s |
+
+ACEkanner will never claim 100 % accuracy.
+
+---
+
+## 6. Grading engine
+
+A pure Dart, deterministic function: `(answer key revision, student answers, rules) → result`.
+
+- Each key item has accepted choices stored as a bitmask (A=1, B=2, C=4, D=8, E=16). More
+  than one accepted answer is allowed after a key correction. Each item also has points,
+  optional negative points, and a mode: `normal`, `bonus` (everyone gets the points) or
+  `dropped` (excluded from the total).
+- Rules: multiple marks score as incorrect (default) or zero; negative marking on or off,
+  never below 0 total (configurable); passing percentage (default 75 %).
+- Percentage = earned points ÷ total possible points × 100, rounded only for display.
+- A paper with unresolved *uncertain* items cannot be finalized.
+- **Regrading:** editing a key creates a new key revision. Every finalized paper is
+  regraded in one transaction, and the new result rows become current. Old results stay
+  for audit, and an `audit_logs` entry records who changed what and why.
+
+---
+
+## 7. Subscription and scan-licensing architecture
+
+### 7.1 What counts as a scan
+
+One scan = one **finalized** student answer sheet for an examination. Nothing is consumed
+by camera failures, rejected or unreadable photos, cancelled reviews, or re-scans of a paper
+already finalized.
+
+Each finalized paper gets a **submission key**:
+`SHA-256(examination_id ‖ examination_version ‖ student identity ‖ paper identity)`.
+Student identity is the student's UUID, or the decoded number if the student isn't in the
+roster. Paper identity is the personalized sheet code, or `generic`. `scan_ledger` has a
+UNIQUE constraint on the submission key, so re-scanning or re-finalizing the same paper
+replaces its result without a second charge. This happens inside the same transaction as
+the result save.
+
+### 7.2 Free plan (100 lifetime scans) across reinstalls
+
+- On first setup the instructor signs in with Google once (online). Supabase returns a
+  signed **entitlement token**, an Ed25519-signed compact JWS:
+
+  ```json
+  { "sub": "<account uuid>", "dev": "<install id>", "plan": "free|premium",
+    "free_limit": 100, "free_used": 37, "lease": 63,
+    "premium_until": null, "verified_at": 1763251200,
+    "offline_until": 1765843200, "iat": 1763251200, "jti": "<nonce>" }
+  ```
+- The app verifies the signature offline with the public key built into the app. A token
+  that is forged, edited or belongs to another account is rejected.
+- **Remaining free scans offline** = `lease − (local ledger rows after the token was issued)`.
+  The server *leases* the remaining allowance to one active device at a time. Signing in on
+  a new phone moves the lease. The count lives on the server, so uninstalling,
+  clearing data or reinstalling never restores used scans.
+- When online, unsynced ledger rows are uploaded idempotently (`sync-ledger`). The server
+  adds them to the account's lifetime count and issues a fresh token. Uploaded rows hold
+  only the submission-key hash, a timestamp and the plan, never names or answers.
+- Scans finalized while Premium is active are recorded as `premium` and do **not** use the
+  free allowance. If Premium lapses, the remaining free allowance is whatever was left
+  (never a fresh 100). An account that used all 100 has 0 left.
+
+### 7.3 Premium (PHP 399 / year)
+
+1. The app queries `acekanner_premium_yearly` through Play Billing and launches the
+   purchase with `obfuscatedAccountId = HMAC(account id)`. This ties the purchase token
+   to the signed-in account.
+2. The purchase update stream returns a purchase token. The app sends it to
+   `verify-purchase` with the user's Supabase session.
+3. The server calls `purchases.subscriptionsv2.get` with a Google service account (kept
+   only in Supabase secrets). It checks the package, product, state (`ACTIVE` /
+   `IN_GRACE_PERIOD`), expiry time and account binding. It then acknowledges the purchase
+   (Play refunds unacknowledged purchases after 3 days), stores it, and returns a signed
+   Premium entitlement.
+4. Only then does the app unlock unlimited scanning and call `completePurchase`.
+5. **Pending purchases** show "Payment pending" and grant nothing until Play confirms.
+6. **Renewal, cancellation, expiry, grace period, account hold, refund and revocation**
+   arrive as Real-time Developer Notifications (Pub/Sub push to `play-rtdn`, OIDC-verified).
+   A daily job also checks the Voided Purchases API. The account's entitlement is updated,
+   and the next app check-in receives it.
+7. **Restore purchases:** after sign-in, the server returns any Premium linked to the
+   account. The app also re-submits tokens from `queryPastPurchases` for verification.
+
+### 7.4 Offline rule for Premium (30 days)
+
+Premium works offline until **min(Play expiry time, last successful verification + 30 days)**.
+The app shows the date when online verification is next required and warns from 7 days
+before. Past that date, new Premium scans pause (falling back to any remaining free
+allowance) until the app re-verifies. **No data is ever deleted or locked** because of this:
+viewing, grading, regrading and exporting existing results always work.
+
+### 7.5 Clock tampering
+
+The app keeps a high-water mark of trusted time (server time from the last check-in,
+moved forward by device time and elapsed real time). If the device clock is set backwards
+past it, the offline window is treated as expired until the app reaches the server.
+
+---
+
+## 8. Security architecture
+
+| Asset | Protection |
+|---|---|
+| Local database | SQLCipher AES-256. Random 256-bit key created on first run and stored with `flutter_secure_storage` (Android Keystore). |
+| Scan images and reports | App-private internal storage (not visible to other apps; Android file-based encryption). Shared only when the instructor exports. |
+| Licensing state | Server-signed Ed25519 token (public key in app, private key only in Supabase secrets). Append-only, hash-chained, HMAC'd scan ledger. Triggers block edits. |
+| Secrets | No API secrets in the app. Only the Supabase URL and publishable anon key (protected by Row Level Security) and the entitlement public key. The Play service-account key lives only in Supabase secrets. |
+| Android backup | `allowBackup=false`, and data-extraction rules exclude everything. Student data is never copied to Google Drive automatically. |
+| Local backups | Instructor-initiated `.acekbackup` file: database export + images, encrypted with AES-256-GCM and a key derived from the instructor's passphrase (PBKDF2-HMAC-SHA256, 310,000 iterations). Checksum verified before restore. |
+| Cloud backup | Off by default. Opt-in only, encrypted on the device before upload. |
+| App access | Optional app lock (device PIN/biometric). Optional screenshot blocking on result screens. |
+| Audit | `audit_logs`: key edits, regrades, manual answer overrides, deletions, restores, entitlement changes. |
+| Input validation | All forms validate on the device (lengths, ranges, ID format); every DB write uses parameterized queries (Drift). |
+| Errors | User-facing messages never show stack traces or student data. Diagnostic logs stay on the device. |
+
+Honest limit: a determined attacker with a rooted phone can tamper with any local client.
+These measures stop the realistic attacks (editing the database or preferences, clearing
+data, reinstalling, changing the clock, replaying another user's purchase). Server-side
+counting bounds the damage of any local bypass to the remaining leased allowance.
+
+### Privacy (Philippine Data Privacy Act of 2012, RA 10173)
+
+- **Purpose limitation:** student names, numbers, answers and scores are processed only
+  to grade the instructor's examinations.
+- **Data minimization:** the server stores the instructor's Google account email and ID,
+  device install IDs, purchase tokens and hashed scan counts. No student data.
+- **Consent and transparency:** onboarding explains what is stored where. Cloud backup
+  needs an explicit opt-in with a plain-language notice.
+- **Retention:** the instructor controls deletion. Deleting an examination purges its
+  papers, images and results after confirmation. "Delete all data" wipes the device
+  database and files. Account deletion is available in the app and on the web (a Play
+  requirement) and removes server records.
+- **Security measures:** encryption at rest, no automatic cloud copies, export only by
+  instructor action.
+- The privacy policy, terms and Google Play Data Safety answers will be drafted in Phase 9
+  from this design.
+
+---
+
+## 9. Implementation roadmap
+
+| Phase | Scope | Exit criteria |
+|---|---|---|
+| 1 | Architecture, schema, OMR, licensing and security design | This document, DATABASE.md |
+| 2 | Flutter project, Android config, dependencies, encrypted DB, design system, navigation, splash, onboarding, dashboard | `flutter analyze` clean, tests green, APK builds |
+| 3 | Instructor profile, subjects, courses, sections, students (CSV roster import), examinations, versions, answer keys | CRUD + validation tests |
+| 4 | Sheet layout + PDF generator, Kotlin OMR engine, camera screen, verification screen | Synthetic-image test suite green; first physical test on your phone |
+| 5 | Grading engine, results, regrade + audit, class analytics, item analysis | Grading unit tests |
+| 6 | Supabase backend, Google sign-in, entitlement tokens, scan ledger, Play Billing, RTDN | License test matrix (sandbox testers) |
+| 7 | PDF/Excel/CSV reports, printing, history | Exports open in Excel/Sheets/PDF viewers |
+| 8 | Physical OMR accuracy campaign, offline/crash, security, performance tests | Documented results; critical bugs closed |
+| 9 | Release build, signing, store listing, privacy policy, Data Safety, manual | Release-readiness checklist |
+
+---
+
+## 10. Estimated complexity
+
+| Module | Complexity | Main difficulty |
+|---|---|---|
+| Exam / key / roster management | Medium | Validation, regrade-safe key revisions |
+| Answer-sheet generator | Medium | Exact geometry shared with the OMR engine |
+| OMR engine | **High** | Lighting, shading variance, erasures, real-paper tuning |
+| Camera UX | Medium-High | Live guidance, device camera differences |
+| Grading and analytics | Low-Medium | Deterministic; well covered by unit tests |
+| Licensing and billing | **High** | Offline enforcement, Play state machine, abuse resistance |
+| Reports | Medium | Layout quality in PDF and Excel |
+| Backup / restore | Medium | Encryption, integrity, schema-version compatibility |
+
+---
+
+## 11. Risks and mitigations
+
+| Risk | Impact | Mitigation |
+|---|---|---|
+| Recognition errors on real paper (light pencil, erasures, glare) | Wrong grades | Per-sheet calibration, "uncertain" flagging, mandatory review, physical test campaign before release |
+| Poor photocopies of sheets (faded markers) | Unreadable sheets | High-contrast ArUco markers, printing guidance, rejection with a reason (no scan consumed) |
+| Phone camera variety | Inconsistent quality | Quality gate, live guidance, test on 2+ phones (including a low-end one) |
+| Instructor finalizes without reviewing | Bad grades | Uncertain items block finalization; flagged items highlighted |
+| Free-scan abuse across devices | Revenue loss | Single-device lease, server-side lifetime count |
+| Play policy and Billing Library version changes | Store rejection | Re-check requirements at Phase 9; keep `in_app_purchase` current |
+| Clock manipulation offline | Extended offline Premium | Trusted-time high-water mark, 30-day cap |
+| Backend cost | Recurring cost | Supabase free tier is enough for licensing traffic. Student data is never stored there. |
+| Lost phone without backup | Data loss | Backup reminders; encrypted local and opt-in cloud backups |
+| APK size (OpenCV ≈ 25 MB per ABI) | Download size | App Bundle per-ABI splits; ship only arm64-v8a, armeabi-v7a, x86_64 |
+| GitHub-hosted native binaries blocked in some build environments | Build failure | All native libraries come from Maven Central (OpenCV, SQLCipher) |
