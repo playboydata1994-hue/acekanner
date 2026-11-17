@@ -64,3 +64,31 @@ String cellText(CellValue? v) => switch (v) {
         value == value.truncateToDouble() && value.abs() < 1e15 ? value.toInt().toString() : '$value',
       _ => v.toString(),
     };
+
+/// File name of the class list template teachers can save and fill in.
+const String classListTemplateName = 'ACEkanner class list.xlsx';
+
+/// An empty class list to fill in: one sheet, "Class list", with the column
+/// names in row 1 (bold) and the Student No column formatted as text so
+/// numbers keep their leading zeros.
+List<int> classListTemplateXlsx() {
+  final book = Excel.createExcel();
+  final defaultName = book.getDefaultSheet()!;
+  book.rename(defaultName, 'Class list');
+  final sheet = book['Class list'];
+  const headers = ['Student No', 'Last Name', 'First Name', 'Middle Name'];
+  const widths = [18.0, 22.0, 22.0, 18.0];
+  for (var c = 0; c < headers.length; c++) {
+    sheet.updateCell(
+      CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0),
+      TextCellValue(headers[c]),
+      cellStyle: CellStyle(bold: true, numberFormat: NumFormat.standard_49),
+    );
+    sheet.setColumnWidth(c, widths[c]);
+  }
+  final asText = CellStyle(numberFormat: NumFormat.standard_49);
+  for (var r = 1; r <= 200; r++) {
+    sheet.updateCell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: r), null, cellStyle: asText);
+  }
+  return book.encode()!;
+}

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:acekanner/data/db/app_database.dart';
+import 'package:acekanner/features/classes/type_students_screen.dart';
 
 import '../support/app_harness.dart';
 
@@ -60,6 +61,65 @@ void main() {
     await tester.tap(find.byTooltip('Sample class list'));
     await tester.pumpAndSettle();
     expect(find.text('Sample class list'), findsWidgets);
+    await disposeApp(tester);
+  });
+
+  testWidgets('type several students into a section; mistakes are shown before saving', (tester) async {
+    await pumpApp(tester, db);
+    await tapTab(tester, 'Classes');
+    await tester.tap(find.text('Add section'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextFormField, 'Section name'), 'BSIT 2-B');
+    await tester.tap(find.widgetWithText(FilledButton, 'Add section'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('BSIT 2-B'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Type several students'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add to BSIT 2-B'), findsOneWidget);
+    expect(find.text('Section name'), findsNothing, reason: 'the section is already known');
+    expect(find.text('Save students'), findsOneWidget);
+
+    Finder field(int card, String label) => find.descendant(
+          of: find.byType(Card).at(card),
+          matching: find.widgetWithText(TextFormField, label),
+        );
+    await tester.enterText(field(0, 'Student No'), '2021-00123');
+    await tester.enterText(field(0, 'Last name'), 'Dela Cruz');
+    await tester.enterText(field(0, 'First name'), 'Juan');
+    await tester.enterText(field(1, 'Student No'), '202100123'); // same number, other spelling
+    await tester.enterText(field(1, 'Last name'), 'Santos');
+    await tester.pump();
+    expect(find.text('Save 2 students'), findsOneWidget);
+
+    await tester.tap(find.text('Save 2 students'));
+    await tester.pumpAndSettle();
+    expect(find.text('Same number as student 1'), findsOneWidget);
+    expect(find.text('Enter the first name'), findsOneWidget);
+    expect(await db.select(db.students).get(), isEmpty, reason: 'nothing saved while there are mistakes');
+    await tester.pump(const Duration(seconds: 5)); // let the message go away
+    await tester.pumpAndSettle();
+
+    await tester.enterText(field(1, 'Student No'), '2021-00124');
+    await tester.enterText(field(1, 'First name'), 'Maria');
+    await tester.enterText(field(1, 'Middle name (optional)'), 'Lopez');
+    final form = find.descendant(of: find.byType(TypeStudentsScreen), matching: find.byType(Scrollable)).first;
+    await tester.scrollUntilVisible(find.text('Add another student'), 200, scrollable: form);
+    await tester.ensureVisible(find.text('Add another student'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add another student'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Student 4'), 200, scrollable: form);
+    expect(find.text('Student 4'), findsOneWidget);
+    await tester.tap(find.text('Save 2 students'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('2 students saved (2 new, 0 already saved).'), findsOneWidget);
+    expect(find.text('Dela Cruz, Juan'), findsOneWidget);
+    expect(find.textContaining('Santos, Maria'), findsOneWidget);
+    final saved = await db.select(db.students).get();
+    expect(saved.map((s) => (s.studentNo, s.middleName)).toSet(), {('2021-00123', null), ('2021-00124', 'Lopez')});
     await disposeApp(tester);
   });
 

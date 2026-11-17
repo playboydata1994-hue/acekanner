@@ -9,6 +9,7 @@ import '../../core/theme/spacing.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/feedback.dart';
 import '../../core/widgets/section_header.dart';
+import 'type_students_screen.dart';
 import '../../data/db/app_database.dart';
 import '../../data/repositories/students_repository.dart';
 import '../../domain/student_number.dart';
@@ -99,6 +100,19 @@ class SectionDetailScreen extends ConsumerWidget {
             icon: const Icon(Icons.upload_file_outlined),
             label: const Text('Import class list (Excel or CSV)'),
           ),
+          const SizedBox(height: Space.s),
+          OutlinedButton.icon(
+            onPressed: () async {
+              final result = await Navigator.of(context).push<(String, String)>(
+                MaterialPageRoute(
+                  builder: (_) => TypeStudentsScreen(sectionId: sectionId, sectionName: summary?.section.name),
+                ),
+              );
+              if (result != null && context.mounted) showMessage(context, result.$2);
+            },
+            icon: const Icon(Icons.keyboard_outlined),
+            label: const Text('Type several students'),
+          ),
           SectionHeader(
             switch (roster) {
               AsyncData(:final value) => '${value.length} ${value.length == 1 ? 'student' : 'students'}',
@@ -109,7 +123,7 @@ class SectionDetailScreen extends ConsumerWidget {
             AsyncData(:final value) when value.isEmpty => const EmptyState(
                 icon: Icons.person_outline,
                 title: 'No students yet',
-                message: 'Add students one by one or import your class list from a CSV file.',
+                message: 'Add students one by one, type several at once, or import your class list (Excel or CSV).',
               ),
             AsyncData(:final value) => Card(
                 clipBehavior: Clip.antiAlias,

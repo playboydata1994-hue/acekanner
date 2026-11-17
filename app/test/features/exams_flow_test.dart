@@ -1,6 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:acekanner/data/db/app_database.dart';
+import 'package:acekanner/domain/roster_file.dart';
+import 'package:acekanner/features/classes/class_list_help.dart';
+import 'package:acekanner/features/classes/type_students_screen.dart';
 
 import '../support/app_harness.dart';
 
@@ -11,7 +16,13 @@ void main() {
 
   testWidgets('create an examination, fill its key with quick entry, and it becomes complete',
       (tester) async {
-    await pumpApp(tester, db);
+    final saved = <(String, Uint8List, String)>[];
+    await pumpApp(tester, db, overrides: [
+      fileSaverProvider.overrideWithValue(({required fileName, required bytes, required mimeType, dialogTitle}) async {
+        saved.add((fileName, bytes, mimeType));
+        return Uri.parse('content://downloads/1');
+      }),
+    ]);
 
     await tester.tap(find.text('Create examination'));
     await tester.pumpAndSettle();
@@ -33,6 +44,15 @@ void main() {
       200,
       scrollable: find.descendant(of: find.byType(DraggableScrollableSheet), matching: find.byType(Scrollable)).first,
     );
+    // "Save sample file" hands the empty Excel class list to Android's Save dialog.
+    await tester.tap(find.text('Save sample file (Excel)'));
+    await tester.pumpAndSettle();
+    expect(saved.single.$1, 'ACEkanner class list.xlsx');
+    expect(saved.single.$3, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    final template = parseRosterXlsx(saved.single.$2);
+    expect(template.fatal, isNull);
+    expect(template.rows, isEmpty);
+    expect(find.text('Saved "ACEkanner class list.xlsx". Fill it in, then upload it.'), findsOneWidget);
     await tester.tap(find.text('Got it'));
     await tester.pumpAndSettle();
     expect(find.text('Got it'), findsNothing);
@@ -170,6 +190,42 @@ void main() {
     expect(tester.takeException(), isNull);
     await tester.tap(find.text('Save key'));
     await tester.pumpAndSettle();
+    await disposeApp(tester);
+  });
+
+  testWidgets('no file: type the students from the examination form', (tester) async {
+    await pumpApp(tester, db);
+    await tester.tap(find.text('Create examination'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('No file? Type the students'), 100, scrollable: find.byType(Scrollable).first);
+    await tester.ensureVisible(find.text('No file? Type the students'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('No file? Type the students'));
+    await tester.pumpAndSettle();
+    expect(find.text('Type the students'), findsOneWidget);
+
+    Finder field(int card, String label) => find.descendant(
+          of: find.byType(Card).at(card),
+          matching: find.widgetWithText(TextFormField, label),
+        );
+    await tester.enterText(field(0, 'Student No'), '2022-00001');
+    await tester.enterText(field(0, 'Last name'), 'Reyes');
+    await tester.enterText(field(0, 'First name'), 'Ana');
+    await tester.pump();
+    await tester.tap(find.text('Save 1 student'));
+    await tester.pumpAndSettle();
+    expect(find.text('Enter the section name'), findsOneWidget, reason: 'a new section needs a name');
+
+    await tester.enterText(find.widgetWithText(TextFormField, 'Section name'), 'BSIT 3-A');
+    await tester.tap(find.text('Save 1 student'));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
+    await tester.pumpAndSettle();
+    expect(find.byType(TypeStudentsScreen), findsNothing);
+    expect(find.text('1 student added to new section BSIT 3-A (1 new, 0 already saved).'), findsOneWidget);
+    expect(find.text('New examination'), findsOneWidget, reason: 'back on the examination form');
+    final sections = await db.select(db.sections).get();
+    expect(sections.single.name, 'BSIT 3-A');
+    expect((await db.select(db.students).get()).single.lastName, 'Reyes');
     await disposeApp(tester);
   });
 }

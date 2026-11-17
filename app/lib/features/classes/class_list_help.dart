@@ -1,6 +1,30 @@
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/theme/spacing.dart';
+import '../../core/theme/app_colors.dart';
+import '../../domain/roster_file.dart';
+
+/// Saves a file where the user chooses (Android's Save dialog). Returns null
+/// when the user cancels.
+typedef FileSaver = Future<Uri?> Function({
+  required String fileName,
+  required Uint8List bytes,
+  required String mimeType,
+  String? dialogTitle,
+});
+
+final fileSaverProvider = Provider<FileSaver>(
+  (ref) => ({required fileName, required bytes, required mimeType, dialogTitle}) => FilePicker.saveFile(
+        fileName: fileName,
+        bytes: bytes,
+        mimeType: mimeType,
+        dialogTitle: dialogTitle,
+      ),
+);
 
 /// The sample class list shown in the help, as spreadsheet rows (the first row
 /// names the columns). A test checks that it imports exactly as shown.
@@ -108,6 +132,8 @@ class _ClassListHelp extends StatelessWidget {
               ),
             ),
           const SizedBox(height: Space.l),
+          const _SaveTemplateButton(),
+          const SizedBox(height: Space.s),
           FilledButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Got it')),
         ],
       ),
@@ -174,6 +200,88 @@ class _SheetPreview extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Saves the empty Excel class list (column names only) to the phone.
+class _SaveTemplateButton extends ConsumerStatefulWidget {
+  const _SaveTemplateButton();
+
+  @override
+  ConsumerState<_SaveTemplateButton> createState() => _SaveTemplateButtonState();
+}
+
+class _SaveTemplateButtonState extends ConsumerState<_SaveTemplateButton> {
+  bool _busy = false;
+
+  /// Result shown under the button (this sheet covers the screen's messages).
+  String? _note;
+  bool _failed = false;
+
+  Future<void> _save() async {
+    setState(() {
+      _busy = true;
+      _note = null;
+    });
+    try {
+      final uri = await ref.read(fileSaverProvider)(
+        fileName: classListTemplateName,
+        bytes: Uint8List.fromList(classListTemplateXlsx()),
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        dialogTitle: 'Save sample class list',
+      );
+      if (uri != null && mounted) {
+        setState(() {
+          _failed = false;
+          _note = 'Saved "$classListTemplateName". Fill it in, then upload it.';
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _failed = true;
+          _note = 'The file could not be saved. Try again, or choose another folder.';
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = context.statusColors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        OutlinedButton.icon(
+          onPressed: _busy ? null : _save,
+          icon: _busy
+              ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+              : const Icon(Icons.download_outlined),
+          label: const Text('Save sample file (Excel)'),
+        ),
+        const SizedBox(height: Space.xs),
+        if (_note != null)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(_failed ? Icons.error_outline : Icons.check_circle, size: 18,
+                  color: _failed ? colors.incorrect : colors.correct),
+              const SizedBox(width: Space.xs),
+              Flexible(child: Text(_note!, style: theme.textTheme.bodySmall)),
+            ],
+          )
+        else
+          Text(
+            'An empty Excel file with the column names. Save it to your phone or Google Drive, '
+            'fill it in, then upload it.',
+            style: theme.textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+      ],
     );
   }
 }

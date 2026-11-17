@@ -15,7 +15,9 @@ import '../../data/repositories/scan_repository.dart';
 import '../../domain/omr_reading.dart';
 import '../../domain/sheet_layout.dart';
 import 'capture_guide.dart';
+import '../../domain/scan_problem.dart';
 import 'review_screen.dart';
+import 'scan_problem_panel.dart';
 
 /// Settings key: auto-capture when the sheet is steady.
 const String autoCaptureSetting = 'scanner.auto_capture';
@@ -40,6 +42,10 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   GuideState? _state;
   String? _fatal;
   String? _notice;
+
+  /// Why the last photo was not read. Scanning stays paused (no auto-capture)
+  /// until the instructor acknowledges it.
+  ScanProblem? _problem;
   bool _processing = false;
   bool _detecting = false;
   bool _autoCapture = true;
@@ -140,7 +146,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   }
 
   void _onFrame(CameraImage image) {
-    if (_processing || _detecting) return;
+    if (_processing || _detecting || _problem != null) return;
     final now = DateTime.now();
     if (now.difference(_lastFrame) < const Duration(milliseconds: 250)) return;
     _lastFrame = now;
@@ -163,7 +169,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   Future<void> _capture() async {
     final camera = _camera;
     final ctx = _ctx;
-    if (camera == null || ctx == null || _processing || camera.value.isTakingPicture) return;
+    if (camera == null || ctx == null || _processing || _problem != null || camera.value.isTakingPicture) return;
     setState(() {
       _processing = true;
       _notice = null;
@@ -187,12 +193,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
       switch (reading) {
         case OmrFailure():
           await repo.recordCapture(_sessionId!, rejected: true);
-          _show(reading.explanation);
+          _report(ScanProblem.fromFailure(reading));
         case OmrSheetReading():
           final mismatch = repo.sheetMismatch(ctx, reading);
           if (mismatch != null) {
             await repo.recordCapture(_sessionId!, rejected: true);
-            _show(mismatch);
+            _report(ScanProblem.mismatch(mismatch));
             break;
           }
           await repo.recordCapture(_sessionId!, rejected: false);
@@ -217,17 +223,32 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
           }
       }
     } on CameraException catch (e) {
-      _show('The photo could not be taken (${e.description ?? e.code}). Try again.');
+      _report(ScanProblem.camera(e.description ?? e.code));
     } catch (_) {
-      _show('Something went wrong while reading the sheet. Nothing was saved. Try again.');
+      _report(ScanProblem.unexpected);
     } finally {
       await _deleteQuietly(photo);
       if (!keepRectified) await _deleteQuietly(rectified);
       if (mounted) {
         setState(() => _processing = false);
-        await _resumeStream();
+        if (_problem == null) await _resumeStream();
       }
     }
+  }
+
+  void _report(ScanProblem problem) {
+    if (mounted) {
+      setState(() {
+        _problem = problem;
+        _notice = null;
+      });
+    }
+  }
+
+  /// The instructor read the problem: scanning continues.
+  Future<void> _acknowledge() async {
+    setState(() => _problem = null);
+    await _resumeStream();
   }
 
   bool _noticeGood = false;
@@ -268,12 +289,17 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
     final state = _state;
     final ready = state?.status == GuideStatus.ready;
     final guideColor = ready ? colors.correct : Colors.white;
+    final problem = _problem;
     final message = _processing
         ? 'Reading the sheet…'
-        : (_notice ?? state?.message ?? 'Point the camera at the answer sheet');
-    final messageColor = _processing || _notice == null
-        ? (ready ? colors.correct : Colors.black87)
-        : (_noticeGood ? colors.correct : colors.uncertain);
+        : problem != null
+            ? 'Scanning paused: read the note below'
+            : (_notice ?? state?.message ?? 'Point the camera at the answer sheet');
+    final messageColor = problem != null
+        ? colors.uncertain
+        : _processing || _notice == null
+            ? (ready ? colors.correct : Colors.black87)
+            : (_noticeGood ? colors.correct : colors.uncertain);
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -329,7 +355,11 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
                           const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
                         else
                           Icon(
-                            ready ? Icons.check_circle : Icons.crop_free,
+                            problem != null
+                                ? Icons.pause_circle_outline
+                                : ready
+                                    ? Icons.check_circle
+                                    : Icons.crop_free,
                             color: messageColor,
                             size: 20,
                           ),
@@ -344,6 +374,16 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
                     ),
                   ),
                 ),
+                if (problem != null)
+                  Positioned(
+                    left: Space.l,
+                    right: Space.l,
+                    bottom: Space.l,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.6),
+                      child: ScanProblemPanel(problem: problem, onAcknowledge: _acknowledge),
+                    ),
+                  ),
               ],
             ),
       bottomNavigationBar: _fatal != null
@@ -364,7 +404,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
                       button: true,
                       label: 'Take photo',
                       child: GestureDetector(
-                        onTap: _processing ? null : _capture,
+                        onTap: _processing || problem != null ? null : _capture,
                         child: Container(
                           width: 76,
                           height: 76,
@@ -376,7 +416,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
                           child: Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: _processing ? Colors.white38 : (ready ? colors.correct : Colors.white),
+                              color: _processing || problem != null ? Colors.white38 : (ready ? colors.correct : Colors.white),
                             ),
                           ),
                         ),

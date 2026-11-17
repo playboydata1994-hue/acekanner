@@ -5,6 +5,29 @@ and the next step.
 
 ---
 
+## 2026-11-17 · Revisions: Excel template, typing students, scan problems stay (0.6.8)
+
+- **Save sample file (Excel)** in the Sample class list window: Android's Save dialog gets an
+  empty `ACEkanner class list.xlsx` (sheet "Class list", bold column names Student No / Last
+  Name / First Name / Middle Name; Student No formatted as text). The result is shown in the
+  window itself. Tests: the file opens, its header is recognized, a filled-in copy imports.
+- **Type the students** (rows with fields: Student No, Last name, First name, Middle name
+  optional; "Add another student"; remove a row; empty rows ignored; "Save N students"):
+  - examination form → "No file? Type the students" (asks a section name; the section is
+    selected for the examination, like an uploaded list);
+  - Classes → section → "Type several students".
+  Checks before saving: number format, the same number twice, missing names. Leaving with
+  typed rows asks first.
+- **Scan problems stay on screen:** when a photo is not read (no sheet / corners missing /
+  blurry / dark / glare / bent / wrong or old sheet / sheet for another examination / camera
+  error), a "NOT SCANNED" panel shows the problem, why, and what to do. Scanning (including
+  auto-capture) pauses until the instructor taps **OK, scan again**. The shutter is disabled
+  meanwhile.
+- Fixes: "Enter the section name" message wording; "1 student added" (not "1 students").
+- Verification: template tests, two typing flows (Classes and exam form, with mistakes),
+  Save-sample test (fake saver), problem texts for every engine code and the panel staying
+  until acknowledged; 239/239 pass. The live scanner itself needs a phone to check.
+
 ## 2026-11-17 · Revision: "?" sample class list (0.6.7)
 
 - A **"?"** button on the examination form's class-list upload box, and in Classes → Import

@@ -12,6 +12,7 @@ import '../../domain/roster_csv.dart';
 import '../../domain/roster_file.dart';
 import '../../domain/validators.dart';
 import '../classes/class_list_help.dart';
+import '../classes/type_students_screen.dart';
 
 /// Section name suggested from a file name: "BSIT_2-A list.xlsx" -> "BSIT 2-A list".
 String sectionNameFromFile(String fileName) {
@@ -37,7 +38,7 @@ Future<(String, String)> importClassList(
   final id = existing?.section.id ?? await classes.createSection(SectionInput(name: clean));
   final s = await students.importRoster(id, rows);
   final where = existing == null ? 'new section $clean' : 'section ${existing.section.name}';
-  return (id, '${s.total} students added to $where (${s.added} new, ${s.total - s.added} already saved).');
+  return (id, '${s.total} ${s.total == 1 ? 'student' : 'students'} added to $where (${s.added} new, ${s.total - s.added} already saved).');
 }
 
 /// Upload box on the examination form: pick an Excel or CSV list of names
@@ -93,10 +94,31 @@ class _ClassListUploadBoxState extends ConsumerState<ClassListUploadBox> {
     }
   }
 
+  Future<void> _type() async {
+    final result = await Navigator.of(context).push<(String, String)>(
+      MaterialPageRoute(builder: (_) => const TypeStudentsScreen()),
+    );
+    if (result != null) widget.onImported(result.$1, result.$2);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _box(theme, scheme),
+        TextButton.icon(
+          onPressed: _busy ? null : _type,
+          icon: const Icon(Icons.keyboard_outlined),
+          label: const Text('No file? Type the students'),
+        ),
+      ],
+    );
+  }
+
+  Widget _box(ThemeData theme, ColorScheme scheme) {
     return Material(
       color: scheme.surfaceContainerLow,
       shape: RoundedRectangleBorder(
@@ -208,7 +230,7 @@ class _ImportPreviewState extends State<_ImportPreview> {
                 helperText: 'An existing section with this name gets the students added.',
               ),
               textCapitalization: TextCapitalization.characters,
-              validator: (v) => Validators.required(v, 'a section name', max: 60),
+              validator: (v) => Validators.required(v, 'section name', max: 60),
             ),
             const SizedBox(height: Space.l),
             Row(
