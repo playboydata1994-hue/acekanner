@@ -53,12 +53,14 @@ void main() {
     semantics.dispose();
   });
 
-  testWidgets('Home: "Scan any answer sheet" opens the quick check scanner', (tester) async {
+  testWidgets('Home: the round "Scan" button opens the quick check scanner', (tester) async {
+    final semantics = tester.ensureSemantics();
     await pumpApp(tester, db);
-    await tester.scrollUntilVisible(find.text('Scan any answer sheet'), 200, scrollable: find.byType(Scrollable).first);
-    expect(find.textContaining('Quick check: finds the examination from the sheet'), findsOneWidget);
+    final scan = find.bySemanticsLabel('Scan an answer sheet');
+    await tester.scrollUntilVisible(scan, 200, scrollable: find.byType(Scrollable).first);
+    expect(find.text('Scan'), findsOneWidget);
     await tester.runAsync(() async {
-      await tester.tap(find.text('Scan any answer sheet'));
+      await tester.tap(scan);
       await Future<void>.delayed(const Duration(milliseconds: 300));
     });
     // No camera in tests: the scanner keeps waiting, so frames are pumped, not settled.
@@ -67,6 +69,7 @@ void main() {
     expect(find.text('Quick check'), findsOneWidget);
     expect(find.text('0 checked'), findsOneWidget);
     await disposeApp(tester);
+    semantics.dispose();
   });
 
   testWidgets('settings and about show storage and engine status', (tester) async {

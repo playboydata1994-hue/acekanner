@@ -2,12 +2,23 @@ import 'package:material_ui/material_ui.dart';
 
 import '../theme/app_colors.dart';
 
+/// What the white ACEkanner mark is drawn on.
+enum LogoBackground {
+  /// Brand-blue rounded square (the app icon).
+  tile,
+
+  /// No background: the mark alone, for a blue surface drawn elsewhere
+  /// (e.g. the round Scan button).
+  none,
+}
+
 /// The ACEkanner mark: a scanner viewfinder around a shaded answer bubble
 /// with a check. Same geometry as the launcher icon (108-unit grid).
 class AcekannerLogo extends StatelessWidget {
-  const AcekannerLogo({super.key, this.size = 48});
+  const AcekannerLogo({super.key, this.size = 48, this.background = LogoBackground.tile});
 
   final double size;
+  final LogoBackground background;
 
   @override
   Widget build(BuildContext context) {
@@ -16,23 +27,27 @@ class AcekannerLogo extends StatelessWidget {
       image: true,
       child: SizedBox.square(
         dimension: size,
-        child: const CustomPaint(painter: _LogoPainter()),
+        child: CustomPaint(painter: _LogoPainter(background)),
       ),
     );
   }
 }
 
 class _LogoPainter extends CustomPainter {
-  const _LogoPainter();
+  const _LogoPainter(this.background);
+
+  final LogoBackground background;
 
   @override
   void paint(Canvas canvas, Size size) {
     final s = size.width / 108;
-    final tile = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      Radius.circular(size.width * 0.22),
-    );
-    canvas.drawRRect(tile, Paint()..color = BrandColors.blue);
+    if (background == LogoBackground.tile) {
+      final tile = RRect.fromRectAndRadius(
+        Offset.zero & size,
+        Radius.circular(size.width * 0.22),
+      );
+      canvas.drawRRect(tile, Paint()..color = BrandColors.blue);
+    }
 
     // Mark scaled up within the tile (matches the store icon proportions).
     canvas.save();
@@ -80,7 +95,7 @@ class _LogoPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _LogoPainter oldDelegate) => oldDelegate.background != background;
 }
 
 /// "ACEkanner" wordmark: bold brand-blue "ACE" + regular "kanner".

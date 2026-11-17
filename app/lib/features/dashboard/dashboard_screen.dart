@@ -7,6 +7,7 @@ import '../../app/data_providers.dart';
 import '../../app/licensing_providers.dart';
 import '../../app/providers.dart';
 import '../../app/router.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/spacing.dart';
 import '../../core/widgets/acekanner_logo.dart';
 import '../../core/widgets/empty_state.dart';
@@ -59,7 +60,7 @@ class DashboardScreen extends ConsumerWidget {
               AsyncError() => const _LoadError(),
               _ => const _LoadingBlock(height: 260),
             },
-            const SizedBox(height: Space.m),
+            const SizedBox(height: Space.xl),
             const _QuickCheckButton(),
             const SizedBox(height: Space.s),
             OutlinedButton.icon(
@@ -319,38 +320,54 @@ Future<void> _openProfile(BuildContext context) async {
   }
 }
 
-/// Opens the scanner for any ACEkanner answer sheet: it finds the sheet's
-/// examination and shows the score. Nothing is saved.
+/// Round brand-blue "Scan" button with the ACEkanner mark: opens the
+/// scanner for any ACEkanner answer sheet (quick check, nothing saved).
 class _QuickCheckButton extends ConsumerWidget {
   const _QuickCheckButton();
+
+  static const double _size = 96;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        FilledButton.icon(
-          onPressed: () async {
-            final status = await ref.read(licenseRepositoryProvider).status();
-            if (!context.mounted) return;
-            if (status.block != null) {
-              await showScanBlocked(context, status.block!);
-            } else {
-              await context.push(Routes.quickCheck);
-            }
-          },
-          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-          icon: const Icon(Icons.document_scanner_outlined),
-          label: const Text('Scan any answer sheet'),
+    Future<void> open() async {
+      final status = await ref.read(licenseRepositoryProvider).status();
+      if (!context.mounted) return;
+      if (status.block != null) {
+        await showScanBlocked(context, status.block!);
+      } else {
+        await context.push(Routes.quickCheck);
+      }
+    }
+
+    return Center(
+      child: Semantics(
+        button: true,
+        label: 'Scan an answer sheet',
+        excludeSemantics: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Material(
+              color: BrandColors.blue,
+              shape: const CircleBorder(),
+              elevation: 4,
+              shadowColor: BrandColors.blue.withValues(alpha: 0.5),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: open,
+                customBorder: const CircleBorder(),
+                child: const SizedBox.square(
+                  dimension: _size,
+                  child: Center(child: AcekannerLogo(size: _size * 0.86, background: LogoBackground.none)),
+                ),
+              ),
+            ),
+            const SizedBox(height: Space.s),
+            Text('Scan', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          ],
         ),
-        const SizedBox(height: Space.xs),
-        Text(
-          'Quick check: finds the examination from the sheet and shows the score. Nothing is saved.',
-          style: theme.textTheme.bodySmall,
-          textAlign: TextAlign.center,
-        ),
-      ],
+      ),
     );
   }
 }

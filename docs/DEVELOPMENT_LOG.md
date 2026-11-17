@@ -10,8 +10,10 @@ and the next step.
 Owner's choices: quick check only (nothing saved); message when the examination is not on
 the phone; keep the current circle design readable for good; mixed piles allowed.
 
-- **Home → "Scan any answer sheet"** (with "Quick check: finds the examination from the sheet
-  and shows the score. Nothing is saved."). Opens the scanner in quick-check mode: any sheet
+- **Home → round "Scan" button** (owner's request, like a "Scan & Pay" button without "Pay"):
+  a 96 dp brand-blue (#1D4ED8) circle with the white ACEkanner mark, "Scan" underneath, no
+  note; "Create examination" became an outlined button below it. Opens the scanner in
+  quick-check mode: any sheet
   size; the sheet's QR code names its examination (old or closed ones too); the paper is read
   with that examination's settings and checked with its answer key.
 - **Quick check card**: "QUICK CHECK · NOT SAVED", examination title, code and date, student
