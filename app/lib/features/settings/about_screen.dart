@@ -7,7 +7,6 @@ import '../../app/providers.dart';
 import '../../core/theme/spacing.dart';
 import '../../core/widgets/acekanner_logo.dart';
 import '../../core/widgets/info_row.dart';
-import '../../core/widgets/developer_footnote.dart';
 import '../../core/widgets/section_header.dart';
 import '../../data/db/app_database.dart';
 import '../../platform/omr_engine_channel.dart';
@@ -54,8 +53,6 @@ class AboutScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: Space.xs),
-            const Center(child: DeveloperFootnote()),
             const SizedBox(height: Space.s),
             Center(
               child: Text(

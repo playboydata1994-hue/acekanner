@@ -3,6 +3,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:acekanner/data/db/app_database.dart';
 import 'package:acekanner/data/settings/settings_repository.dart';
 
+import 'package:acekanner/core/widgets/app_footnote.dart';
+
 import '../support/app_harness.dart';
 import '../support/test_db.dart';
 
@@ -36,8 +38,9 @@ void main() {
     await pumpApp(tester, db);
     await tester.scrollUntilVisible(find.text('No examinations yet'), 200, scrollable: find.byType(Scrollable).first);
     expect(find.text('No examinations yet'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('ACEkanner · Developed by NYE94'), 200, scrollable: find.byType(Scrollable).first);
-    expect(find.text('ACEkanner · Developed by NYE94'), findsOneWidget);
+    await tester.scrollUntilVisible(find.byType(AppFootnote), 200, scrollable: find.byType(Scrollable).first);
+    expect(find.byType(AppFootnote), findsOneWidget);
+    expect(find.textContaining('NYE94'), findsNothing);
 
     await insertExam(db, id: 'e1', title: 'Prelim Examination', itemCount: 75);
     await insertSheet(db, id: 's1', examId: 'e1');
@@ -106,7 +109,7 @@ void main() {
     expect(find.text('Not encrypted (development build)'), findsOneWidget);
     expect(find.textContaining('Android phones only'), findsOneWidget);
     expect(find.text('Version 5'), findsOneWidget);
-    expect(find.text('Developed by NYE94'), findsOneWidget);
+    expect(find.textContaining('NYE94'), findsNothing);
     expect(find.text('Version 0.2.0 (build 2)'), findsOneWidget);
     expect(find.text('com.acekanner.app'), findsOneWidget);
     await disposeApp(tester);

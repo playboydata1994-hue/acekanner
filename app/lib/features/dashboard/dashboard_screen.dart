@@ -10,7 +10,7 @@ import '../../app/router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/spacing.dart';
 import '../../core/widgets/acekanner_logo.dart';
-import '../../core/widgets/developer_footnote.dart';
+import '../../core/widgets/app_footnote.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/widgets/stat_card.dart';
@@ -89,7 +89,7 @@ class DashboardScreen extends ConsumerWidget {
             const SizedBox(height: Space.xl),
             const _OfflineNote(),
             const SizedBox(height: Space.l),
-            const DeveloperFootnote(withAppName: true),
+            const AppFootnote(),
           ],
         ),
       ),

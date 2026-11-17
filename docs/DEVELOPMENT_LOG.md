@@ -48,9 +48,9 @@ the phone; keep the current circle design readable for good; mixed piles allowed
   them).
 - **Printed sheets stay readable**: a compatibility test freezes sheet design 3 (fingerprints
   of all 135 printable layouts and the QR format).
-- **Developer credit** "Developed by NYE94": small grey line at the bottom of Home
-  ("ACEkanner · Developed by NYE94"), under the version in About, and at the bottom of the
-  start-up screen (`AppConstants.developerCredit`, `DeveloperFootnote`).
+- **App footnote** (owner's request; replaces an earlier "Developed by NYE94" credit, now
+  removed from the app): small ACEkanner logo and name at the end of Home (`AppFootnote`).
+  About and the start-up screen already show the logo and name, so nothing was added there.
 - Verification: readAnySheet and examForSheet tests (found incl. closed; four problem cases),
   guide tests for several sizes, quick check card test (score with an unclear answer, answers
   list, nothing saved), Home button test, design freeze test; 263/263 pass. The camera flow
