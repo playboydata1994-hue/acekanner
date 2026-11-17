@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../app/router.dart';
+
 import '../../app/data_providers.dart';
 import '../../core/theme/spacing.dart';
 import '../../core/widgets/empty_state.dart';
@@ -18,6 +20,11 @@ class ExamsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Examinations'),
         actions: [
+          IconButton(
+            tooltip: 'Print blank answer sheets',
+            icon: const Icon(Icons.print_outlined),
+            onPressed: () => context.push(Routes.blankSheets),
+          ),
           IconButton(
             tooltip: 'Recently deleted',
             icon: const Icon(Icons.delete_outline),

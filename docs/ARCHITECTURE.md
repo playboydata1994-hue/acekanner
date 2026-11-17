@@ -322,6 +322,12 @@ Scores are normalized per sheet: 0 is this sheet's empty level, 1 its filled lev
   quick-check card (score with its key, unclear answers counted as no answer, answers list).
   **Nothing is saved and no scan is counted**; mixed piles of examinations are fine. Problems:
   QR unreadable, examination not on this phone, examination deleted, older design.
+- **Blank sheets** (Home or Exams › "Print blank answer sheets", `/blank-sheets`): pre-exams
+  and mock exams. The QR code carries the reserved code `ANYEXAM0` (`SheetQr.blankExamCode`;
+  never given to an examination) in the unchanged ACK3 format. Inside an examination they are
+  read like its own sheets (no "another examination" note). In the quick check the instructor
+  chooses the examination (`SheetExamChoose` → picker, remembered for the session, "Use
+  another examination" on the card).
 - **Printed sheets stay readable**: `test/domain/sheet_design_compat_test.dart` freezes sheet
   design 3 (fingerprints of every printable layout and the QR format). A change that would
   stop printed sheets from scanning fails the test; such a change needs a new design version.

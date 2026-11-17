@@ -275,7 +275,14 @@ abstract final class AnswerSheetPdf {
                   bubble(l.setBubbles[i], SheetLayout.bubbleRx, SheetLayout.bubbleRy, letters[i], 5.5);
                 }
               }
-              text('Code ${header.examCode}', SheetLayout.qr.left, 60, 6.5, regular, _muted);
+              text(
+                header.examCode == SheetQr.blankExamCode ? 'For any examination' : 'Code ${header.examCode}',
+                SheetLayout.qr.left,
+                60,
+                6.5,
+                regular,
+                _muted,
+              );
               text('${l.itemCount} items · A–E', SheetLayout.qr.left, 64, 6.5, regular, _muted);
 
               // Title block between the top markers, beside the logo if any.

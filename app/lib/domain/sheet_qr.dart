@@ -16,6 +16,14 @@ class SheetQr {
 
   static const String prefix = 'ACK${SheetLayout.formatVersion}';
 
+  /// Code on blank sheets printed without an examination (pre-exams, mock
+  /// exams): they are checked with whichever examination scans them. No
+  /// examination is ever given this code.
+  static const String blankExamCode = 'ANYEXAM0';
+
+  /// True for a blank sheet (not tied to an examination).
+  bool get blank => examCode == blankExamCode;
+
   final String examCode;
   final int itemCount;
   final int idDigits;

@@ -5,6 +5,26 @@ and the next step.
 
 ---
 
+## 2026-11-17 · Revision: blank answer sheets for pre-exams and mock exams (0.7.1)
+
+Owner's choices: check later with any examination; choose questions, sets, title line,
+paper size and copies; buttons on Home and in the Exams tab; header from the profile.
+
+- **Print blank answer sheets** (Home, under Create examination; Exams tab printer icon):
+  title line (optional, e.g. "Mock Board Exam – Physics"), 50/75/100 questions, sets A–E,
+  A4/Letter/8.5×13, copies; school, logo and instructor from the profile; student-number
+  length from the profile's format. Preview, print or share (PDF). The sheet shows "For any
+  examination" instead of an exam code.
+- **Checking them**: scan inside any examination with enough questions (read like its own
+  sheets); or with Home › Scan, which asks "Which examination?" (examinations needing more
+  questions than the sheet are greyed), remembers the choice for the next blank sheets, and
+  offers "Use another examination" on the result card.
+- QR format unchanged (reserved code `ANYEXAM0`; examination codes never take it); the
+  design-3 freeze test still passes.
+- Verification: sheet options → layout/header and a 4-page PDF; blank QR; lookup asks for the
+  examination; no foreign-sheet note; picker greys too-big examinations and returns the choice;
+  both buttons open the screen; 269/269 pass.
+
 ## 2026-11-17 · Revision: Home "Scan any answer sheet" quick check (0.7.1)
 
 Owner's choices: quick check only (nothing saved); message when the examination is not on

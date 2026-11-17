@@ -14,7 +14,7 @@ features (for example report exports) are released.
 
 Other app name, if you prefer it: `ACEkanner - OMR Exam Checker` (28 / 30).
 
-### Full description (2986 / 4000)
+### Full description (3077 / 4000)
 
 ```text
 Check your students' shaded answer sheets with your phone camera. ACEkanner reads each paper in seconds, scores it with your answer key, and shows which questions your class missed most. Made for teachers and instructors in the Philippines.
@@ -26,6 +26,7 @@ PRINT YOUR ANSWER SHEETS
 • Student number boxes, so each paper is matched to the right student
 • Add your school logo and name (optional)
 • Print or share the sheets as PDF
+• Print blank sheets for pre-exams and mock exams, without setting up an examination first
 
 SCAN AND CHECK
 • Point the camera at the sheet. ACEkanner finds the page, reads the shaded circles and checks them right away

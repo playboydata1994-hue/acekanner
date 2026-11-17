@@ -69,6 +69,12 @@ class DashboardScreen extends ConsumerWidget {
               icon: const Icon(Icons.add),
               label: const Text('Create examination'),
             ),
+            const SizedBox(height: Space.s),
+            OutlinedButton.icon(
+              onPressed: () => context.push(Routes.blankSheets),
+              icon: const Icon(Icons.print_outlined),
+              label: const Text('Print blank answer sheets'),
+            ),
             const SectionHeader('Recent examinations'),
             switch (recent) {
               AsyncData(:final value) when value.isEmpty => const EmptyState(

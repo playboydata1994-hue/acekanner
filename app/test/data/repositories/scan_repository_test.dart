@@ -126,6 +126,14 @@ void main() {
       expect((found as SheetExamFound).context.exam.id, examId);
     });
 
+    test('a blank sheet asks for the examination and gets no "another examination" note', () async {
+      final ctx = await scans.context(examId);
+      final blank = const SheetQr(examCode: SheetQr.blankExamCode, itemCount: 75, idDigits: 9, setCount: 2).encode();
+      final lookup = await scans.examForSheet(reading(masks: List.filled(75, 1), qr: blank));
+      expect((lookup as SheetExamChoose).itemCount, 75);
+      expect(scans.sheetNote(ctx, reading(masks: List.filled(50, 1), qr: blank)), isNull);
+    });
+
     test('clear messages when the examination cannot be used', () async {
       final ctx = await scans.context(examId);
       Future<String> problem(String? qr) async =>

@@ -172,6 +172,7 @@ class ScanRepository {
         ],
       ));
     }
+    if (qr.blank) return SheetExamChoose(qr.itemCount);
     final exam = await (_db.select(_db.examinations)..where((t) => t.shortCode.equals(qr.examCode)))
         .getSingleOrNull();
     if (exam == null) {
@@ -201,7 +202,8 @@ class ScanRepository {
     final qr = SheetQr.tryParse(reading.qr);
     final items = reading.questions.length;
     final notes = [
-      if (qr != null && qr.examCode != ctx.exam.shortCode) 'Printed for another examination (code ${qr.examCode}).',
+      if (qr != null && !qr.blank && qr.examCode != ctx.exam.shortCode)
+        'Printed for another examination (code ${qr.examCode}).',
       if (items > ctx.exam.scoredItems) '$items-item sheet: only questions 1–${ctx.exam.scoredItems} are checked.',
     ];
     return notes.isEmpty ? null : notes.join(' ');
@@ -510,6 +512,15 @@ class SheetExamFound extends SheetExamLookup {
 class SheetExamProblem extends SheetExamLookup {
   const SheetExamProblem(this.problem);
   final ScanProblem problem;
+}
+
+/// A blank sheet (printed without an examination): the instructor chooses
+/// the examination to check it with.
+class SheetExamChoose extends SheetExamLookup {
+  const SheetExamChoose(this.itemCount);
+
+  /// Questions on the sheet; examinations using more cannot be chosen.
+  final int itemCount;
 }
 
 /// The exam set shaded on a paper: the only set, or the clearly shaded one;

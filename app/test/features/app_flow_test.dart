@@ -74,6 +74,24 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('"Print blank answer sheets" from Home and from the Exams tab', (tester) async {
+    await pumpApp(tester, db);
+    final home = find.text('Print blank answer sheets');
+    await tester.scrollUntilVisible(home, 200, scrollable: find.byType(Scrollable).first);
+    await tester.tap(home);
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+    expect(find.text('Blank answer sheets'), findsOneWidget);
+    await tester.pageBack();
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+    await tapTab(tester, 'Exams');
+    expect(find.byTooltip('Print blank answer sheets'), findsOneWidget);
+    await disposeApp(tester);
+  });
+
   testWidgets('settings and about show storage and engine status', (tester) async {
     await pumpApp(tester, db);
     await tapTab(tester, 'Settings');

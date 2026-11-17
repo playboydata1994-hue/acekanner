@@ -18,11 +18,21 @@ import '../results/result_widgets.dart';
 /// to, the student, the score with that examination's answer key and the
 /// answers. Nothing is saved and no scan is counted.
 class QuickCheckCard extends ConsumerStatefulWidget {
-  const QuickCheckCard({super.key, required this.scanContext, required this.reading, required this.onNext});
+  const QuickCheckCard({
+    super.key,
+    required this.scanContext,
+    required this.reading,
+    required this.onNext,
+    this.onChangeExam,
+  });
 
   final ScanContext scanContext;
   final OmrSheetReading reading;
   final VoidCallback onNext;
+
+  /// Set for a blank sheet (printed without an examination): checks the next
+  /// sheets with another examination.
+  final VoidCallback? onChangeExam;
 
   @override
   ConsumerState<QuickCheckCard> createState() => _QuickCheckCardState();
@@ -90,6 +100,8 @@ class _QuickCheckCardState extends ConsumerState<QuickCheckCard> {
                     style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary, letterSpacing: 0.8),
                   ),
                   const SizedBox(height: Space.xs),
+                  if (widget.onChangeExam != null)
+                    Text('Blank sheet · checked with', style: theme.textTheme.bodySmall),
                   Text(ctx.exam.title, style: theme.textTheme.titleMedium),
                   Text(
                     [
@@ -98,6 +110,14 @@ class _QuickCheckCardState extends ConsumerState<QuickCheckCard> {
                     ].join(' · '),
                     style: theme.textTheme.bodySmall,
                   ),
+                  if (widget.onChangeExam != null)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: widget.onChangeExam,
+                        child: const Text('Use another examination'),
+                      ),
+                    ),
                   const Divider(height: Space.l),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,

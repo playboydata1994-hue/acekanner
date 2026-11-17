@@ -7,6 +7,7 @@ import '../../core/constants.dart';
 import '../../core/util/clock.dart';
 import '../../core/util/ids.dart';
 import '../../core/util/text.dart';
+import '../../domain/sheet_qr.dart';
 import '../../domain/short_code.dart';
 import '../audit/audit_logger.dart';
 import '../db/app_database.dart';
@@ -468,6 +469,7 @@ class ExamsRepository {
   Future<String> _uniqueShortCode() async {
     for (var attempt = 0; attempt < 20; attempt++) {
       final code = ShortCode.generate();
+      if (code == SheetQr.blankExamCode) continue;
       final taken = await _count('SELECT COUNT(*) AS c FROM examinations WHERE short_code = ?', code);
       if (taken == 0) return code;
     }

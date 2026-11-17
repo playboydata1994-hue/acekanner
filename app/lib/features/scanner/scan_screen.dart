@@ -18,6 +18,7 @@ import '../../domain/omr_reading.dart';
 import '../../domain/sheet_layout.dart';
 import 'capture_guide.dart';
 import '../../domain/scan_problem.dart';
+import 'exam_picker.dart';
 import 'quick_check_card.dart';
 import 'scan_result_card.dart';
 import 'scan_problem_panel.dart';
@@ -61,8 +62,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   ({OmrSheetReading reading, File image})? _pending;
 
   /// Quick check result on screen (quick check mode only).
-  ({ScanContext ctx, OmrSheetReading reading})? _quick;
+  ({ScanContext ctx, OmrSheetReading reading, bool blank})? _quick;
   int _checked = 0;
+
+  /// Examination chosen for blank sheets (printed without an examination)
+  /// during this quick check session.
+  String? _blankExamId;
 
   bool get _quickMode => widget.examId == null;
   bool _processing = false;
@@ -288,14 +293,63 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
       case SheetExamProblem(:final problem):
         _report(problem);
       case SheetExamFound(context: final found):
-        final reading = await readSheet(found, (layout) => analyze(layout, found));
-        switch (reading) {
-          case OmrFailure():
-            _report(ScanProblem.fromFailure(reading));
-          case OmrSheetReading():
-            if (mounted) setState(() => _quick = (ctx: found, reading: reading));
+        await _readForQuick(found, analyze, blank: false);
+      case SheetExamChoose(:final itemCount):
+        final chosen = await _blankContext(itemCount);
+        if (chosen == null) {
+          _show('Not checked: no examination was chosen for the blank sheet.');
+          return;
         }
+        await _readForQuick(chosen, analyze, blank: true);
     }
+  }
+
+  Future<void> _readForQuick(
+    ScanContext ctx,
+    Future<OmrReading> Function(SheetLayout, ScanContext?) analyze, {
+    required bool blank,
+  }) async {
+    final reading = await readSheet(ctx, (layout) => analyze(layout, ctx));
+    switch (reading) {
+      case OmrFailure():
+        _report(ScanProblem.fromFailure(reading));
+      case OmrSheetReading():
+        if (mounted) setState(() => _quick = (ctx: ctx, reading: reading, blank: blank));
+    }
+  }
+
+  /// The examination for a blank sheet: the one chosen earlier in this
+  /// session when it fits, otherwise asked.
+  Future<ScanContext?> _blankContext(int sheetItems) async {
+    final repo = ref.read(scanRepositoryProvider);
+    final remembered = _blankExamId;
+    if (remembered != null) {
+      try {
+        final ctx = await repo.context(remembered);
+        if (ctx.exam.scoredItems <= sheetItems) return ctx;
+      } catch (_) {
+        // Deleted meanwhile: ask again.
+      }
+    }
+    if (!mounted) return null;
+    final id = await pickExamination(context, sheetItems: sheetItems);
+    if (id == null) return null;
+    _blankExamId = id;
+    return repo.context(id);
+  }
+
+  /// Blank sheet: check the next sheets with another examination.
+  Future<void> _changeBlankExam() async {
+    final q = _quick;
+    if (q == null) return;
+    final id = await pickExamination(context, sheetItems: q.reading.questions.length);
+    if (id == null || !mounted) return;
+    setState(() {
+      _blankExamId = id;
+      _quick = null;
+    });
+    _show('Scan the sheet again to check it with the examination you chose.', good: true);
+    await _resumeStream();
   }
 
   /// The quick check was read: on to the next sheet.
@@ -483,6 +537,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
                           scanContext: quick.ctx,
                           reading: quick.reading,
                           onNext: _nextQuick,
+                          onChangeExam: quick.blank ? _changeBlankExam : null,
                         ),
                       ),
                     ),

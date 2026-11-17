@@ -18,6 +18,7 @@ import '../features/recovery/recovery_screen.dart';
 import '../features/results/analytics_screen.dart';
 import '../features/results/paper_result_screen.dart';
 import '../features/scanner/scan_screen.dart';
+import '../features/sheets/blank_sheets_screen.dart';
 import '../features/sheets/sheets_screen.dart';
 import '../features/settings/about_screen.dart';
 import '../features/settings/privacy_screen.dart';
@@ -55,6 +56,9 @@ abstract final class Routes {
 
   /// Scanner for any ACEkanner sheet (quick check, nothing saved).
   static const String quickCheck = '/quick-check';
+
+  /// Answer sheets printed without an examination (pre/mock exams).
+  static const String blankSheets = '/blank-sheets';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -191,6 +195,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/sheets/:examId',
         parentNavigatorKey: rootKey,
         builder: (_, state) => ScaffoldMessenger(child: SheetsScreen(examId: state.pathParameters['examId']!)),
+      ),
+      GoRoute(
+        path: '/blank-sheets',
+        parentNavigatorKey: rootKey,
+        builder: (_, _) => const ScaffoldMessenger(child: BlankSheetsScreen()),
       ),
       GoRoute(
         path: '/quick-check',
