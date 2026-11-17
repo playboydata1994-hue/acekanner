@@ -220,17 +220,36 @@ class _PapersList extends ConsumerWidget {
           'No papers scanned yet. Print answer sheets, give the examination, then scan each paper.',
           style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
-      AsyncData(:final value) => Card(
-          clipBehavior: Clip.antiAlias,
-          child: Column(
+      AsyncData(:final value) => () {
+          // Papers still waiting for a student come first.
+          final unassigned = value.where((p) => p.student == null).toList();
+          final papers = [...unassigned, ...value.where((p) => p.student != null)];
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              for (var i = 0; i < value.length; i++) ...[
-                if (i > 0) const Divider(indent: Space.l, endIndent: Space.l),
-                _PaperTile(paper: value[i]),
+              if (unassigned.isNotEmpty) ...[
+                _Banner(
+                  color: context.statusColors.uncertain,
+                  icon: Icons.person_search_outlined,
+                  text: '${unassigned.length} ${unassigned.length == 1 ? 'paper has' : 'papers have'} no student yet. '
+                      'Tap a paper to choose the student; it is graded then.',
+                ),
+                const SizedBox(height: Space.s),
               ],
+              Card(
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    for (var i = 0; i < papers.length; i++) ...[
+                      if (i > 0) const Divider(indent: Space.l, endIndent: Space.l),
+                      _PaperTile(paper: papers[i]),
+                    ],
+                  ],
+                ),
+              ),
             ],
-          ),
-        ),
+          );
+        }(),
       AsyncError() => const Text('Could not load the papers.'),
       _ => const SizedBox(height: 48, child: Center(child: CircularProgressIndicator())),
     };
@@ -249,13 +268,22 @@ class _PaperTile extends StatelessWidget {
     final r = paper.result;
     return ListTile(
       leading: CircleAvatar(child: Text(paper.versionLabel ?? '?')),
-      title: Text(s == null ? 'Student not identified' : studentDisplayName(s)),
+      title: Text(s == null ? 'No student yet' : studentDisplayName(s)),
       subtitle: Text(
-        r == null
-            ? [s?.studentNo ?? sheet.detectedStudentNo ?? 'no number', 'Awaiting grading'].join(' · ')
-            : '${fmtNumber(r.earnedPoints)} / ${fmtNumber(r.possiblePoints)} · ${fmtPercent(r.percentage)}',
+        s == null
+            ? [
+                sheet.detectedStudentNo == null ? 'no number shaded' : 'shaded ${sheet.detectedStudentNo}',
+                'tap to choose the student',
+              ].join(' · ')
+            : r == null
+                ? [s.studentNo, 'Awaiting grading'].join(' · ')
+                : '${fmtNumber(r.earnedPoints)} / ${fmtNumber(r.possiblePoints)} · ${fmtPercent(r.percentage)}',
       ),
-      trailing: r == null ? const Icon(Icons.hourglass_top) : PassPill(passed: r.passed),
+      trailing: s == null
+          ? Icon(Icons.person_search_outlined, color: context.statusColors.uncertain)
+          : r == null
+              ? const Icon(Icons.hourglass_top)
+              : PassPill(passed: r.passed),
       onTap: () => context.push('/exams/${sheet.examinationId}/papers/${sheet.id}'),
     );
   }

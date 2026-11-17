@@ -14,6 +14,9 @@ import '../../data/repositories/grading_repository.dart';
 import '../../data/repositories/students_repository.dart';
 import '../../domain/answer_mask.dart';
 import '../../domain/grading.dart';
+import '../../domain/licensing/license_status.dart';
+import '../plan/plan_widgets.dart';
+import '../scanner/student_picker.dart';
 import 'result_widgets.dart';
 
 enum _Filter { all, wrong, corrected }
@@ -31,6 +34,44 @@ class PaperResultScreen extends ConsumerStatefulWidget {
 
 class _PaperResultScreenState extends ConsumerState<PaperResultScreen> {
   _Filter _filter = _Filter.all;
+  bool _assigning = false;
+
+  /// Gives a paper saved without a student to a student from the class lists.
+  Future<void> _assign(PaperDetail d) async {
+    final scans = ref.read(scanRepositoryProvider);
+    final ctx = await scans.context(d.exam.id);
+    final papers = await scans.watchPapers(d.exam.id).first;
+    final withPaper = {for (final p in papers) ?p.student?.id};
+    if (!mounted) return;
+    final chosen = await pickStudent(
+      context,
+      roster: ctx.roster,
+      detected: d.sheet.detectedStudentNo ?? '',
+      withPaper: withPaper,
+    );
+    if (chosen == null || !mounted) return;
+    if (withPaper.contains(chosen.id)) {
+      final ok = await confirmAction(
+        context,
+        title: 'Replace the earlier paper?',
+        message: '${studentDisplayName(chosen)} already has a saved paper for this examination. '
+            'This paper replaces it; the earlier one is kept in the history.',
+        confirmLabel: 'Replace',
+      );
+      if (!ok || !mounted) return;
+    }
+    setState(() => _assigning = true);
+    try {
+      await scans.assignStudent(d.sheet.id, chosen.id);
+      if (mounted) showMessage(context, 'Paper given to ${studentDisplayName(chosen)}');
+    } on ScanLimitException catch (e) {
+      if (mounted) await showScanBlocked(context, e.block);
+    } catch (e) {
+      if (mounted) showError(context, e);
+    } finally {
+      if (mounted) setState(() => _assigning = false);
+    }
+  }
 
   Future<void> _correct(PaperDetail d, int q) async {
     final current = d.answers.firstWhere((a) => a.questionNo == q).finalMask ?? 0;
@@ -92,13 +133,47 @@ class _PaperResultScreenState extends ConsumerState<PaperResultScreen> {
           Text(
             [
               ?student?.studentNo,
+              if (student == null)
+                d.sheet.detectedStudentNo == null ? 'No student number shaded' : 'Shaded number ${d.sheet.detectedStudentNo}',
               if (d.version != null) 'Set ${d.version!.label}',
               'Scanned ${DateFormat('d MMM y, h:mm a').format(d.sheet.capturedAt)}',
             ].join(' · '),
             style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: Space.l),
-          if (r == null || g == null)
+          if (student == null && d.sheet.status == 'needs_review')
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(Space.l),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.person_search_outlined, color: colors.uncertain),
+                        const SizedBox(width: Space.m),
+                        Expanded(
+                          child: Text(
+                            'No student yet. Choose the student to grade this paper. '
+                            'It is counted as a scan then.',
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: Space.m),
+                    FilledButton.icon(
+                      onPressed: _assigning ? null : () => _assign(d),
+                      icon: _assigning
+                          ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                          : const Icon(Icons.person_add_alt_1_outlined),
+                      label: const Text('Choose the student'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else if (r == null || g == null)
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(Space.l),

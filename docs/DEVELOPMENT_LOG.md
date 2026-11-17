@@ -5,6 +5,25 @@ and the next step.
 
 ---
 
+## 2026-11-17 · Revision: save a paper without a student, assign later (0.6.6)
+
+- **Scan check:** the student is no longer required. With no student the button reads
+  **"Save without student"** and a note explains the student can be chosen later. The exam
+  set is still required (needed for grading).
+- **Assign later:** the examination's Papers list shows papers without a student first, under
+  a banner ("N papers have no student yet"); each shows the shaded number. Opening one shows
+  **"Choose the student"** → the student list (search; students who already have a paper are
+  marked "has a paper"; the shaded number is shown) → if that student already has a paper,
+  confirm that this one replaces it (the earlier one is kept as history).
+- **Grading and plan:** a paper without a student is not graded and **not counted as a scan**;
+  it is counted when assigned (free if that student's paper was already counted). If the free
+  scans are used up, assigning is refused with the plan message and nothing changes. Graded
+  as soon as it is assigned (or when the answer key is finished). Audit: `answer_sheet.assigned`.
+- Verification: repository tests (wait → assign → graded, earlier paper replaced, errors;
+  key finished later; counted only on assignment; refusal rolls back), charging tests with
+  the real plan ledger, review-screen test (save without student), app-level widget test
+  (banner → paper → choose student → 88 % shown); 231/231 pass.
+
 ## 2026-11-17 · Revision: mark flagged and double-shaded answers wrong (0.6.5)
 
 - **"Mark all as wrong (N)"** on the scan check screen: one tap counts every flagged answer

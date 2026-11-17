@@ -98,12 +98,27 @@ void main() {
     expect((await r.status()).freeRemaining, 98);
   });
 
-  test('papers without an identified student are charged per paper', () async {
+  test('papers saved without a student are counted when assigned, once per student', () async {
     final r = repo();
     await grant(r);
-    await save(r);
-    await save(r);
-    expect(await ledger.countFree(), 2);
+    final scans = ScanRepository(db, AuditLogger(db, clock: clock), scansDirectory: () async => tmp, charger: r, clock: clock);
+    final a = await save(r);
+    final b = await save(r);
+    expect(await ledger.countFree(), 0, reason: 'not counted while they have no student');
+    await scans.assignStudent(a, students[0]);
+    expect(await ledger.countFree(), 1);
+    await scans.assignStudent(b, students[0]);
+    expect(await ledger.countFree(), 1, reason: 'a second paper of the same student is a free re-scan');
+  });
+
+  test('assigning is refused when the allowance is used up, and nothing changes', () async {
+    final r = repo();
+    await grant(r, used: 100);
+    final scans = ScanRepository(db, AuditLogger(db, clock: clock), scansDirectory: () async => tmp, charger: r, clock: clock);
+    final a = await save(r);
+    await expectLater(scans.assignStudent(a, students[2]), throwsA(isA<ScanLimitException>()));
+    final sheet = await (db.select(db.answerSheets)..where((t) => t.id.equals(a))).getSingle();
+    expect(sheet.studentId, isNull);
   });
 
   test('when the allowance is used up nothing is saved', () async {

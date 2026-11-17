@@ -18,6 +18,7 @@ import '../../data/repositories/students_repository.dart';
 import '../../domain/answer_mask.dart';
 import '../../domain/omr_reading.dart';
 import '../../domain/sheet_layout.dart';
+import 'student_picker.dart';
 
 /// Shows a scanned paper next to what was read, lets the instructor resolve
 /// flagged answers and confirm the student, then saves it. Returns true when
@@ -89,20 +90,13 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   int get _unresolved => _answers.values.where((v) => v == null).length;
 
   String? get _blocker {
-    if (_student == null) return 'Choose the student';
     if (_versionId == null) return 'Choose the exam set';
     if (_unresolved > 0) return 'Decide $_unresolved flagged ${_unresolved == 1 ? 'answer' : 'answers'}';
     return null;
   }
 
   Future<void> _chooseStudent() async {
-    final chosen = await showModalBottomSheet<StudentRow>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      builder: (_) => _StudentPicker(roster: ctx.roster, detected: reading.studentNumber),
-    );
+    final chosen = await pickStudent(context, roster: ctx.roster, detected: reading.studentNumber);
     if (chosen == null) return;
     setState(() {
       _student = chosen;
@@ -195,7 +189,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               finalMasks: {for (final e in _answers.entries) e.key: e.value!},
               overridden: _overridden,
               rectifiedImage: widget.rectifiedImage,
-              studentId: _student!.id,
+              studentId: _student?.id,
               sessionId: widget.sessionId,
               replaceSheetId: _existing?.id,
             ),
@@ -304,6 +298,15 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 ),
               ),
             ),
+            if (_student == null)
+              Padding(
+                padding: const EdgeInsets.only(top: Space.s),
+                child: Text(
+                  'You can save without a student and choose the student later: open the paper '
+                  'from the examination\'s Papers list. It is graded and counted as a scan then.',
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
             if (_existing != null)
               Padding(
                 padding: const EdgeInsets.only(top: Space.s),
@@ -411,7 +414,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                       flex: 2,
                       child: FilledButton(
                         onPressed: blocker == null && !_saving ? _save : null,
-                        child: const Text('Save paper'),
+                        child: Text(_student == null ? 'Save without student' : 'Save paper'),
                       ),
                     ),
                   ],
@@ -637,82 +640,6 @@ class _ChoiceButton extends StatelessWidget {
                   decoration: BoxDecoration(color: scheme.onSurface, borderRadius: BorderRadius.circular(3)),
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StudentPicker extends ConsumerStatefulWidget {
-  const _StudentPicker({required this.roster, required this.detected});
-
-  final List<StudentRow> roster;
-  final String detected;
-
-  @override
-  ConsumerState<_StudentPicker> createState() => _StudentPickerState();
-}
-
-class _StudentPickerState extends ConsumerState<_StudentPicker> {
-  final _query = TextEditingController();
-  List<StudentRow>? _others;
-
-  @override
-  void dispose() {
-    _query.dispose();
-    super.dispose();
-  }
-
-  Future<void> _searchAll() async {
-    final found = await ref.read(studentsRepositoryProvider).search(_query.text);
-    if (mounted) setState(() => _others = found);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final q = _query.text.trim().toLowerCase();
-    final roster = widget.roster
-        .where((s) => q.isEmpty || studentDisplayName(s).toLowerCase().contains(q) || s.studentNoKey.contains(q))
-        .toList();
-    final list = _others ?? roster;
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: SizedBox(
-        height: MediaQuery.sizeOf(context).height * 0.75,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: Space.l),
-              child: TextField(
-                controller: _query,
-                decoration: InputDecoration(
-                  hintText: 'Search name or number',
-                  prefixIcon: const Icon(Icons.search),
-                  helperText: widget.detected.isEmpty ? null : 'Shaded on the paper: ${widget.detected}',
-                ),
-                onChanged: (_) => setState(() => _others = null),
-              ),
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: _searchAll,
-                child: Text(_others == null ? 'Search all students' : 'Showing all students'),
-              ),
-            ),
-            Expanded(
-              child: list.isEmpty
-                  ? const Center(child: Text('No matching students.'))
-                  : ListView.builder(
-                      itemCount: list.length,
-                      itemBuilder: (context, i) => ListTile(
-                        title: Text(studentDisplayName(list[i])),
-                        subtitle: Text(list[i].studentNo),
-                        onTap: () => Navigator.of(context).pop(list[i]),
-                      ),
-                    ),
             ),
           ],
         ),

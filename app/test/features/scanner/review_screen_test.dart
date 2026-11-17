@@ -228,7 +228,7 @@ void main() {
     await pumpReview(tester, uncertain: const {}, number: '209999999');
     expect(find.text('Student not identified'), findsOneWidget);
     expect(find.textContaining('209999999'), findsOneWidget);
-    expect(find.text('Choose the student'), findsOneWidget);
+    expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Save without student')).onPressed, isNotNull);
 
     await tester.tap(find.text('Choose'));
     await tester.pumpAndSettle();
@@ -236,6 +236,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('chosen by you'), findsOneWidget);
     expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Save paper')).onPressed, isNotNull);
+  });
+
+  testWidgets('a paper can be saved without a student, to assign later', (tester) async {
+    await pumpReview(tester, uncertain: const {}, number: '209999999');
+    expect(find.textContaining('save without a student and choose the student later'), findsOneWidget);
+    final save = find.widgetWithText(FilledButton, 'Save without student');
+    await tester.runAsync(() async {
+      await tester.tap(save);
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    });
+    await tester.pumpAndSettle();
+    expect(find.text('open'), findsOneWidget, reason: 'review closed after saving');
+    final sheet = (await tester.runAsync(() => db.select(db.answerSheets).getSingle()))!;
+    expect(sheet.studentId, isNull);
+    expect(sheet.status, 'needs_review');
+    expect(sheet.detectedStudentNo, '209999999');
   });
 
   testWidgets('discarding asks first and saves nothing', (tester) async {

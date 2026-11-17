@@ -226,6 +226,10 @@ class ScanRepository {
   /// Saves a reviewed paper: its answers, the corrected image and an audit
   /// entry, in one transaction. A replaced earlier paper is kept as
   /// `superseded`. Grading happens when the paper is finalized.
+  ///
+  /// A paper may be saved without a student; it is then neither graded nor
+  /// charged against the plan until the instructor assigns it to a student
+  /// ([assignStudent]).
   Future<String> save(ReviewedSheet s) async {
     final reading = s.reading;
     if (s.finalMasks.length != reading.questions.length) {
@@ -265,7 +269,9 @@ class ScanRepository {
                 updatedAt: now,
               ),
             );
-        await charger?.charge(examId: s.examId, studentId: s.studentId, sheetId: sheetId);
+        if (s.studentId != null) {
+          await charger?.charge(examId: s.examId, studentId: s.studentId, sheetId: sheetId);
+        }
         await _db.batch((b) {
           b.insertAll(_db.studentAnswers, [
             for (var i = 0; i < reading.questions.length; i++)
@@ -308,6 +314,45 @@ class ScanRepository {
       rethrow;
     }
     return sheetId;
+  }
+
+  /// Gives a paper that was saved without a student to [studentId]. The scan
+  /// is counted against the plan now (free when this student's paper was
+  /// already counted); a refused charge changes nothing. An earlier paper of
+  /// the same student is replaced (kept as `superseded`). The paper is graded
+  /// right away when the examination's answer keys are complete.
+  Future<void> assignStudent(String sheetId, String studentId) {
+    return _db.transaction(() async {
+      final sheet = await (_db.select(_db.answerSheets)..where((t) => t.id.equals(sheetId))).getSingleOrNull();
+      if (sheet == null) throw const DataException('This paper no longer exists.');
+      if (sheet.status != 'needs_review') throw const DataException('This paper was replaced or removed.');
+      if (sheet.studentId != null) throw const DataException('This paper already has a student.');
+      final student = await (_db.select(_db.students)..where((t) => t.id.equals(studentId))).getSingleOrNull();
+      if (student == null || student.deletedAt != null) {
+        throw const DataException('Choose a student from your class lists.');
+      }
+      await charger?.charge(examId: sheet.examinationId, studentId: studentId, sheetId: sheetId);
+      final now = clock.now();
+      final replaced = await (_db.update(_db.answerSheets)
+            ..where((t) =>
+                t.examinationId.equals(sheet.examinationId) &
+                t.studentId.equals(studentId) &
+                t.status.isIn(const ['needs_review', 'finalized'])))
+          .write(AnswerSheetsCompanion(status: const Value('superseded'), updatedAt: Value(now)));
+      await (_db.update(_db.answerSheets)..where((t) => t.id.equals(sheetId)))
+          .write(AnswerSheetsCompanion(studentId: Value(studentId), updatedAt: Value(now)));
+      await _audit.record(
+        event: 'answer_sheet.assigned',
+        entityType: 'answer_sheet',
+        entityId: sheetId,
+        examinationId: sheet.examinationId,
+        details: {'student': studentId, 'replacedPapers': replaced},
+      );
+      final exam = await (_db.select(_db.examinations)..where((t) => t.id.equals(sheet.examinationId))).getSingle();
+      if (grading != null && exam.status == 'ready') {
+        await grading!.finalize(sheetId);
+      }
+    });
   }
 
   /// Current papers (not superseded) of an examination, newest first.

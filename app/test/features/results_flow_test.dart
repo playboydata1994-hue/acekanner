@@ -23,7 +23,9 @@ void main() {
   int keyMask(int q) => 1 << ((q - 1) % 5);
 
   /// Exam "Finals" (50 items, pass 75 %) with three graded papers: 100 %, 80 %, 60 %.
-  Future<void> seed() async {
+  /// With [unassigned], also a fourth student (Dina) and a paper saved without a
+  /// student (44 of 50 correct).
+  Future<void> seed({bool unassigned = false}) async {
     final clock = FixedClock(t0);
     final audit = AuditLogger(db, clock: clock);
     final grading = GradingRepository(db, audit, clock: clock);
@@ -54,6 +56,19 @@ void main() {
         overridden: const {},
         rectifiedImage: image,
         studentId: student.id,
+      ));
+    }
+    if (unassigned) {
+      await students.addToSection(section, const StudentInput(studentNo: '1003', lastName: 'Reyes', firstName: 'Dina'));
+      final masks = [for (var q = 1; q <= 50; q++) q <= 44 ? keyMask(q) : (keyMask(q) << 1) % 31];
+      final image = File('${tmp.path}/u.jpg')..writeAsBytesSync([1, 2, 3]);
+      await scans.save(ReviewedSheet(
+        examId: examId,
+        versionId: versionId,
+        reading: reading(masks: masks, studentNumber: '1003'),
+        finalMasks: {for (var q = 1; q <= 50; q++) q: masks[q - 1]},
+        overridden: const {},
+        rectifiedImage: image,
       ));
     }
   }
@@ -99,6 +114,40 @@ void main() {
     await tester.scrollUntilVisible(find.text('62%'), -200, scrollable: find.byType(Scrollable).first);
     expect(find.text('62%'), findsOneWidget);
     expect(find.text('31 / 50 points'), findsOneWidget);
+    await disposeApp(tester);
+  });
+
+  testWidgets('a paper saved without a student is listed first and can be given to a student', (tester) async {
+    await tester.runAsync(() => seed(unassigned: true));
+    await pumpApp(tester, db);
+    await tapTab(tester, 'Exams');
+    await tester.tap(find.text('Finals'));
+    await tester.pumpAndSettle();
+
+    final banner = find.textContaining('1 paper has no student yet');
+    await tester.scrollUntilVisible(banner, 200, scrollable: find.byType(Scrollable).first);
+    expect(find.text('shaded 1003 · tap to choose the student'), findsOneWidget);
+    await tester.tap(find.text('No student yet'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Shaded number 1003'), findsOneWidget);
+
+    await tester.tap(find.text('Choose the student'));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+    await tester.pumpAndSettle();
+    expect(find.text('1000 · has a paper'), findsOneWidget);
+    expect(find.text('Shaded on the paper: 1003'), findsOneWidget);
+    await tester.tap(find.text('Reyes, Dina'));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Paper given to Reyes, Dina'), findsOneWidget);
+    expect(find.text('88%'), findsOneWidget);
+    expect(find.text('44 / 50 points'), findsOneWidget);
+    expect(find.text('Choose the student'), findsNothing);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(banner, findsNothing);
     await disposeApp(tester);
   });
 

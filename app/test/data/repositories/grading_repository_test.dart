@@ -13,7 +13,9 @@ import 'package:acekanner/data/repositories/exams_repository.dart';
 import 'package:acekanner/data/repositories/grading_repository.dart';
 import 'package:acekanner/data/repositories/scan_repository.dart';
 import 'package:acekanner/data/repositories/students_repository.dart';
+import 'package:acekanner/data/licensing/license_repository.dart';
 import 'package:acekanner/domain/grading.dart';
+import 'package:acekanner/domain/licensing/license_status.dart';
 
 import '../../support/omr_fixtures.dart';
 import '../../support/test_db.dart';
@@ -202,6 +204,75 @@ void main() {
     await expectLater(grading.finalize(id), throwsA(isA<DataException>()));
   });
 
+  Future<String> saveUnassigned(String examId, String versionId, int correct, {ScanRepository? repo}) {
+    final masks = [for (var q = 1; q <= 50; q++) q <= correct ? keyMask(q) : (keyMask(q) << 1) % 31];
+    final image = File('${tmp.path}/rect-unassigned.jpg')..writeAsBytesSync([1, 2, 3]);
+    return (repo ?? scans).save(ReviewedSheet(
+      examId: examId,
+      versionId: versionId,
+      reading: reading(masks: masks, studentNumber: ''),
+      finalMasks: {for (var q = 1; q <= 50; q++) q: masks[q - 1]},
+      overridden: const {},
+      rectifiedImage: image,
+    ));
+  }
+
+  test('a paper saved without a student waits; assigning it grades it and replaces the earlier paper', () async {
+    final (examId, versionId) = await examWithKey();
+    final earlier = await scan(examId, versionId, roster[0], 30);
+    final id = await saveUnassigned(examId, versionId, 45);
+
+    var sheet = await (db.select(db.answerSheets)..where((t) => t.id.equals(id))).getSingle();
+    expect(sheet.status, 'needs_review');
+    expect(sheet.studentId, isNull);
+    expect(await (db.select(db.examinationResults)..where((t) => t.answerSheetId.equals(id))).get(), isEmpty);
+    expect((await scans.watchPapers(examId).first).map((p) => p.sheet.id), containsAll([id, earlier]));
+
+    await scans.assignStudent(id, roster[0].id);
+    sheet = await (db.select(db.answerSheets)..where((t) => t.id.equals(id))).getSingle();
+    expect(sheet.studentId, roster[0].id);
+    expect(sheet.status, 'finalized');
+    expect((await current(id)).percentage, 90);
+    final old = await (db.select(db.answerSheets)..where((t) => t.id.equals(earlier))).getSingle();
+    expect(old.status, 'superseded');
+    expect((await scans.watchPapers(examId).first).map((p) => p.sheet.id), [id]);
+    expect((await db.select(db.auditLogs).get()).map((l) => l.event), contains('answer_sheet.assigned'));
+
+    await expectLater(scans.assignStudent(id, roster[1].id), throwsA(isA<DataException>()));
+    final other = await saveUnassigned(examId, versionId, 10);
+    await expectLater(scans.assignStudent(other, 'no-such-student'), throwsA(isA<DataException>()));
+  });
+
+  test('a paper without a student waits for the key too, and is graded when the key is finished', () async {
+    final (examId, versionId) = await examWithKey(complete: false);
+    final id = await saveUnassigned(examId, versionId, 50);
+    await scans.assignStudent(id, roster[2].id);
+    expect((await (db.select(db.answerSheets)..where((t) => t.id.equals(id))).getSingle()).status, 'needs_review');
+    final items = (await keys.load(versionId)).items;
+    await keys.save(versionId, [for (final i in items) i.copyWith(mask: keyMask(i.questionNo))]);
+    expect((await current(id)).percentage, 100);
+  });
+
+  test('a paper without a student is counted only when it is assigned; a refusal changes nothing', () async {
+    final charger = _FakeCharger();
+    final audit = AuditLogger(db, clock: FixedClock(t0));
+    final counted = ScanRepository(db, audit, scansDirectory: () async => tmp, grading: grading, charger: charger, clock: FixedClock(t0));
+    final (examId, versionId) = await examWithKey();
+    final id = await saveUnassigned(examId, versionId, 40, repo: counted);
+    expect(charger.calls, isEmpty, reason: 'not counted while it has no student');
+
+    charger.refuse = true;
+    await expectLater(counted.assignStudent(id, roster[3].id), throwsA(isA<ScanLimitException>()));
+    final sheet = await (db.select(db.answerSheets)..where((t) => t.id.equals(id))).getSingle();
+    expect(sheet.studentId, isNull);
+    expect(sheet.status, 'needs_review');
+
+    charger.refuse = false;
+    await counted.assignStudent(id, roster[3].id);
+    expect(charger.calls, [(examId, roster[3].id)]);
+    expect((await current(id)).percentage, 80);
+  });
+
   test('paper detail and class analytics', () async {
     final (examId, versionId) = await examWithKey();
     final scores = [50, 45, 40, 20];
@@ -228,4 +299,15 @@ void main() {
     expect(items[0].difficulty, 1.0);
     expect(items[49].difficulty, 0.25); // only the perfect paper
   });
+}
+
+class _FakeCharger implements ScanCharger {
+  final calls = <(String, String?)>[];
+  bool refuse = false;
+
+  @override
+  Future<void> charge({required String examId, required String? studentId, required String sheetId}) async {
+    if (refuse) throw const ScanLimitException(ScanBlock.freeUsedUp);
+    calls.add((examId, studentId));
+  }
 }
