@@ -26,8 +26,11 @@
         android:fullBackupContent="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:enableOnBackInvokedCallback="true">
+        <!-- Launchers fit about 12 letters under an icon, so the home screen shows
+             "ACEkor"; the app's full name stays "ACEkor Grading Sheet" everywhere else. -->
         <activity
             android:name=".MainActivity"
+            android:label="ACEkor"
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""

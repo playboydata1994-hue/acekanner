@@ -4,7 +4,7 @@ Newest entries first.
 
 ---
 
-## 2026-11-17 · New name and logo: ACEkor Grading Sheet (1.0.0+2)
+## 2026-11-17 · New name and logo: ACEkor Grading Sheet (1.0.0+3)
 
 Owner's choices: logo C (clipboard class record); name "ACEkor Grading Sheet" (written ACEkor, with
 "GRADING SHEET" under it).
@@ -25,6 +25,9 @@ Owner's choices: logo C (clipboard class record); name "ACEkor Grading Sheet" (w
   save. Offline."
 - **Unchanged (invisible to users):** package `com.acekor.calculator`, Play product IDs,
   `ACEKOR_*` build keys, the server token type and the backup file signature.
+- **Home-screen label:** "ACEkor" (owner's choice; launchers cut longer names). It is set on the
+  launcher activity; the application label stays "ACEkor Grading Sheet".
+- **Build:** now `1.0.0+3`. Bundle 3 is signed with the upload key; builds 1 and 2 are superseded.
 
 ---
 
