@@ -23,17 +23,17 @@ answers. Steps marked **(you)** are done in your Google accounts; steps marked
 - [x] Sign-in logs deleted after **90 days** (daily job on the server, active since
       17 Nov 2026)
 
-## Step 2 — Publish the pages
+## Step 2 — Publish the pages ✅ done (live 17 Nov 2026)
 
 - [x] Placeholders filled; pages built into `docs/` by `tools/play/build_pages.py`.
-- [ ] **(you)** GitHub → `acekanner` repository → **Settings → Pages** →
+- [x] **(you)** GitHub → `acekanner` repository → **Settings → Pages** →
       Build and deployment: Source **Deploy from a branch**, Branch **main**, folder
       **/docs** → **Save**. After 1–2 minutes the pages are live:
   - Home: https://playboydata1994-hue.github.io/acekanner/
   - Privacy policy: https://playboydata1994-hue.github.io/acekanner/privacy/
   - Terms of use: https://playboydata1994-hue.github.io/acekanner/terms/
   - Delete account: https://playboydata1994-hue.github.io/acekanner/delete-account/
-- [ ] Open each address on your phone, while signed out, and check it loads.
+- [x] All four pages load (checked 17 Nov 2026).
 - When a document changes: edit the `.md` file in `docs/play/`, run
   `python3 -I tools/play/build_pages.py`, commit and push. GitHub updates the page.
 
