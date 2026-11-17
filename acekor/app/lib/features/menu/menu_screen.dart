@@ -23,7 +23,7 @@ class MenuScreen extends ConsumerWidget {
       (Icons.settings_outlined, 'Settings', 'School, backup, lock, text size', Routes.settings),
     ];
     return Scaffold(
-      appBar: AppBar(title: const Text('ACEKOR')),
+      appBar: AppBar(title: const Text('ACEkor')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
         children: [

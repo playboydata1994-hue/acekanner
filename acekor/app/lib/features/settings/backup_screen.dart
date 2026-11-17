@@ -103,7 +103,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     try {
       final version = (await ref.read(packageInfoProvider.future)).version;
       final bytes = await ref.read(backupServiceProvider).create(password, appVersion: version);
-      final name = 'ACEKOR-backup-${DateFormat('yyyy-MM-dd-HHmm').format(DateTime.now())}.${BackupService.extension}';
+      final name = 'ACEkor-backup-${DateFormat('yyyy-MM-dd-HHmm').format(DateTime.now())}.${BackupService.extension}';
       if (!mounted) return;
       final how = await showModalBottomSheet<String>(
         context: context,
@@ -131,7 +131,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       if (how == 'save') {
         if (!await saveFileAs(bytes, name, mimeType: Mime.backup)) return;
       } else {
-        await shareFile(bytes, name, mimeType: Mime.backup, subject: 'ACEKOR backup');
+        await shareFile(bytes, name, mimeType: Mime.backup, subject: 'ACEkor backup');
       }
       await ref
           .read(settingsRepositoryProvider)
@@ -246,7 +246,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Your records are stored only on this phone. Uninstalling ACEKOR or clearing its data erases them. '
+                    'Your records are stored only on this phone. Uninstalling ACEkor or clearing its data erases them. '
                     'Make a backup regularly and keep it somewhere safe (Google Drive, email, flash drive).',
                     style: TextStyle(fontSize: 16, height: 1.4),
                   ),

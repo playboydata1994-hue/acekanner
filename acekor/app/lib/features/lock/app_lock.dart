@@ -159,7 +159,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
   }
 
   Future<void> _biometric() async {
-    final ok = await ref.read(biometricsProvider).authenticate('Unlock ACEKOR Calculator');
+    final ok = await ref.read(biometricsProvider).authenticate('Unlock ACEkor Grading Sheet');
     if (ok && mounted) ref.read(appLockProvider.notifier).unlock();
   }
 

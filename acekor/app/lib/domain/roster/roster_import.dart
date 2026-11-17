@@ -262,9 +262,9 @@ String _title(String s) {
   return s.toLowerCase().split(' ').map((w) => w.isEmpty ? w : w[0].toUpperCase() + w.substring(1)).join(' ');
 }
 
-const String classListTemplateName = 'ACEKOR class list.xlsx';
+const String classListTemplateName = 'ACEkor class list.xlsx';
 
-/// An empty class list to fill in, with the columns ACEKOR reads.
+/// An empty class list to fill in, with the columns ACEkor reads.
 List<int> classListTemplateXlsx() {
   final book = Excel.createExcel();
   final defaultName = book.getDefaultSheet()!;

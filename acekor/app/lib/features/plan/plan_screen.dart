@@ -176,7 +176,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
               ListTile(
                 leading: const Icon(Icons.delete_outline, color: AppColors.red),
                 title: const Text('Delete licensing account'),
-                subtitle: const Text('Removes your account from ACEKOR\'s server. Records on the phone stay.'),
+                subtitle: const Text('Removes your account from ACEkor\'s server. Records on the phone stay.'),
                 onTap: () async {
                   final ok = await confirm(
                     context,

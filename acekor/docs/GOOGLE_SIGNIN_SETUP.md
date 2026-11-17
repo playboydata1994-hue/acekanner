@@ -1,4 +1,4 @@
-# Google sign-in setup (ACEKOR Calculator and ACEkanner)
+# Google sign-in setup (ACEkor Grading Sheet and ACEkanner)
 
 The free trial and the subscriptions use a one-time Google sign-in. One Google Cloud project and
 one Supabase project serve both apps. Doing these steps once turns on sign-in for ACEkanner too.
@@ -52,12 +52,12 @@ Google checks that sign-in comes from the real app. For each signing key below, 
 
 | Client name | Package | SHA-1 |
 |---|---|---|
-| ACEKOR upload key | `com.acekor.calculator` | `55:7E:4A:02:F4:0A:50:C3:24:20:09:1A:88:39:E0:52:7F:80:BA:4F` |
-| ACEKOR Play builds | `com.acekor.calculator` | Play Console → ACEKOR → **Test and release → App integrity → App signing key certificate → SHA-1** (available after the first upload) |
+| ACEkor upload key | `com.acekor.calculator` | `55:7E:4A:02:F4:0A:50:C3:24:20:09:1A:88:39:E0:52:7F:80:BA:4F` |
+| ACEkor Play builds | `com.acekor.calculator` | Play Console → ACEkor → **Test and release → App integrity → App signing key certificate → SHA-1** (available after the first upload) |
 | ACEkanner upload key | `com.acekanner.app` | `65:75:4A:42:B5:46:71:98:9B:BB:30:2E:D7:52:B6:32:22:4D:3E:01` |
 | ACEkanner Play builds | `com.acekanner.app` | From ACEkanner's App signing page |
 
 ## What happens next
 
 Once you send the Web client ID, I put it into both apps' build settings and build signed app
-bundles. ACEKOR's trial then starts from the real server, with no reset by reinstalling.
+bundles. ACEkor's trial then starts from the real server, with no reset by reinstalling.

@@ -36,7 +36,7 @@ class LicenseService {
   bool get available => api != null;
 
   /// SHA-256("acekor-account|v1|" + account id): Play's obfuscatedAccountId,
-  /// so a purchase is tied to the ACEKOR account that made it.
+  /// so a purchase is tied to the ACEkor account that made it.
   static String playAccountRef(String accountId) =>
       sha256.convert(utf8.encode('acekor-account|v1|$accountId')).toString();
 

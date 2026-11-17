@@ -16,7 +16,7 @@ class AboutScreen extends ConsumerWidget {
     final boot = ref.watch(bootstrapControllerProvider).value;
     final cipher = boot is BootstrapReady ? boot.cipherVersion : null;
     return Scaffold(
-      appBar: AppBar(title: const Text('About ACEKOR')),
+      appBar: AppBar(title: const Text('About ACEkor')),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
@@ -57,7 +57,7 @@ class AboutScreen extends ConsumerWidget {
           TextButton(
             onPressed: () => showLicensePage(
               context: context,
-              applicationName: 'ACEKOR Calculator',
+              applicationName: 'ACEkor Grading Sheet',
               applicationVersion: info?.version,
             ),
             child: const Text('Open-source licenses'),

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Student data must never be copied off the phone automatically (RA 10173).
      The encrypted database is also useless without its Keystore key, which
-     cannot be transferred. Instructors use ACEKOR's own encrypted backup file. -->
+     cannot be transferred. Instructors use ACEkor's own encrypted backup file. -->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="root" />

@@ -14,7 +14,7 @@ class KeystoreSecretStore implements SecretStore {
         aOptions: AndroidOptions(
           // Never wipe secrets automatically after a Keystore error: losing
           // the database key would make the encrypted database unreadable.
-          // ACEKOR shows a recovery screen instead.
+          // ACEkor shows a recovery screen instead.
           resetOnError: false,
         ),
       );

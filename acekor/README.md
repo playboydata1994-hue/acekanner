@@ -1,4 +1,4 @@
-# ACEKOR Calculator
+# ACEkor Grading Sheet
 
 Offline academic score calculator and student performance recorder for college instructors.
 

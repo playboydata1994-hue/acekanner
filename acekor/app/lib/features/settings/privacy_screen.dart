@@ -15,7 +15,7 @@ class PrivacyScreen extends ConsumerWidget {
       (
         'Student records stay on your phone',
         'Names, student IDs, scores, grades and reports are stored only on this phone, in an encrypted database '
-            '(AES-256, key in the Android Keystore). ACEKOR never uploads them.',
+            '(AES-256, key in the Android Keystore). ACEkor never uploads them.',
       ),
       (
         'What the licensing server receives',
@@ -39,7 +39,7 @@ class PrivacyScreen extends ConsumerWidget {
       (
         'Data Privacy Act',
         'As the instructor you are the personal information controller of your students\' records under the Data Privacy Act of 2012 (RA 10173). '
-            'ACEKOR helps you protect them: encryption, optional PIN or fingerprint lock, and no automatic uploads.',
+            'ACEkor helps you protect them: encryption, optional PIN or fingerprint lock, and no automatic uploads.',
       ),
     ];
     return Scaffold(

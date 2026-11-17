@@ -5,7 +5,7 @@ import '../../domain/grading/default_scale.dart';
 
 part 'app_database.g.dart';
 
-/// The ACEKOR Calculator on-device database (SQLCipher-encrypted on Android).
+/// The ACEkor Grading Sheet on-device database (SQLCipher-encrypted on Android).
 ///
 /// The schema lives in `schema/acekor.drift` (plain SQL). Bump [schemaVersion]
 /// for every schema change and add a migration step.

@@ -141,16 +141,16 @@ class BackupService {
   }
 
   /// Reads the unencrypted header. Throws [BackupException] if this is not
-  /// an ACEKOR backup.
+  /// an ACEkor backup.
   BackupHeader readHeader(Uint8List bytes) => _parse(bytes).$1;
 
   (BackupHeader, int) _parse(Uint8List bytes) {
-    if (bytes.length < magic.length + 5 + 16) throw const BackupException('This is not an ACEKOR backup file.');
+    if (bytes.length < magic.length + 5 + 16) throw const BackupException('This is not an ACEkor backup file.');
     for (var i = 0; i < magic.length; i++) {
-      if (bytes[i] != magic[i]) throw const BackupException('This is not an ACEKOR backup file.');
+      if (bytes[i] != magic[i]) throw const BackupException('This is not an ACEkor backup file.');
     }
     if (bytes[magic.length] != formatVersion) {
-      throw const BackupException('This backup was made by a newer ACEKOR. Update the app first.');
+      throw const BackupException('This backup was made by a newer ACEkor. Update the app first.');
     }
     final len = ByteData.sublistView(bytes, magic.length + 1, magic.length + 5).getUint32(0);
     final start = magic.length + 5;
@@ -179,7 +179,7 @@ class BackupService {
   Future<BackupContents> open(Uint8List bytes, String password) async {
     final (header, body) = _parse(bytes);
     if (header.schemaVersion > AppDatabase.currentSchemaVersion) {
-      throw const BackupException('This backup was made by a newer ACEKOR. Update the app first.');
+      throw const BackupException('This backup was made by a newer ACEkor. Update the app first.');
     }
     final cipher = bytes.sublist(body, bytes.length - 16);
     final mac = Mac(bytes.sublist(bytes.length - 16));

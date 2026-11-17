@@ -30,14 +30,14 @@ class RecoveryScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             Text(
               reason == RecoveryReason.keyMissing
-                  ? 'The phone\'s secure storage no longer has the key that unlocks ACEKOR\'s encrypted records. '
+                  ? 'The phone\'s secure storage no longer has the key that unlocks ACEkor\'s encrypted records. '
                         'This can happen after a system reset of the phone\'s security settings.'
-                  : 'The saved key does not open ACEKOR\'s encrypted records.',
+                  : 'The saved key does not open ACEkor\'s encrypted records.',
               style: const TextStyle(fontSize: 18, height: 1.4),
             ),
             const SizedBox(height: 16),
             const Text(
-              'To continue, start with empty records and then restore your latest ACEKOR backup '
+              'To continue, start with empty records and then restore your latest ACEkor backup '
               '(Settings › Backup and restore). The locked file is kept on the phone, not deleted.',
               style: TextStyle(fontSize: 18, height: 1.4, color: AppColors.muted),
             ),

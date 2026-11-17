@@ -29,7 +29,7 @@ abstract final class ReminderSchedule {
 
   /// Reminders are shown at 9:00 in the morning, phone time.
   static const int hour = 9;
-  static const String title = 'ACEKOR CALCULATOR';
+  static const String title = 'ACEkor Grading Sheet';
 
   static List<Reminder> build(PlanStatus status, {required bool oneDayBefore, DateTime? nowLocal}) {
     final now = nowLocal ?? status.now.toLocal();

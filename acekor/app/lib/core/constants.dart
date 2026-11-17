@@ -1,6 +1,6 @@
 /// Product constants shared across features.
 abstract final class AppConstants {
-  static const String appName = 'ACEKOR Calculator';
+  static const String appName = 'ACEkor Grading Sheet';
   static const String applicationId = 'com.acekor.calculator';
 
   /// Google Play subscriptions (auto-renewing, base plan "yearly").

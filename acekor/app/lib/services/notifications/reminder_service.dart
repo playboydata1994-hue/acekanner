@@ -1,3 +1,5 @@
+import 'dart:ui' show Color;
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
@@ -9,7 +11,7 @@ import '../../domain/licensing/reminder_schedule.dart';
 /// are delivered by Android even with no internet and the app closed; the
 /// plugin's boot receiver restores them after a restart.
 abstract interface class ReminderScheduler {
-  /// Cancels every ACEKOR reminder and schedules exactly [reminders].
+  /// Cancels every ACEkor reminder and schedules exactly [reminders].
   Future<void> apply(List<Reminder> reminders);
 
   /// Asks for the notification permission (Android 13+). Returns whether
@@ -24,7 +26,7 @@ class LocalReminderScheduler implements ReminderScheduler {
   static const AndroidNotificationDetails _channel = AndroidNotificationDetails(
     'acekor_plan',
     'Subscription reminders',
-    channelDescription: 'Reminders before your ACEKOR trial or subscription ends.',
+    channelDescription: 'Reminders before your ACEkor trial or subscription ends.',
     importance: Importance.high,
     priority: Priority.high,
     styleInformation: BigTextStyleInformation(''),
@@ -39,7 +41,7 @@ class LocalReminderScheduler implements ReminderScheduler {
       tz.setLocalLocation(tz.getLocation('Asia/Manila'));
     }
     await _plugin.initialize(
-      settings: const InitializationSettings(android: AndroidInitializationSettings('@mipmap/ic_launcher')),
+      settings: const InitializationSettings(android: AndroidInitializationSettings('@drawable/ic_notification')),
     );
   }();
 
@@ -63,6 +65,8 @@ class LocalReminderScheduler implements ReminderScheduler {
             importance: Importance.high,
             priority: Priority.high,
             styleInformation: BigTextStyleInformation(r.body),
+            icon: '@drawable/ic_notification',
+            color: const Color(0xFF13A57C),
           ),
         ),
         // Inexact is fine for a reminder days ahead and needs no special

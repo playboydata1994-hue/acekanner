@@ -120,7 +120,7 @@ void main() {
     final r = ReminderSchedule.build(s, oneDayBefore: true, nowLocal: DateTime(2027, 12, 1));
     final five = r.firstWhere((x) => x.id == ReminderSchedule.fiveDayId);
     expect(five.at, DateTime(2027, 12, 26, 9));
-    expect(five.title, 'ACEKOR CALCULATOR');
+    expect(five.title, 'ACEkor Grading Sheet');
     expect(five.body, contains('will expire in 5 days (December 31, 2027)'));
     expect(five.body, contains('Renew your subscription to continue enjoying premium academic scoring features.'));
     final one = r.firstWhere((x) => x.id == ReminderSchedule.oneDayId);

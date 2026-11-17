@@ -1,4 +1,4 @@
-# ACEKOR Calculator: database reference (schema v1)
+# ACEkor Grading Sheet: database reference (schema v1)
 
 The source of truth is `app/lib/data/db/schema/acekor.drift` (plain SQL, compiled by Drift).
 

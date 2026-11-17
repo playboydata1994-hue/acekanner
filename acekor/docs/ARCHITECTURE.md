@@ -1,6 +1,6 @@
-# ACEKOR Calculator: architecture (Phase 1)
+# ACEkor Grading Sheet: architecture (Phase 1)
 
-ACEKOR Calculator is an offline-first Android app for college instructors. The app opens
+ACEkor Grading Sheet is an offline-first Android app for college instructors. The app opens
 on the academic calculator, where the instructor searches a student, enters a score on a
 three-column keypad and saves it with one button. Everything academic is stored only on
 the phone, in an encrypted database.
@@ -116,7 +116,7 @@ Splash (open encrypted DB) ──► App lock (if PIN on) ──► ACADEMIC CAL
                                                                              ├ App lock (PIN, fingerprint)
                                                                              ├ Backup & restore
                                                                              ├ Privacy policy
-                                                                             └ About ACEKOR
+                                                                             └ About ACEkor
 ```
 
 Recording a score never needs more than the home screen.
@@ -261,7 +261,7 @@ configured build.
 - **Trial:** one day before `trial_until` (id 5003).
 - Text, when auto-renew is off:
 
-  > ACEKOR CALCULATOR
+  > ACEkor Grading Sheet
   > Your MAX subscription will expire in 5 days (December 31, 2027).
   > Renew your subscription to continue enjoying premium academic scoring features.
 
@@ -285,7 +285,7 @@ configured build.
   "Saved" appears.
 - **Android backups:** `allowBackup=false`, because the Keystore key cannot travel with an
   Android backup. Settings and the first-run screen warn that uninstalling or clearing
-  data erases records without an ACEKOR backup.
+  data erases records without an ACEkor backup.
 
 ## 12. Backup and restoration
 

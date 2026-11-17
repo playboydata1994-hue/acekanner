@@ -1,5 +1,5 @@
 name: acekor
-description: "ACEKOR Calculator - offline academic score calculator and student performance recorder for college instructors."
+description: "ACEkor Grading Sheet - offline academic score calculator and student performance recorder for college instructors."
 publish_to: 'none'
 
 # versionName+versionCode. Bump the build number (after +) for every Play upload.

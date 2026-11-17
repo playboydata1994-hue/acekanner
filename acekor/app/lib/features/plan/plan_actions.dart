@@ -46,7 +46,7 @@ Future<bool> startTrialFlow(BuildContext context, WidgetRef ref, {Notify? notify
       title: 'Start your free trial',
       message:
           'You will sign in once with your Google account. This keeps your trial and '
-          'subscription safe if you change phones.\n\nOnly your account is sent to ACEKOR\'s '
+          'subscription safe if you change phones.\n\nOnly your account is sent to ACEkor\'s '
           'licensing server — never student names or scores.',
       confirmLabel: 'Continue',
     );

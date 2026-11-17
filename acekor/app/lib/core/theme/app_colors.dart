@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
-/// ACEKOR palette: black calculator, white digits, dark-gray round keys,
+/// ACEkor palette: black calculator, white digits, dark-gray round keys,
 /// teal-green save key, red backspace. High contrast throughout.
 abstract final class AppColors {
   static const Color black = Color(0xFF000000);

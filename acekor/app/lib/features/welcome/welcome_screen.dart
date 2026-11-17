@@ -53,7 +53,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
             const _Step(icon: Icons.search_rounded, text: 'Search a student and type the score on the big keypad.'),
             const _Step(
               icon: Icons.check_circle_outline,
-              text: 'Tap the green ✓ to save. The percentage is computed for you.',
+              text: 'Tap the green check key to save. The percentage is computed for you.',
             ),
             const _Step(
               icon: Icons.phone_android,

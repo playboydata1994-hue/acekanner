@@ -22,7 +22,7 @@ abstract interface class BillingGateway {
   /// subscription (MAX upgrade, prorated, renewal date kept).
   Future<bool> buy(ProductDetails product, {required String accountRef, PurchaseDetails? upgradeFrom});
 
-  /// The phone's active ACEKOR subscriptions known to Play.
+  /// The phone's active ACEkor subscriptions known to Play.
   Future<List<PurchaseDetails>> activePurchases({required String accountRef});
   Future<void> restore({required String accountRef});
 
@@ -209,7 +209,7 @@ class BillingController extends Notifier<BillingState> {
       if (_userRestore && state.phase == BillingPhase.verifying) {
         state = state.copyWith(
           phase: BillingPhase.idle,
-          message: 'No active ACEKOR subscription was found for this Google account.',
+          message: 'No active ACEkor subscription was found for this Google account.',
         );
       }
     } catch (_) {

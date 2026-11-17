@@ -113,7 +113,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           link(Icons.ios_share, 'Data export (PDF, Excel)', Routes.reports),
           link(Icons.privacy_tip_outlined, 'Privacy policy', Routes.privacy),
-          link(Icons.info_outline, 'About ACEKOR', Routes.about),
+          link(Icons.info_outline, 'About ACEkor', Routes.about),
         ],
       ),
     );

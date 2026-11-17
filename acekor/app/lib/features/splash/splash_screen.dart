@@ -29,8 +29,8 @@ class SplashScreen extends ConsumerWidget {
                 if (boot.hasError) ...[
                   Text(
                     boot.error is DatabaseEncryptionUnavailableException
-                        ? 'This phone could not start ACEKOR\'s encrypted storage.'
-                        : 'ACEKOR could not open its records.',
+                        ? 'This phone could not start ACEkor\'s encrypted storage.'
+                        : 'ACEkor could not open its records.',
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 18, color: AppColors.white),
                   ),

@@ -96,7 +96,7 @@ class PdfReports {
         pw.Row(
           children: [
             pw.Text(
-              'Generated ${DateFormat('MMMM d, y h:mm a').format(h.generated)} · ACEKOR Calculator',
+              'Generated ${DateFormat('MMMM d, y h:mm a').format(h.generated)} · ACEkor Grading Sheet',
               style: const pw.TextStyle(fontSize: 8, color: _muted),
             ),
             pw.Spacer(),
@@ -331,7 +331,7 @@ class PdfReports {
     final doc = pw.Document(
       title: header.title,
       author: header.instructor,
-      creator: 'ACEKOR Calculator',
+      creator: 'ACEkor Grading Sheet',
       theme: _theme,
     );
     final landscape = type != ReportType.student;

@@ -40,7 +40,7 @@ class _Paywall extends ConsumerWidget {
       ),
       PlanBlock.checkInRequired => (
         'Connect to the internet once',
-        'ACEKOR needs to confirm your subscription with Google Play (the last check was more than 30 days ago, or the phone\'s date changed).',
+        'ACEkor needs to confirm your subscription with Google Play (the last check was more than 30 days ago, or the phone\'s date changed).',
       ),
       PlanBlock.needsMax => (
         'Examinations are part of MAX',

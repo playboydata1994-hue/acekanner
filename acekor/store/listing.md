@@ -1,12 +1,12 @@
-# ACEKOR Calculator: Play Store listing
+# ACEkor Grading Sheet: Play Store listing
 
-**App name (30):** ACEKOR Calculator
+**App name (30):** ACEkor Grading Sheet  (20 characters)
 
-**Short description (80):** Score calculator for teachers: search student, type score, save. Works offline.
+**Short description (80):** Grading sheet for teachers: search a student, type the score, save. Offline.
 
 ## Full description
 
-ACEKOR Calculator is the quickest way for college instructors to record quiz, recitation and examination scores.
+ACEkor Grading Sheet is the quickest way for college instructors to record quiz, recitation and examination scores — a digital class record with a big, easy score calculator.
 
 OPEN THE APP → SEARCH STUDENT → ENTER SCORE → SAVE.
 

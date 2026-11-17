@@ -85,11 +85,11 @@ class GoogleSupabaseAuthService implements AuthService {
       if (account == null) throw const AuthFailure('Sign-in did not complete. Try again.');
       return account;
     } on AuthException catch (e) {
-      throw AuthFailure('The ACEKOR server refused the sign-in (${e.message}).');
+      throw AuthFailure('The ACEkor server refused the sign-in (${e.message}).');
     } on AuthFailure {
       rethrow;
     } catch (_) {
-      throw const AuthFailure('Could not reach the ACEKOR server. Check your connection and try again.');
+      throw const AuthFailure('Could not reach the ACEkor server. Check your connection and try again.');
     }
   }
 
@@ -101,7 +101,7 @@ class GoogleSupabaseAuthService implements AuthService {
       try {
         await GoogleSignIn.instance.signOut();
       } catch (_) {
-        // Google sign-out is best effort; the ACEKOR session is gone.
+        // Google sign-out is best effort; the ACEkor session is gone.
       }
     }
   }

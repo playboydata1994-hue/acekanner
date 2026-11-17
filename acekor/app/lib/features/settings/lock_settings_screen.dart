@@ -78,7 +78,7 @@ class _LockSettingsScreenState extends ConsumerState<LockSettingsScreen> {
         children: [
           SwitchListTile(
             title: const Text('Lock with a PIN'),
-            subtitle: const Text('Asked when ACEKOR opens and after 1 minute away'),
+            subtitle: const Text('Asked when ACEkor opens and after 1 minute away'),
             value: s.lockEnabled,
             onChanged: (v) async {
               if (v) {
@@ -134,7 +134,7 @@ class _LockSettingsScreenState extends ConsumerState<LockSettingsScreen> {
           const Padding(
             padding: EdgeInsets.all(20),
             child: Text(
-              'If you forget the PIN, ACEKOR cannot unlock your records. Keep a backup (Settings › Backup) '
+              'If you forget the PIN, ACEkor cannot unlock your records. Keep a backup (Settings › Backup) '
               'so you can reinstall and restore if needed.',
               style: TextStyle(fontSize: 16, color: AppColors.muted, height: 1.4),
             ),

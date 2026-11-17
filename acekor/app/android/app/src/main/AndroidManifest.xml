@@ -11,7 +11,7 @@
     <!-- Optional fingerprint / face unlock of the app lock. -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
-    <!-- Declared by plugins for features ACEKOR does not use. ACEKOR uses its
+    <!-- Declared by plugins for features ACEkor does not use. ACEkor uses its
          private storage plus the system file picker and share sheet. -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
@@ -19,7 +19,7 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" tools:node="remove" />
 
     <application
-        android:label="ACEKOR Calculator"
+        android:label="ACEkor Grading Sheet"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"

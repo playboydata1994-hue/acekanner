@@ -7,7 +7,7 @@ export reports. Student data stays encrypted on the phone.
 - **Free:** 100 lifetime scans · **Premium:** PHP 399/year, unlimited scans
 - Answer sheets: 50, 75 or 100 items, choices A–E; A4, Letter or 8.5×13 in
 
-This repository also holds a second app, **ACEKOR Calculator** (`acekor/`): an offline academic
+This repository also holds a second app, **ACEkor Grading Sheet** (`acekor/`): an offline academic
 score calculator for instructors (search student → enter score → save). See
 [`acekor/README.md`](acekor/README.md). It shares only the Supabase licensing project.
 
@@ -20,7 +20,7 @@ score calculator for instructors (search student → enter score → save). See
 | `omr_engine/` | Desktop test harness for the OMR engine (runs the app's Kotlin engine against desktop OpenCV) |
 | `tools/brand/` | Icon generator |
 | `store/` | Google Play listing assets |
-| `acekor/` | ACEKOR Calculator (separate app, package `com.acekor.calculator`) |
+| `acekor/` | ACEkor Grading Sheet (separate app, package `com.acekor.calculator`) |
 
 Start with [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Progress, test results and
 known issues are in [`docs/DEVELOPMENT_LOG.md`](docs/DEVELOPMENT_LOG.md).

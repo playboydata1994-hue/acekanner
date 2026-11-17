@@ -1,6 +1,30 @@
-# ACEKOR Calculator: development log
+# ACEkor Grading Sheet: development log
 
 Newest entries first.
+
+---
+
+## 2026-11-17 · New name and logo: ACEkor Grading Sheet (1.0.0+2)
+
+Owner's choices: logo C (clipboard class record); name "ACEkor Grading Sheet" (written ACEkor, with
+"GRADING SHEET" under it).
+
+- **Logo:** a clipboard holding a grading sheet with three checked rows and a score bar. One
+  drawing (`acekor/tools/brand.py`) produces:
+  - the adaptive launcher icon (vector, inside the 66 dp safe zone);
+  - the themed (monochrome) icon;
+  - a one-colour status-bar notification icon (Android requires one; kept in release by
+    `res/raw/keep.xml`);
+  - Android 7.x launcher PNGs;
+  - the Play icon, feature graphic, transparent logo and wordmark (`acekor/store/`).
+- **In app:** the logo is drawn by a Flutter painter of the same drawing (splash, welcome, About,
+  lock screen). The wordmark reads "ACEkor / GRADING SHEET".
+- **Name:** "ACEkor Grading Sheet" everywhere users see it: launcher label, app title, reminders,
+  PDF footer, backups, About, privacy, terms and account-deletion pages, store listing. The
+  short description changed to "Grading sheet for teachers: search a student, type the score,
+  save. Offline."
+- **Unchanged (invisible to users):** package `com.acekor.calculator`, Play product IDs,
+  `ACEKOR_*` build keys, the server token type and the backup file signature.
 
 ---
 
@@ -110,7 +134,7 @@ per phone.
 | `dart analyze` | No issues |
 | Deno server tests | **40 / 40 passed** (32 ACEkanner + 8 ACEKOR: handler, SQL signature consistency, cross-language token vectors) |
 | `deno check`, `deno lint`, `deno fmt --check` | Clean |
-| SQL tests on PostgreSQL 16 | ACEkanner and ACEKOR suites all pass (21 ACEKOR checks) |
+| SQL tests on PostgreSQL 16 | ACEkanner and ACEkor suites all pass (21 ACEkor checks) |
 | Excel formulas | Cached values removed and the workbook recalculated in LibreOffice: identical to the app's grades |
 | PDF reports | All 8 rendered and inspected |
 | Android release build | `flutter build apk --split-per-abi` and `flutter build appbundle` succeed. APK: `com.acekor.calculator`, minSdk 24, targetSdk 36, compileSdk 37 (needed by flutter_local_notifications 23 and AndroidX core 1.19), `libsqlcipher.so` bundled, `zipalign -P 16` (16 KB pages) passes; arm64 APK 28.5 MB |

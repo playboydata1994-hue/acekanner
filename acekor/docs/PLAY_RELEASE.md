@@ -1,4 +1,4 @@
-# ACEKOR Calculator: release checklist (Google Play)
+# ACEkor Grading Sheet: release checklist (Google Play)
 
 The app is built and tested. This checklist lists what is left before the Play upload. Steps marked **owner**
 need your Google or Play account; never paste passwords, keystore passwords, the Play
@@ -31,7 +31,7 @@ Summary:
    - after the first upload, the **Play app signing** key (Play Console → Test and release → App integrity).
 
    Use one Android client per SHA-1.
-4. On the OAuth consent screen, add the app name "ACEKOR Calculator".
+4. On the OAuth consent screen, add the app name "ACEkor Grading Sheet".
 
 ## 3. Upload key ✅ created 2026-11-17
 
@@ -71,13 +71,13 @@ Before each upload, bump `version:` in `pubspec.yaml` (`1.0.0+1` → `1.0.1+2`).
 
 ## 5. Play Console (owner)
 
-1. **Create app:** "ACEKOR Calculator", free app with in-app purchases, default language English (Philippines or US).
+1. **Create app:** "ACEkor Grading Sheet", free app with in-app purchases, default language English (Philippines or US).
 2. **Subscriptions:** Monetize → Products → Subscriptions:
    - `acekor_pro_yearly` → base plan `yearly`, auto-renewing, 1 year, ₱399, Philippines (add other countries if wanted).
    - `acekor_max_yearly` → base plan `yearly`, auto-renewing, 1 year, ₱499.
    - Do **not** add a Play free-trial offer: the 7-day trial is given by the app without payment details.
 3. **API access:** under Users and permissions, give the existing Play service account (the one ACEkanner
-   uses) access to ACEKOR Calculator with "View financial data" and "Manage orders and subscriptions".
+   uses) access to ACEkor Grading Sheet with "View financial data" and "Manage orders and subscriptions".
 4. **Store listing:** text in `acekor/store/listing.md`; icon `acekor/store/play_icon_512.png`; feature graphic
    `acekor/store/feature_graphic_1024x500.png`; phone screenshots from `acekor/app/tool/screenshots/out/`
    (or real ones).

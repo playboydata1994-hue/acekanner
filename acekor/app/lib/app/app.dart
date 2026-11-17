@@ -14,7 +14,7 @@ class AcekorApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(appSettingsProvider);
     return MaterialApp.router(
-      title: 'ACEKOR Calculator',
+      title: 'ACEkor Grading Sheet',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
