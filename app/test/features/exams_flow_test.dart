@@ -9,6 +9,12 @@ import 'package:acekanner/features/classes/type_students_screen.dart';
 
 import '../support/app_harness.dart';
 
+/// Exams tab › New examination (Home no longer has a create button).
+Future<void> openNewExam(WidgetTester tester) async {
+  await tapTab(tester, 'Exams');
+  await tester.tap(find.widgetWithText(FloatingActionButton, 'New examination'));
+}
+
 void main() {
   late AppDatabase db;
 
@@ -24,7 +30,7 @@ void main() {
       }),
     ]);
 
-    await tester.tap(find.text('Create examination'));
+    await openNewExam(tester);
     await tester.pumpAndSettle();
     expect(find.text('New examination'), findsOneWidget);
     // The date is optional and starts empty; the class-list upload box is offered.
@@ -118,7 +124,7 @@ void main() {
 
   testWidgets('leaving the key editor with unsaved changes asks first', (tester) async {
     await pumpApp(tester, db);
-    await tester.tap(find.text('Create examination'));
+    await openNewExam(tester);
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextFormField, 'Examination title'), 'Quiz');
     await tester.tap(find.widgetWithText(TextButton, 'Save'));
@@ -140,7 +146,7 @@ void main() {
   testWidgets('delete moves an examination to Recently deleted, and it can be restored',
       (tester) async {
     await pumpApp(tester, db);
-    await tester.tap(find.text('Create examination'));
+    await openNewExam(tester);
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextFormField, 'Examination title'), 'Finals');
     await tester.tap(find.widgetWithText(TextButton, 'Save'));
@@ -195,7 +201,7 @@ void main() {
 
   testWidgets('a 100-item sheet with only 90 questions used', (tester) async {
     await pumpApp(tester, db);
-    await tester.tap(find.text('Create examination'));
+    await openNewExam(tester);
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextFormField, 'Examination title'), 'Finals 90');
     await tester.tap(find.text('100'));
@@ -241,7 +247,7 @@ void main() {
 
   testWidgets('no file: type the students from the examination form', (tester) async {
     await pumpApp(tester, db);
-    await tester.tap(find.text('Create examination'));
+    await openNewExam(tester);
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('No file? Type the students'), 100, scrollable: find.byType(Scrollable).first);
     await tester.ensureVisible(find.text('No file? Type the students'));
