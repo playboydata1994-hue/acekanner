@@ -1,6 +1,6 @@
 # Delete your ACEkanner account
 
-**App:** ACEkanner (Android) · **Developer:** [DEVELOPER NAME]
+**App:** ACEkanner (Android) · **Developer:** NYE94
 
 This page explains how to delete your ACEkanner account and what happens to your
 information. You can do it in the app, or by email if you no longer have the app.
@@ -15,7 +15,7 @@ Your account is deleted from our server right away.
 
 ## Option 2 — By email (without the app)
 
-Send an email to **[SUPPORT EMAIL]**:
+Send an email to **<espinosanoli1994@gmail.com>**:
 
 - **Subject:** Delete my ACEkanner account
 - **From:** the Google account (Gmail) you used to sign in to ACEkanner, so we know the
@@ -39,8 +39,8 @@ From the ACEkanner server:
   had used.** This stops the free plan from being reset by deleting and re-creating an
   account. The code cannot be turned back into your email or name. It is kept for as long
   as ACEkanner offers a free plan.
-- **Sign-in and security logs** (for example the time of a sign-in, the email address
-  used and the IP address). [PENDING DECISION — sign-in logs: deleted after 90 days]
+- **Sign-in logs** (the time, email address and IP address of each sign-in). They are
+  deleted automatically 90 days after the sign-in.
 - **Google Play purchase records**, which Google keeps under its own policies.
 
 ## Before you delete
@@ -53,4 +53,4 @@ From the ACEkanner server:
   server. To delete them, delete the examinations in the app, or uninstall ACEkanner (or
   clear its storage in Android Settings → Apps → ACEkanner → Storage → Clear storage).
 
-Privacy policy: [PRIVACY POLICY URL]
+Privacy policy: <https://playboydata1994-hue.github.io/acekanner/privacy/>

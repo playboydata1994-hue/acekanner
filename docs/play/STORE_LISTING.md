@@ -61,11 +61,8 @@ FREE AND PREMIUM
 TIPS FOR BEST RESULTS
 Print at actual size on white paper, use a dark pencil or pen, and scan in good light with the whole sheet inside the frame.
 
-ACEkanner follows the Data Privacy Act of 2012 (RA 10173). Privacy policy: [PRIVACY POLICY URL]
+ACEkanner follows the Data Privacy Act of 2012 (RA 10173). Privacy policy: https://playboydata1994-hue.github.io/acekanner/privacy/
 ```
-
-Before saving, replace `[PRIVACY POLICY URL]` at the end with the real address, or
-delete that sentence.
 
 ## Category and contact details
 
@@ -76,8 +73,8 @@ Where: **Store settings** (left menu under Store presence).
 | App or game | App |
 | Category | **Education** |
 | Tags | Pick up to 5 that Play offers, for example: Education, Teacher tools, Productivity |
-| Email address (public, required) | [SUPPORT EMAIL] |
-| Website (optional) | [WEBSITE URL] — or leave blank |
+| Email address (public, required) | espinosanoli1994@gmail.com |
+| Website (optional) | https://playboydata1994-hue.github.io/acekanner/ — or leave blank |
 | Phone (optional) | leave blank |
 | External marketing | Your choice (off is fine) |
 

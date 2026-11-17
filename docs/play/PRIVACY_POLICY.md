@@ -1,9 +1,9 @@
 # ACEkanner Privacy Policy
 
-**Effective date:** [EFFECTIVE DATE]
-**App:** ACEkanner (Android, package `com.acekanner.app`)
-**Developer:** [DEVELOPER NAME], Philippines
-**Contact / Data Protection Officer:** [SUPPORT EMAIL]
+**Effective date:** 17 November 2026  
+**App:** ACEkanner (Android, package `com.acekanner.app`)  
+**Developer:** NYE94, Philippines  
+**Contact / Data Protection Officer:** <espinosanoli1994@gmail.com>
 
 ACEkanner helps teachers and instructors check shaded multiple-choice answer sheets with
 their phone. This policy explains what information the app handles, where it is kept, and
@@ -53,7 +53,7 @@ receives and keeps:
 | An install ID for each phone (a random ID created by the app, not a hardware ID) and the app version | To keep your free scans on one phone at a time and to support you |
 | Scan records: for each paper counted, a one-way code (SHA-256 hash), its time and plan type | To count your 100 lifetime free scans and never charge a re-scan twice. These codes cannot be turned back into student names, numbers or answers. |
 | Google Play subscription details: purchase token, product, status, expiry date, order ID | To confirm Premium with Google Play |
-| Sign-in and technical logs kept by our hosting and sign-in services (for example the time of a sign-in or request, the email address used, IP address and device type) | Security and troubleshooting. [PENDING DECISION — sign-in logs: kept for 90 days] |
+| Sign-in and technical logs kept by our hosting and sign-in services (for example the time of a sign-in or request, the email address used, IP address and device type) | Security and troubleshooting |
 
 We do **not** collect your location, contacts, files, payment card details (Google Play
 handles payment), or advertising ID. ACEkanner contains no ads and no analytics or
@@ -92,12 +92,17 @@ providers that protect information with encryption and access controls.
   subscription records from our server. We keep only a one-way code made from your Google
   account ID and the number of free scans you had used. This prevents "delete and get 100
   new free scans"; it cannot identify you by itself.
-- **Sign-in and technical logs**: [PENDING DECISION — sign-in logs: kept for 90 days].
+- **Sign-in logs** (time, email address and IP address of each sign-in) are deleted
+  automatically after **90 days**. Our hosting provider's short-term request logs are
+  deleted on its own schedule, within a few days.
+- **Sign-in sessions** (one for each phone where you are signed in, with the IP address
+  and device type it last used) are deleted when you sign out on that phone or delete
+  your account.
 - **Google Play** keeps its own purchase records under Google's policies.
 - **Information on your phone** stays until you delete it in the app, clear the app's
   data or uninstall the app.
 
-How to delete your account: [ACCOUNT DELETION PAGE URL]
+How to delete your account: <https://playboydata1994-hue.github.io/acekanner/delete-account/>
 
 ## 7. Your rights
 
@@ -105,7 +110,7 @@ Under the Data Privacy Act you have the right to be informed, to access, to obje
 correct, to have your information erased or blocked, to data portability, to damages, and
 to file a complaint with the **National Privacy Commission** (privacy.gov.ph).
 
-To use these rights, email **[SUPPORT EMAIL]** from the Google account you use with
+To use these rights, email **<espinosanoli1994@gmail.com>** from the Google account you use with
 ACEkanner. We reply within 15 working days.
 
 ## 8. Security
@@ -136,6 +141,6 @@ changes, tell you in the app.
 
 ## 12. Contact
 
-[DEVELOPER NAME] — [SUPPORT EMAIL]
+NYE94 — <espinosanoli1994@gmail.com>
 
-See also: [Terms of Use]([TERMS URL]) · [Delete your account]([ACCOUNT DELETION PAGE URL])
+See also: [Terms of Use](https://playboydata1994-hue.github.io/acekanner/terms/) · [Delete your account](https://playboydata1994-hue.github.io/acekanner/delete-account/)

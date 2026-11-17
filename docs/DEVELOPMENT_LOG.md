@@ -5,6 +5,21 @@ and the next step.
 
 ---
 
+## 2026-11-17 · Play documents filled in; web pages; sign-in log retention
+
+- Owner decisions: developer name **NYE94**, support email espinosanoli1994@gmail.com,
+  **personal** developer account (closed test of 12 testers × 14 days required),
+  pages on **GitHub Pages**, sign-in logs kept **90 days**.
+- All placeholders filled. Public pages built from the Markdown by
+  `tools/play/build_pages.py` into `docs/` (`index.html`, `privacy/`, `terms/`,
+  `delete-account/`); served by GitHub Pages from `main` → `/docs` once the owner turns
+  it on. Checked at 390 px wide: no sideways scrolling, tables readable.
+- **Server:** daily pg_cron job deletes `auth.audit_log_entries` older than 90 days
+  (migration `20261118000000_auth_log_retention.sql`, applied and verified on the live
+  project). SQL test suite passes (the job is skipped where pg_cron is absent).
+- `app/config/acekanner.json` now has the three page addresses, so release builds show the
+  in-app Privacy policy and Terms of use links.
+
 ## 2026-11-17 · Google Play documents (0.6.4)
 
 - **Play documents** in `docs/play/`: privacy policy, terms of use, account-deletion page,

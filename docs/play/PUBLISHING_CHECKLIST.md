@@ -14,24 +14,28 @@ answers. Steps marked **(you)** are done in your Google accounts; steps marked
 | `STORE_LISTING.md` | Name, descriptions, graphics, screenshots, subscription text, release notes |
 | `../PHASE6_SETUP.md` | Google sign-in, Play Console app, subscription and server set-up |
 
-## Step 1 — Decisions (you)
+## Step 1 — Decisions ✅ done (17 Nov 2026)
 
-- [ ] **Developer name** shown on the store and in the documents (your name or a business
-      name). The name must match your Play developer account.
-- [ ] **Support email** shown publicly on the store. A separate address for ACEkanner
-      (for example a new Gmail) is better than your personal one.
-- [ ] **Developer account type**: personal or organisation (see step 6).
-- [ ] **Where the three pages are hosted** (privacy, terms, account deletion). They must be
-      public web pages that open without signing in.
-- [ ] **Sign-in log retention**: whether sign-in logs on the server are deleted after
-      90 days (the documents say so once you agree and it is switched on).
+- [x] Developer name: **NYE94** (must match the name on your Play developer account)
+- [x] Support email: **espinosanoli1994@gmail.com**
+- [x] Developer account: **personal** (so the closed test in step 8 is required)
+- [x] Pages hosted on **GitHub Pages**
+- [x] Sign-in logs deleted after **90 days** (daily job on the server, active since
+      17 Nov 2026)
 
-## Step 2 — Publish the pages (Claude, then you)
+## Step 2 — Publish the pages
 
-- [ ] Fill in the placeholders in the three documents (`[DEVELOPER NAME]`,
-      `[SUPPORT EMAIL]`, `[EFFECTIVE DATE]`, the page addresses).
-- [ ] Turn them into web pages and publish them where you chose.
+- [x] Placeholders filled; pages built into `docs/` by `tools/play/build_pages.py`.
+- [ ] **(you)** GitHub → `acekanner` repository → **Settings → Pages** →
+      Build and deployment: Source **Deploy from a branch**, Branch **main**, folder
+      **/docs** → **Save**. After 1–2 minutes the pages are live:
+  - Home: https://playboydata1994-hue.github.io/acekanner/
+  - Privacy policy: https://playboydata1994-hue.github.io/acekanner/privacy/
+  - Terms of use: https://playboydata1994-hue.github.io/acekanner/terms/
+  - Delete account: https://playboydata1994-hue.github.io/acekanner/delete-account/
 - [ ] Open each address on your phone, while signed out, and check it loads.
+- When a document changes: edit the `.md` file in `docs/play/`, run
+  `python3 -I tools/play/build_pages.py`, commit and push. GitHub updates the page.
 
 ## Step 3 — Google sign-in (you, with Claude)
 
@@ -39,7 +43,7 @@ answers. Steps marked **(you)** are done in your Google accounts; steps marked
       clients, Google provider in Supabase. Send me the Web client ID.
 - [ ] Consent screen **Branding**: app name `ACEkanner`, support email, logo optional,
       **App home page**, **Privacy policy link** and **Terms of service link** = your pages,
-      authorised domain = the domain of your pages.
+      authorised domain `playboydata1994-hue.github.io`.
 - [ ] Consent screen **Audience → Publish app** (status "In production"). ACEkanner asks
       only for name, email and profile picture, which normally does not need Google's
       verification. Adding a logo can require brand verification (a few days), so leave the
@@ -47,9 +51,8 @@ answers. Steps marked **(you)** are done in your Google accounts; steps marked
 
 ## Step 4 — Release build (Claude)
 
-- [ ] Put the Web client ID and the three page addresses in `app/config/acekanner.json`
-      (`ACEK_GOOGLE_WEB_CLIENT_ID`, `ACEK_PRIVACY_POLICY_URL`, `ACEK_TERMS_URL`,
-      `ACEK_ACCOUNT_DELETION_URL`).
+- [x] The three page addresses are in `app/config/acekanner.json`.
+- [ ] Put the Web client ID in `app/config/acekanner.json` (`ACEK_GOOGLE_WEB_CLIENT_ID`).
 - [ ] Build the signed app bundle:
       `flutter build appbundle --release --dart-define-from-file=config/acekanner.json`.
 - [ ] Check: targets Android 16 (API 36) ✔ (required for new apps since 31 Aug 2026);

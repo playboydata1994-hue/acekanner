@@ -6,7 +6,7 @@ as built (version 0.6.4, target Android 16 / API 36).
 
 ## Privacy policy
 
-- URL: **[PRIVACY POLICY URL]**, the public page made from `PRIVACY_POLICY.md`.
+- URL: **https://playboydata1994-hue.github.io/acekanner/privacy/**, the public page made from `PRIVACY_POLICY.md`.
 - The same page opens from the app: **Settings → Privacy and your data → Privacy policy**,
   and from **Plan and account**. (The links appear when the release is built with the
   page addresses; see `PUBLISHING_CHECKLIST.md`, step 4.)
@@ -118,4 +118,4 @@ answer sheets and how to allow it.
 
 - Account creation: **Yes**, via Sign in with Google.
 - In-app deletion: **Settings → Plan and account → Delete account**.
-- Web deletion page: **[ACCOUNT DELETION PAGE URL]**, made from `ACCOUNT_DELETION.md`.
+- Web deletion page: **https://playboydata1994-hue.github.io/acekanner/delete-account/**, made from `ACCOUNT_DELETION.md`.

@@ -1,7 +1,7 @@
 # ACEkanner Terms of Use
 
-**Effective date:** [EFFECTIVE DATE]
-**Developer:** [DEVELOPER NAME], Philippines · **Contact:** [SUPPORT EMAIL]
+**Effective date:** 17 November 2026  
+**Developer:** NYE94, Philippines · **Contact:** <espinosanoli1994@gmail.com>
 
 These terms apply when you use the ACEkanner Android app ("ACEkanner", "the app"). By
 using the app you agree to them. If you do not agree, please do not use the app.
@@ -15,7 +15,7 @@ check examinations. Students should not use it.
 
 We give you a personal, non-exclusive, non-transferable right to use ACEkanner on your
 own Android phones under these terms. ACEkanner, its answer-sheet design, its name and its
-logo belong to [DEVELOPER NAME]. You may print ACEkanner answer sheets for your own
+logo belong to NYE94. You may print ACEkanner answer sheets for your own
 classes and examinations.
 
 ## 3. Account
@@ -23,7 +23,7 @@ classes and examinations.
 Scanning answer sheets needs a free ACEkanner account, made by signing in with Google once.
 Keep your Google account secure; you are responsible for what is done with it. You can
 delete your ACEkanner account at any time (Settings → Plan and account → Delete account,
-or see [ACCOUNT DELETION PAGE URL]).
+or see <https://playboydata1994-hue.github.io/acekanner/delete-account/>).
 
 ## 4. Free plan
 
@@ -72,7 +72,7 @@ When you enter or scan student information, you (and your school) are responsibl
 under the Data Privacy Act of 2012 (Republic Act No. 10173) and your school's rules. Use it
 only for checking and grading, keep your phone locked, and share reports only with
 authorised people. ACEkanner keeps this information on your phone; see the
-[Privacy Policy]([PRIVACY POLICY URL]).
+[Privacy Policy](https://playboydata1994-hue.github.io/acekanner/privacy/).
 
 ## 9. Things you must not do
 
@@ -111,4 +111,4 @@ These terms are governed by the laws of the Republic of the Philippines.
 
 ## 14. Contact
 
-Questions about these terms: **[SUPPORT EMAIL]**.
+Questions about these terms: **<espinosanoli1994@gmail.com>**.

@@ -6,6 +6,7 @@ It stores no student data.
 | Path | What |
 |---|---|
 | `migrations/20261117000000_licensing.sql` | Tables, Row Level Security, `license_*` SQL functions |
+| `migrations/20261118000000_auth_log_retention.sql` | Daily pg_cron job: deletes sign-in logs (`auth.audit_log_entries`) older than 90 days |
 | `functions/license` | `checkin`, `verify-purchase`, `delete-account` (called by the app) |
 | `functions/play-rtdn` | Google Play Real-time Developer Notifications (Pub/Sub push, OIDC) |
 | `functions/_shared` | Ed25519 tokens, Google service-account auth, Play API, OIDC |
@@ -56,3 +57,11 @@ account deletion removes the sign-in.
 Rotating the signing key: generate a new seed, set `ENTITLEMENT_SIGNING_KEY` and
 `ENTITLEMENT_KEY_ID=k2`, and ship an app whose `ACEK_ENTITLEMENT_KEYS` lists both `k1` and `k2`
 before switching.
+
+### Sign-in log retention (2026-11-17)
+
+`migrations/20261118000000_auth_log_retention.sql` applied to project `acekanner` with the
+owner's approval. `cron.job` shows `acekanner-auth-log-retention`, schedule `17 3 * * *`
+(daily 03:17 UTC), active, running as `postgres`. The delete statement was run once by
+hand to confirm permissions (0 rows; the table was empty). The privacy policy and the
+account-deletion page state the 90-day period.

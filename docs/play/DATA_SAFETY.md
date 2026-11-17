@@ -24,10 +24,10 @@ company** ("shared"). Data that stays on the phone is not declared. In ACEkanner
 |---|---|
 | Does your app collect or share any of the required user data types? | **Yes** |
 | Is all of the user data collected by your app encrypted in transit? | **Yes** (HTTPS/TLS to Supabase and Google) |
-| Do you provide a way for users to request that their data is deleted? | **Yes** (in the app, and on the web page [ACCOUNT DELETION PAGE URL]) |
+| Do you provide a way for users to request that their data is deleted? | **Yes** (in the app, and on the web page https://playboydata1994-hue.github.io/acekanner/delete-account/) |
 
 Account creation: **Yes, the app lets users create an account**. Method: **OAuth (Sign in
-with Google)**. Account deletion URL: **[ACCOUNT DELETION PAGE URL]**.
+with Google)**. Account deletion URL: **https://playboydata1994-hue.github.io/acekanner/delete-account/**.
 
 ## Section 2 — Data types
 
@@ -71,5 +71,5 @@ Leave **"Independent security review"** unticked (no MASA review has been done).
 ## Before you submit
 
 - The privacy policy URL in **App content → Privacy policy** must be the same public page
-  linked from the app: [PRIVACY POLICY URL].
+  linked from the app: https://playboydata1994-hue.github.io/acekanner/privacy/.
 - The account deletion URL must open without signing in.
