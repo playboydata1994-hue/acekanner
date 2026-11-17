@@ -1,0 +1,86 @@
+name: acekor
+description: "ACEKOR Calculator - offline academic score calculator and student performance recorder for college instructors."
+publish_to: 'none'
+
+# versionName+versionCode. Bump the build number (after +) for every Play upload.
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.14.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  material_ui: ^1.11.0
+
+  # State and navigation
+  flutter_riverpod: ^3.5.0
+  go_router: ^18.1.4
+
+  # Local database (SQLCipher-encrypted, see hooks section below)
+  drift: ^2.35.4
+  sqlite3: ^3.9.1
+  path: ^1.9.1
+  path_provider: ^2.1.6
+  flutter_secure_storage: ^11.2.0
+
+  # Utilities
+  uuid: ^4.6.0
+  intl: ^0.20.2
+  package_info_plus: ^10.2.2
+  cryptography: ^2.9.0
+  crypto: ^3.0.8
+
+  # Reports, import, sharing
+  pdf: ^3.13.1
+  printing: ^5.15.1
+  excel_plus: ^2.29.3
+  csv: ^8.0.0
+  share_plus: ^13.3.1
+  file_picker: ^13.3.3
+
+  # Reminders and app lock
+  flutter_local_notifications: ^23.0.2
+  timezone: ^0.11.2
+  flutter_timezone: ^5.1.1
+  local_auth: ^3.0.2
+
+  # Plans (Google Play Billing, one-time Google sign-in, licensing server)
+  in_app_purchase: ^3.3.1
+  in_app_purchase_android: ^0.5.5
+  url_launcher: ^6.3.2
+  google_sign_in: ^7.2.0
+  supabase_flutter: ^2.18.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  drift_dev: ^2.35.3
+  build_runner: ^2.17.1
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Bold.ttf
+          weight: 700
+  assets:
+    - assets/fonts/Roboto-Regular.ttf
+    - assets/fonts/Roboto-Bold.ttf
+    - assets/fonts/LICENSE-Roboto.txt
+
+hooks:
+  user_defines:
+    sqlite3:
+      # Android: load SQLCipher (libsqlcipher.so) bundled from the official
+      # net.zetetic:sqlcipher-android AAR on Maven Central (see
+      # android/app/build.gradle.kts). Host unit tests use the OS SQLite.
+      source:
+        android: system
+        default: system
+      name:
+        android: sqlcipher
+        default: sqlite3

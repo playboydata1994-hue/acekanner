@@ -12,9 +12,9 @@
     }
   },
   "tasks": {
-    "test": "deno test --allow-read=.,../app/test/fixtures tests/deno",
-    "vectors": "ACEK_WRITE_VECTORS=1 deno test --allow-read=.,../app/test/fixtures --allow-write=../app/test/fixtures --allow-env=ACEK_WRITE_VECTORS tests/deno/vectors_test.ts",
-    "check": "deno check functions/license/index.ts functions/play-rtdn/index.ts"
+    "test": "deno test --allow-read=.,../app/test/fixtures,../acekor/app/test/fixtures tests/deno",
+    "vectors": "ACEK_WRITE_VECTORS=1 deno test --allow-read=.,../app/test/fixtures,../acekor/app/test/fixtures --allow-write=../app/test/fixtures,../acekor/app/test/fixtures --allow-env=ACEK_WRITE_VECTORS tests/deno/vectors_test.ts tests/deno/acekor_vectors_test.ts",
+    "check": "deno check functions/license/index.ts functions/play-rtdn/index.ts functions/acekor-license/index.ts"
   },
   "fmt": {
     "lineWidth": 120
