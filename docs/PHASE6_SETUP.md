@@ -12,7 +12,12 @@ open for you). Everything I ask you to send me is a public value.
 
 ---
 
-## Part 1 — Supabase project (about 10 minutes)
+## Part 1 — Supabase project ✅ done (2026-11-17)
+
+Project `acekanner` (Singapore) is created; the server is installed and tested.
+The steps below are kept for reference.
+
+### Reference
 
 1. Go to **supabase.com** → sign in (your Google account is fine) → **New project**.
    - Name: `acekanner`

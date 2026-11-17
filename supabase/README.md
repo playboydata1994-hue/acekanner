@@ -35,3 +35,24 @@ cd supabase && deno task check && deno task test
 
 `deno task vectors` regenerates `app/test/fixtures/entitlement_vectors.json`, which the
 app's verifier test uses to prove it accepts exactly what this server signs.
+
+## Deployment (production)
+
+| Item | Value |
+|---|---|
+| Project | `acekanner`, ref `ajmdnsdhrpktkvkxnmuo`, region Southeast Asia (Singapore) |
+| Migration | `licensing` applied 2026-11-17 (Database → Migrations) |
+| Functions | `license` and `play-rtdn`, deployed with `tool/deploy_function.py` (verify_jwt off; both check authorization themselves) |
+| Secrets set | `ENTITLEMENT_SIGNING_KEY` (generated, never stored elsewhere), `ENTITLEMENT_KEY_ID=k1`, `RTDN_AUDIENCE` |
+| Still to set | `GOOGLE_PLAY_SERVICE_ACCOUNT` (owner, dashboard), `RTDN_SERVICE_ACCOUNT_EMAIL` |
+| App config | `app/config/acekanner.json` (public values; Web client ID added after Google setup) |
+
+Live end-to-end check (2026-11-17, temporary user, cleaned up afterwards): requests without a
+session refused; check-in returns a token signed by `k1` and bound to user and phone; 3 scans
+reduce the lease to 97; re-upload counts nothing; an unverified "premium" scan counts as free;
+purchase verification reports `billing_not_configured` until the Play service account is set;
+account deletion removes the sign-in.
+
+Rotating the signing key: generate a new seed, set `ENTITLEMENT_SIGNING_KEY` and
+`ENTITLEMENT_KEY_ID=k2`, and ship an app whose `ACEK_ENTITLEMENT_KEYS` lists both `k1` and `k2`
+before switching.

@@ -53,9 +53,18 @@ and the next step.
 - Deployment to Supabase, real Google sign-in, real Play purchases (license testers),
   real RTDN delivery. See `docs/PHASE6_SETUP.md`.
 
+### Deployment (2026-11-17)
+- Supabase project `acekanner` (Singapore) created by the owner; migration applied,
+  `license` and `play-rtdn` deployed, signing key generated straight into Supabase secrets
+  (public key in `app/config/acekanner.json`).
+- Live end-to-end check passed (sign-in required, signed and bound token, lease counting,
+  idempotent upload, forged premium counted as free, account deletion). Test data removed.
+- Waiting for: Google Web client ID (Part 2), Play Console app and subscription (Parts 3–4),
+  Play service account and notifications (Part 5).
+
 ### Next step
-Owner completes Parts 1–3 of the setup guide → I deploy the server, build a configured
-bundle → internal testing purchase test → Phase 7.
+Owner completes Part 2 (Google sign-in) → configured build → internal testing purchase
+test → Phase 7.
 
 ---
 
