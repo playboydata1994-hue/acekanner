@@ -3,7 +3,7 @@ description: "ACEKOR Calculator - offline academic score calculator and student 
 publish_to: 'none'
 
 # versionName+versionCode. Bump the build number (after +) for every Play upload.
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.14.0

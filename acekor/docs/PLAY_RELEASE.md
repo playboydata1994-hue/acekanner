@@ -33,7 +33,16 @@ Summary:
    Use one Android client per SHA-1.
 4. On the OAuth consent screen, add the app name "ACEKOR Calculator".
 
-## 3. Upload key (owner)
+## 3. Upload key ✅ created 2026-11-17
+
+Created by Claude and sent to the owner once: `acekor-upload.jks`, alias `upload`.
+- SHA-1: `55:7E:4A:02:F4:0A:50:C3:24:20:09:1A:88:39:E0:52:7F:80:BA:4F`
+- The password is on the sheet sent with it.
+
+The key is not in the repository. To build signed bundles in a new session, provide the `.jks`
+and create `key.properties` as below.
+
+Reference (how to make a new key, should one ever be needed):
 
 ```bash
 keytool -genkeypair -v -keystore acekor-upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload

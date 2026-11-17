@@ -19,7 +19,7 @@ Use a computer. Takes about 20 minutes.
 1. Go to **APIs & Services → OAuth consent screen** (it may be called **Google Auth Platform**) and
    click **Get started**.
 2. Fill in:
-   - **App name:** use the name you choose (see the question in chat; for example `ACE apps by NYE94`).
+   - **App name:** `ACE apps by NYE94` (shown for both apps).
    - **User support email:** your email.
    - **Audience:** **External**.
    - **Contact email:** your email.
@@ -52,7 +52,7 @@ Google checks that sign-in comes from the real app. For each signing key below, 
 
 | Client name | Package | SHA-1 |
 |---|---|---|
-| ACEKOR upload key | `com.acekor.calculator` | The ACEKOR upload key's SHA-1 (I will give you this once the upload key exists) |
+| ACEKOR upload key | `com.acekor.calculator` | `55:7E:4A:02:F4:0A:50:C3:24:20:09:1A:88:39:E0:52:7F:80:BA:4F` |
 | ACEKOR Play builds | `com.acekor.calculator` | Play Console → ACEKOR → **Test and release → App integrity → App signing key certificate → SHA-1** (available after the first upload) |
 | ACEkanner upload key | `com.acekanner.app` | `65:75:4A:42:B5:46:71:98:9B:BB:30:2E:D7:52:B6:32:22:4D:3E:01` |
 | ACEkanner Play builds | `com.acekanner.app` | From ACEkanner's App signing page |

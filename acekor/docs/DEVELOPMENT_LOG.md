@@ -4,6 +4,19 @@ Newest entries first.
 
 ---
 
+## 2026-11-17 · Upload key, signed bundle 1, sign-in name
+
+Owner's choices: Claude creates the upload key and sends it once; the Google sign-in name is
+"ACE apps by NYE94"; open a pull request to `main` so the public pages go live.
+
+- Upload key `acekor-upload.jks` (RSA 2048, PKCS12, alias `upload`, CN=NYE94):
+  - SHA-1 `55:7E:4A:02:F4:0A:50:C3:24:20:09:1A:88:39:E0:52:7F:80:BA:4F`.
+  - Sent to the owner with its password; not in the repository.
+- `ACEKOR-1.0.0-build1.aab` signed with it (`jarsigner -verify`: verified, CN=NYE94).
+  - It is a test build: no Web client ID yet, so the trial is phone-only.
+  - It is for Internal testing and for getting the Play app-signing SHA-1.
+- `pubspec.yaml` is now `1.0.0+2`, so the next bundle never collides with build 1.
+
 ## 2026-11-17 · Licensing server deployed
 
 Owner's choices: install the server now; keep NYE94 and the same contact email; one instructor
