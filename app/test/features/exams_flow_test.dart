@@ -16,6 +16,10 @@ void main() {
     await tester.tap(find.text('Create examination'));
     await tester.pumpAndSettle();
     expect(find.text('New examination'), findsOneWidget);
+    // The date is optional and starts empty; the class-list upload box is offered.
+    expect(find.text('Examination date (optional)'), findsOneWidget);
+    expect(find.text('Not set · tap to choose'), findsOneWidget);
+    expect(find.text('Upload class list'), findsOneWidget);
 
     // Saving without a title shows the validation message.
     await tester.tap(find.widgetWithText(TextButton, 'Save'));

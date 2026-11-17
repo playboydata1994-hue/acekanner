@@ -14,6 +14,7 @@ import '../../data/repositories/exams_repository.dart';
 import '../../domain/student_number.dart';
 import '../../domain/validators.dart';
 import '../classes/class_forms.dart';
+import 'class_list_upload.dart';
 
 /// Create a new examination ([examId] null) or edit an existing one.
 class ExamFormScreen extends ConsumerStatefulWidget {
@@ -74,8 +75,6 @@ class _ExamFormScreenState extends ConsumerState<ExamFormScreen> {
         _allowNegativeTotal = e.allowNegativeTotal;
         _idDigits = e.studentIdDigits;
         _locked = detail.structureLocked;
-      } else {
-        _date = DateTime.now();
       }
     } catch (_) {
       _loadError = 'This examination could not be opened.';
@@ -200,8 +199,8 @@ class _ExamFormScreenState extends ConsumerState<ExamFormScreen> {
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: const Icon(Icons.event_outlined),
-                        title: const Text('Examination date'),
-                        subtitle: Text(_date == null ? 'Not set' : DateFormat('EEEE, d MMMM y').format(_date!)),
+                        title: const Text('Examination date (optional)'),
+                        subtitle: Text(_date == null ? 'Not set · tap to choose' : DateFormat('EEEE, d MMMM y').format(_date!)),
                         onTap: _pickDate,
                         trailing: _date == null
                             ? null
@@ -266,7 +265,7 @@ class _ExamFormScreenState extends ConsumerState<ExamFormScreen> {
                       const SectionHeader('Sections taking this examination'),
                       if (sections.isEmpty)
                         Text(
-                          'No sections yet. You can add them under Classes and assign them later.',
+                          'No sections yet. Upload a class list below, or add sections under Classes.',
                           style: theme.textTheme.bodyMedium,
                         )
                       else
@@ -284,6 +283,13 @@ class _ExamFormScreenState extends ConsumerState<ExamFormScreen> {
                               ),
                           ],
                         ),
+                      const SizedBox(height: Space.m),
+                      ClassListUploadBox(
+                        onImported: (sectionId, message) {
+                          setState(() => _sectionIds.add(sectionId));
+                          showMessage(context, message);
+                        },
+                      ),
                       const SectionHeader('Scoring'),
                       TextFormField(
                         controller: _passing,

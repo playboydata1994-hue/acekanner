@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -11,18 +9,9 @@ import '../../core/theme/spacing.dart';
 import '../../core/widgets/feedback.dart';
 import '../../core/widgets/section_header.dart';
 import '../../domain/roster_csv.dart';
+import '../../domain/roster_file.dart';
 
-/// Decodes a CSV file saved by Excel ("CSV UTF-8" or plain "CSV", which uses
-/// Windows-1252 and would break names such as "Peña").
-String decodeCsvBytes(List<int> bytes) {
-  try {
-    return utf8.decode(bytes);
-  } on FormatException {
-    return latin1.decode(bytes);
-  }
-}
-
-/// Imports a class list from a CSV file into a section.
+/// Imports a class list from an Excel (.xlsx) or CSV file into a section.
 class RosterImportScreen extends ConsumerStatefulWidget {
   const RosterImportScreen({super.key, required this.sectionId});
 
@@ -41,7 +30,7 @@ class _RosterImportScreenState extends ConsumerState<RosterImportScreen> {
   Future<void> _pick() async {
     final file = await FilePicker.pickFile(
       type: FileType.custom,
-      allowedExtensions: const ['csv', 'txt'],
+      allowedExtensions: rosterFileExtensions,
     );
     if (file == null) return;
     setState(() => _busy = true);
@@ -49,7 +38,7 @@ class _RosterImportScreenState extends ConsumerState<RosterImportScreen> {
       final bytes = await file.xFile.readAsBytes();
       setState(() {
         _fileName = file.name;
-        _result = parseRosterCsv(decodeCsvBytes(bytes));
+        _result = parseRosterFile(file.name, bytes);
       });
     } catch (e) {
       if (mounted) showError(context, e);
@@ -104,8 +93,8 @@ class _RosterImportScreenState extends ConsumerState<RosterImportScreen> {
                   ),
                   const SizedBox(height: Space.s),
                   Text(
-                    'From Excel: File › Save As › CSV UTF-8. From Google Sheets: '
-                    'File › Download › Comma-separated values.',
+                    'Excel (.xlsx) files can be chosen directly. From Google Sheets: '
+                    'File › Download › Microsoft Excel (.xlsx) or CSV.',
                     style: theme.textTheme.bodySmall,
                   ),
                 ],
@@ -116,7 +105,7 @@ class _RosterImportScreenState extends ConsumerState<RosterImportScreen> {
           FilledButton.icon(
             onPressed: _busy ? null : _pick,
             icon: const Icon(Icons.folder_open_outlined),
-            label: Text(_fileName == null ? 'Choose CSV file' : 'Choose another file'),
+            label: Text(_fileName == null ? 'Choose Excel or CSV file' : 'Choose another file'),
           ),
           if (result != null) ...[
             SectionHeader(_fileName ?? 'File'),

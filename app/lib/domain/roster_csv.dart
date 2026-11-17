@@ -76,7 +76,7 @@ String _headerKey(Object? cell) =>
 /// zeros in student numbers are kept.
 RosterParseResult parseRosterCsv(String input) {
   var text = input;
-  if (text.startsWith('﻿')) text = text.substring(1);
+  if (text.startsWith('\uFEFF')) text = text.substring(1);
   final List<List<dynamic>> table;
   try {
     table = Csv(dynamicTyping: false, skipEmptyLines: true).decode(text);
@@ -87,6 +87,12 @@ RosterParseResult parseRosterCsv(String input) {
       fatal: 'The file could not be read as CSV.',
     );
   }
+  return parseRosterTable(table);
+}
+
+/// Reads a class list from rows of cells (from CSV or an Excel sheet). Same
+/// header detection and checks as [parseRosterCsv].
+RosterParseResult parseRosterTable(List<List<dynamic>> table) {
   if (table.isEmpty) {
     return const RosterParseResult(rows: [], issues: [], fatal: 'The file is empty.');
   }

@@ -5,6 +5,20 @@ and the next step.
 
 ---
 
+## 2026-11-17 · Revisions round 2 (0.6.2)
+
+- **Examination date optional:** a new examination starts with no date ("Examination
+  date (optional) · Not set · tap to choose"); sheets simply omit the date.
+- **Class-list upload box** on the examination form: pick an Excel (.xlsx) or CSV list of
+  names and student numbers → preview (students found, skipped rows with reasons) →
+  section name (suggested from the file name) → students are saved to that section
+  (an existing section with the same name is reused) and it is selected for the exam.
+- **Excel support** for class lists everywhere (also Classes → Import): first sheet with
+  a recognizable header; student numbers typed as numbers in Excel are read without ".0";
+  old .xls files get a "save as .xlsx" message.
+- Verification: real .xlsx files built in tests (title row, numeric IDs, ñ, bad rows,
+  single "Name" column), import into new/existing section, form test; 198/198 pass.
+
 ## 2026-11-17 · Revisions round 1 (0.6.1)
 
 The owner is testing the app and sending revisions before the Google/Play setup resumes.
