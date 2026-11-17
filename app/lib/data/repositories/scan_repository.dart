@@ -386,6 +386,18 @@ class ScanRepository {
   }
 }
 
+/// The exam set shaded on a paper: the only set, or the clearly shaded one;
+/// null when it must be chosen by hand.
+String? versionFromReading(ScanContext ctx, OmrSheetReading reading) {
+  if (ctx.versions.length == 1) return ctx.versions.single.id;
+  final set = reading.set;
+  if (set == null || set.state != MarkState.answered) return null;
+  for (var i = 0; i < ctx.versions.length; i++) {
+    if (set.mask == 1 << i) return ctx.versions[i].id;
+  }
+  return null;
+}
+
 /// Default scans folder: `<app support>/scans`.
 Future<Directory> Function() scansDirectoryIn(Future<Directory> Function() base) =>
     () async => Directory(p.join((await base()).path, 'scans'));

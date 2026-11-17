@@ -5,6 +5,26 @@ and the next step.
 
 ---
 
+## 2026-11-17 · Revision: floating scan result with Confirm / Review (0.6.9)
+
+- After a sheet is read, the scanner no longer jumps to the review page. A **floating result
+  card** appears over the camera: student (or "Student not identified"), number, set, score
+  preview (e.g. 90 % · 45 / 50, from the current key; nothing is saved yet), "ALL ANSWERS
+  READ" or "N FLAGGED", "N DOUBLE-SHADED", and a note when the student already has a paper.
+- **Confirm** saves the paper as read (graded right away when the key is complete) and
+  scanning continues with the next sheet. It is **disabled** while answers are flagged, the
+  student number is missing / unclear / not in the class lists, or the set is unclear; the card
+  then lists exactly what to fix ("Fix in Review before the next sheet").
+- **Review** opens the full review page (decide answers, Mark all as wrong, choose the student
+  or save without one, choose the set); saving or discarding there returns to scanning.
+- **Discard and scan again** saves nothing. Re-scanning a student asks before replacing.
+- Scanning and auto-capture stay paused while the card is shown; the shutter is disabled.
+- New: `GradingRepository.preview` (score without saving), shared `versionFromReading`.
+- Verification: 4 widget tests on the card (clean sheet → Confirm saves and grades; flagged
+  answers + unknown number → Confirm disabled, reasons listed, Review opens the review page;
+  replace prompt on re-scan; discard saves nothing); 243/243 pass. The live camera flow needs a
+  phone to check.
+
 ## 2026-11-17 · Revisions: Excel template, typing students, scan problems stay (0.6.8)
 
 - **Save sample file (Excel)** in the Sample class list window: Android's Save dialog gets an

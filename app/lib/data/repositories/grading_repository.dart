@@ -365,6 +365,15 @@ class GradingRepository {
 
   // ------------------------------------------------------------------ helpers
 
+  /// Score a paper would get with the current key of [versionId], without
+  /// saving anything; null while that key is not complete.
+  Future<GradeResult?> preview(String examId, String versionId, Map<int, int> answers) async {
+    final exam = await _exam(examId);
+    final (_, items) = await _currentKey(versionId);
+    if (items.any((i) => i.mode == 'normal' && i.correctMask == 0)) return null;
+    return grade(key: items, answers: answers, rules: _rules(exam));
+  }
+
   static GradingRules _rules(ExaminationRow e) => GradingRules(
         passingPercentage: e.passingPercentage,
         multipleMarkPolicy: e.multipleMarkPolicy,

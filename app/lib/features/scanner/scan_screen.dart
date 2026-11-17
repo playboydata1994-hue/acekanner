@@ -16,7 +16,7 @@ import '../../domain/omr_reading.dart';
 import '../../domain/sheet_layout.dart';
 import 'capture_guide.dart';
 import '../../domain/scan_problem.dart';
-import 'review_screen.dart';
+import 'scan_result_card.dart';
 import 'scan_problem_panel.dart';
 
 /// Settings key: auto-capture when the sheet is steady.
@@ -46,6 +46,10 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   /// Why the last photo was not read. Scanning stays paused (no auto-capture)
   /// until the instructor acknowledges it.
   ScanProblem? _problem;
+
+  /// A sheet that was read and waits for Confirm or Review on the floating
+  /// result card. Scanning stays paused meanwhile.
+  ({OmrSheetReading reading, File image})? _pending;
   bool _processing = false;
   bool _detecting = false;
   bool _autoCapture = true;
@@ -64,6 +68,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _camera?.dispose();
+    _deleteQuietly(_pending?.image);
     final session = _sessionId;
     if (session != null) ref.read(scanRepositoryProvider).endSession(session);
     super.dispose();
@@ -140,13 +145,14 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
 
   Future<void> _resumeStream() async {
     final camera = _camera;
-    if (camera == null || camera.value.isStreamingImages) return;
+    // Paused while a problem or a read sheet waits for the instructor.
+    if (camera == null || camera.value.isStreamingImages || _problem != null || _pending != null) return;
     _guide?.rearm();
     await camera.startImageStream(_onFrame);
   }
 
   void _onFrame(CameraImage image) {
-    if (_processing || _detecting || _problem != null) return;
+    if (_processing || _detecting || _problem != null || _pending != null) return;
     final now = DateTime.now();
     if (now.difference(_lastFrame) < const Duration(milliseconds: 250)) return;
     _lastFrame = now;
@@ -169,7 +175,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   Future<void> _capture() async {
     final camera = _camera;
     final ctx = _ctx;
-    if (camera == null || ctx == null || _processing || _problem != null || camera.value.isTakingPicture) return;
+    if (camera == null || ctx == null || _processing || _problem != null || _pending != null || camera.value.isTakingPicture) {
+      return;
+    }
     setState(() {
       _processing = true;
       _notice = null;
@@ -203,24 +211,10 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
           }
           await repo.recordCapture(_sessionId!, rejected: false);
           if (!mounted) return;
+          // The floating result card takes over; the image is kept until
+          // the paper is confirmed, reviewed or discarded.
           keepRectified = true;
-          final saved = await Navigator.of(context).push<bool>(
-            MaterialPageRoute(
-              builder: (_) => ScaffoldMessenger(
-                child: ReviewScreen(
-                  context: ctx,
-                  reading: reading,
-                  rectifiedImage: rectified!,
-                  sessionId: _sessionId,
-                ),
-              ),
-            ),
-          );
-          keepRectified = false;
-          if (saved == true && mounted) {
-            setState(() => _saved++);
-            _show('Paper saved. Scan the next one.', good: true);
-          }
+          setState(() => _pending = (reading: reading, image: rectified!));
       }
     } on CameraException catch (e) {
       _report(ScanProblem.camera(e.description ?? e.code));
@@ -231,7 +225,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
       if (!keepRectified) await _deleteQuietly(rectified);
       if (mounted) {
         setState(() => _processing = false);
-        if (_problem == null) await _resumeStream();
+        await _resumeStream();
       }
     }
   }
@@ -243,6 +237,20 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
         _notice = null;
       });
     }
+  }
+
+  /// The floating result was confirmed (saved) or discarded: scanning
+  /// continues with the next sheet.
+  Future<void> _finishPending(bool saved) async {
+    final image = _pending?.image;
+    if (!mounted) return;
+    setState(() {
+      _pending = null;
+      if (saved) _saved++;
+    });
+    _show(saved ? 'Paper saved. Scan the next one.' : 'Not saved. Scan the sheet again.', good: saved);
+    await _deleteQuietly(image);
+    await _resumeStream();
   }
 
   /// The instructor read the problem: scanning continues.
@@ -290,13 +298,18 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
     final ready = state?.status == GuideStatus.ready;
     final guideColor = ready ? colors.correct : Colors.white;
     final problem = _problem;
+    final pending = _pending;
     final message = _processing
         ? 'Reading the sheet…'
         : problem != null
             ? 'Scanning paused: read the note below'
+            : pending != null
+                ? 'Sheet read: check the result below'
             : (_notice ?? state?.message ?? 'Point the camera at the answer sheet');
     final messageColor = problem != null
         ? colors.uncertain
+        : pending != null
+            ? colors.correct
         : _processing || _notice == null
             ? (ready ? colors.correct : Colors.black87)
             : (_noticeGood ? colors.correct : colors.uncertain);
@@ -357,6 +370,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
                           Icon(
                             problem != null
                                 ? Icons.pause_circle_outline
+                                : pending != null
+                                    ? Icons.task_alt
                                 : ready
                                     ? Icons.check_circle
                                     : Icons.crop_free,
@@ -374,6 +389,25 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
                     ),
                   ),
                 ),
+                if (pending != null)
+                  Positioned(
+                    left: Space.l,
+                    right: Space.l,
+                    bottom: Space.l,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.7),
+                      child: SingleChildScrollView(
+                        child: ScanResultCard(
+                          key: ObjectKey(pending.reading),
+                          scanContext: _ctx!,
+                          reading: pending.reading,
+                          rectifiedImage: pending.image,
+                          sessionId: _sessionId,
+                          onFinished: _finishPending,
+                        ),
+                      ),
+                    ),
+                  ),
                 if (problem != null)
                   Positioned(
                     left: Space.l,
@@ -404,7 +438,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
                       button: true,
                       label: 'Take photo',
                       child: GestureDetector(
-                        onTap: _processing || problem != null ? null : _capture,
+                        onTap: _processing || problem != null || pending != null ? null : _capture,
                         child: Container(
                           width: 76,
                           height: 76,
@@ -416,7 +450,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
                           child: Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: _processing || problem != null ? Colors.white38 : (ready ? colors.correct : Colors.white),
+                              color: _processing || problem != null || pending != null ? Colors.white38 : (ready ? colors.correct : Colors.white),
                             ),
                           ),
                         ),

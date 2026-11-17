@@ -310,6 +310,19 @@ Scores are normalized per sheet: 0 is this sheet's empty level, 1 its filled lev
   **uncertain**. The instructor must decide on the review screen before the paper
   can be saved. The engine's suggestion is shown but never applied silently.
 
+### 5.3a Scanner flow (0.6.9)
+
+- **Not read** (engine failure, sheet for another examination, camera error): a
+  "NOT SCANNED" panel names the problem, the reason and what to do. Scanning and
+  auto-capture pause until the instructor taps **OK, scan again**.
+- **Read**: a floating result card over the camera shows the student, set, score
+  preview (current key, nothing saved) and counts of flagged / double-shaded answers.
+  **Confirm** saves the paper as read and scanning continues; it is enabled only when
+  no answer is flagged, the student is identified and the set is known. Otherwise the
+  card lists what to fix and the instructor uses **Review** (the full review screen:
+  decide answers, choose the student or save without one, choose the set), then
+  returns to scanning. **Discard and scan again** saves nothing.
+
 ### 5.4 Accuracy targets and measured results
 
 Measured results to date (simulation, plus the app's real PDFs) are in

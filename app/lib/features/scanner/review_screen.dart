@@ -62,12 +62,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       for (var i = 0; i < reading.questions.length; i++)
         i + 1: reading.questions[i].state == MarkState.uncertain ? null : reading.questions[i].mask,
     };
-    if (ctx.versions.length == 1) {
-      _versionId = ctx.versions.single.id;
-    } else if (reading.set?.state == MarkState.answered) {
-      final index = _bitIndex(reading.set!.mask);
-      if (index < ctx.versions.length) _versionId = ctx.versions[index].id;
-    }
+    _versionId = versionFromReading(ctx, reading);
     _identify();
   }
 
@@ -427,12 +422,6 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     );
   }
 
-  static int _bitIndex(int mask) {
-    for (var i = 0; i < 8; i++) {
-      if (mask == 1 << i) return i;
-    }
-    return 99;
-  }
 }
 
 class _AnswerTile extends StatelessWidget {
