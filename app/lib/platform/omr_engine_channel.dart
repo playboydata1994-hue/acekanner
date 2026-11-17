@@ -66,6 +66,20 @@ class MarkerFeedback {
     final g = _otherGroup(itemCount);
     return g != null && g ~/ 3 < groupFor(itemCount) ~/ 3;
   }
+
+  /// A marker group clearly visible while none of [itemCounts] is (fewer
+  /// than 2 of their markers), if any.
+  int? otherGroupBesides(List<int> itemCounts) {
+    final accepted = {for (final n in itemCounts) groupFor(n)};
+    if (accepted.any((g) => _count(g) >= 2)) return null;
+    for (var g = 0; g < groups.length; g++) {
+      if (!accepted.contains(g) && groups[g] >= 3) return g;
+    }
+    return null;
+  }
+
+  /// True when [group] belongs to an older ACEkanner sheet design.
+  static bool isOlderDesignGroup(int group) => group ~/ 3 < groupFor(50) ~/ 3;
 }
 
 class OmrEngineChannel {

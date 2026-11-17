@@ -64,4 +64,14 @@ void main() {
     expect(guide.update(moved).autoCapture, isFalse);
     expect(guide.update(moved).autoCapture, isTrue);
   });
+
+  test('several sheet sizes: any of them is ready; smaller or older ones are not', () {
+    final any = CaptureGuide.forCounts(const [50, 75, 100], stableFrames: 1);
+    expect(any.update(frame(groups: g(current: [0, 0, 4]))).status, GuideStatus.ready);
+    final bigEnough = CaptureGuide.forCounts(const [75, 100]);
+    expect(bigEnough.update(frame(groups: g(current: [0, 4, 0]))).status, GuideStatus.ready);
+    expect(bigEnough.update(frame(groups: g(current: [4, 0, 0]))).status, GuideStatus.otherTemplate,
+        reason: 'a 50-item sheet is too small');
+    expect(any.update(frame(groups: g(ovals: [0, 0, 4]))).status, GuideStatus.olderDesign);
+  });
 }

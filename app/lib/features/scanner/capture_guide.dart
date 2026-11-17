@@ -36,12 +36,19 @@ class GuideState {
 }
 
 /// Turns live marker feedback into guidance and decides when to auto-capture:
-/// all four markers in [stableFrames] consecutive frames whose centres moved
-/// less than [maxMovement] (fraction of the frame) between frames.
+/// all four markers of an accepted sheet size in [stableFrames] consecutive
+/// frames whose centres moved less than [maxMovement] (fraction of the
+/// frame) between frames.
 class CaptureGuide {
-  CaptureGuide({required this.itemCount, this.stableFrames = 3, this.maxMovement = 0.015});
+  CaptureGuide({required int itemCount, this.stableFrames = 3, this.maxMovement = 0.015})
+      : itemCounts = [itemCount];
 
-  final int itemCount;
+  /// Accepts any of [itemCounts] (e.g. every sheet size big enough for the
+  /// examination, or every size when the examination is not known yet).
+  CaptureGuide.forCounts(this.itemCounts, {this.stableFrames = 3, this.maxMovement = 0.015})
+      : assert(itemCounts.isNotEmpty);
+
+  final List<int> itemCounts;
   final int stableFrames;
   final double maxMovement;
 
@@ -50,14 +57,15 @@ class CaptureGuide {
   bool _fired = false;
 
   GuideState update(MarkerFeedback f) {
-    if (f.otherTemplateFor(itemCount)) {
+    final found = itemCounts.map(f.foundFor).reduce((a, b) => a > b ? a : b);
+    final other = f.otherGroupBesides(itemCounts);
+    if (other != null) {
       _reset();
       return GuideState(
-        f.olderDesignFor(itemCount) ? GuideStatus.olderDesign : GuideStatus.otherTemplate,
-        f.foundFor(itemCount),
+        MarkerFeedback.isOlderDesignGroup(other) ? GuideStatus.olderDesign : GuideStatus.otherTemplate,
+        found,
       );
     }
-    final found = f.foundFor(itemCount);
     if (found < 4) {
       _reset();
       return GuideState(found == 0 ? GuideStatus.searching : GuideStatus.partial, found);

@@ -315,6 +315,16 @@ Scores are normalized per sheet: 0 is this sheet's empty level, 1 its filled lev
 - **Not read** (engine failure, sheet for another examination, camera error): a
   "NOT SCANNED" panel names the problem, the reason and what to do. Scanning and
   auto-capture pause until the instructor taps **OK, scan again**.
+- **Quick check** (Home → "Scan any answer sheet", route `/quick-check`, `ScanScreen` without
+  an examination): any current ACEkanner sheet. The photo is read as a 50-item sheet, then with
+  the size found (`readAnySheet`); the QR code names the examination (`examForSheet`: any on
+  this phone, closed ones too). It is then read with that examination's layout and shown on a
+  quick-check card (score with its key, unclear answers counted as no answer, answers list).
+  **Nothing is saved and no scan is counted**; mixed piles of examinations are fine. Problems:
+  QR unreadable, examination not on this phone, examination deleted, older design.
+- **Printed sheets stay readable**: `test/domain/sheet_design_compat_test.dart` freezes sheet
+  design 3 (fingerprints of every printable layout and the QR format). A change that would
+  stop printed sheets from scanning fails the test; such a change needs a new design version.
 - **Sheet size**: any ACEkanner sheet with at least the examination's questions used is
   read. The photo is analysed with the examination's layout; if the engine reports another
   sheet size (`wrong_template` with a detected item count), it is analysed again with that

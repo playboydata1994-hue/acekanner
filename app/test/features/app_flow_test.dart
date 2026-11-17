@@ -24,8 +24,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('of 100 free scans left'), findsOneWidget);
-    expect(find.text('No examinations yet'), findsOneWidget);
     expect(find.text('Add your name and school'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('No examinations yet'), 200, scrollable: find.byType(Scrollable).first);
+    expect(find.text('No examinations yet'), findsOneWidget);
     expect(await SettingsRepository(db).getBool(SettingKeys.onboardingCompleted), isTrue);
     await disposeApp(tester);
   });
@@ -33,6 +34,7 @@ void main() {
   testWidgets('dashboard shows live totals and recent examinations', (tester) async {
     final semantics = tester.ensureSemantics();
     await pumpApp(tester, db);
+    await tester.scrollUntilVisible(find.text('No examinations yet'), 200, scrollable: find.byType(Scrollable).first);
     expect(find.text('No examinations yet'), findsOneWidget);
 
     await insertExam(db, id: 'e1', title: 'Prelim Examination', itemCount: 75);
@@ -42,12 +44,29 @@ void main() {
 
     expect(find.text('Prelim Examination'), findsOneWidget);
     expect(find.text('75 items · 1 paper'), findsOneWidget);
+    await tester.scrollUntilVisible(find.textContaining('free scans left'), -200, scrollable: find.byType(Scrollable).first);
     // The plan card is one merged accessibility node (read as a unit).
     expect(find.bySemanticsLabel(RegExp('99 of 100 free scans left')), findsOneWidget);
     expect(find.bySemanticsLabel('Examinations: 1'), findsOneWidget);
     expect(find.bySemanticsLabel('Papers scanned: 1'), findsOneWidget);
     await disposeApp(tester);
     semantics.dispose();
+  });
+
+  testWidgets('Home: "Scan any answer sheet" opens the quick check scanner', (tester) async {
+    await pumpApp(tester, db);
+    await tester.scrollUntilVisible(find.text('Scan any answer sheet'), 200, scrollable: find.byType(Scrollable).first);
+    expect(find.textContaining('Quick check: finds the examination from the sheet'), findsOneWidget);
+    await tester.runAsync(() async {
+      await tester.tap(find.text('Scan any answer sheet'));
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    });
+    // No camera in tests: the scanner keeps waiting, so frames are pumped, not settled.
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Quick check'), findsOneWidget);
+    expect(find.text('0 checked'), findsOneWidget);
+    await disposeApp(tester);
   });
 
   testWidgets('settings and about show storage and engine status', (tester) async {

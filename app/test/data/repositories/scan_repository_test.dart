@@ -104,6 +104,44 @@ void main() {
     expect(scans.sheetMismatch(ctx, reading(masks: List.filled(50, 1), qr: oldDesign)), contains('older ACEkanner'));
   });
 
+  group('quick check: the examination of any sheet', () {
+    test('readAnySheet reads as 50 items, then again with the size found', () async {
+      final sizes = <int>[];
+      final r = await readAnySheet((l) async {
+        sizes.add(l.itemCount);
+        return l.itemCount == 50
+            ? const OmrFailure(code: 'wrong_template', message: 'x', detectedItemCount: 75)
+            : reading(masks: List.filled(75, 1));
+      });
+      expect(sizes, [50, 75]);
+      expect((r as OmrSheetReading).questions, hasLength(75));
+    });
+
+    test('found by the code in the QR code, closed examinations too', () async {
+      final ctx = await scans.context(examId);
+      await (db.update(db.examinations)..where((t) => t.id.equals(examId)))
+          .write(const ExaminationsCompanion(status: Value('closed')));
+      final qr = SheetQr(examCode: ctx.exam.shortCode, itemCount: 50, idDigits: 9, setCount: 2).encode();
+      final found = await scans.examForSheet(reading(masks: List.filled(50, 1), qr: qr));
+      expect((found as SheetExamFound).context.exam.id, examId);
+    });
+
+    test('clear messages when the examination cannot be used', () async {
+      final ctx = await scans.context(examId);
+      Future<String> problem(String? qr) async =>
+          ((await scans.examForSheet(reading(masks: List.filled(50, 1), qr: qr))) as SheetExamProblem).problem.title;
+
+      expect(await problem(null), 'Examination not recognised');
+      expect(await problem('ACK1|${ctx.exam.shortCode}|50|9|2|G'), 'Old answer sheet design');
+      final other = const SheetQr(examCode: 'ZZZZZZZZ', itemCount: 50, idDigits: 9, setCount: 2).encode();
+      expect(await problem(other), 'Examination not on this phone');
+      final mine = SheetQr(examCode: ctx.exam.shortCode, itemCount: 50, idDigits: 9, setCount: 2).encode();
+      await (db.update(db.examinations)..where((t) => t.id.equals(examId)))
+          .write(ExaminationsCompanion(deletedAt: Value(DateTime(2026))));
+      expect(await problem(mine), 'Examination is in Recently deleted');
+    });
+  });
+
   group('readSheet', () {
     late ScanContext ctx;
     setUp(() async => ctx = await scans.context(examId));

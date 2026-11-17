@@ -52,6 +52,9 @@ abstract final class Routes {
   static String analytics(String examId) => '/exams/$examId/analytics';
   static String paper(String examId, String sheetId) => '/exams/$examId/papers/$sheetId';
   static String scan(String examId) => '/scan/$examId';
+
+  /// Scanner for any ACEkanner sheet (quick check, nothing saved).
+  static const String quickCheck = '/quick-check';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -188,6 +191,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/sheets/:examId',
         parentNavigatorKey: rootKey,
         builder: (_, state) => ScaffoldMessenger(child: SheetsScreen(examId: state.pathParameters['examId']!)),
+      ),
+      GoRoute(
+        path: '/quick-check',
+        parentNavigatorKey: rootKey,
+        builder: (_, _) => const ScaffoldMessenger(child: ScanScreen(examId: null)),
       ),
       GoRoute(
         path: '/scan/:examId',

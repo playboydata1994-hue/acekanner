@@ -8,14 +8,17 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../app/providers.dart';
+import '../../core/constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/spacing.dart';
 import '../../core/util/ids.dart';
+import '../../data/db/app_database.dart';
 import '../../data/repositories/scan_repository.dart';
 import '../../domain/omr_reading.dart';
 import '../../domain/sheet_layout.dart';
 import 'capture_guide.dart';
 import '../../domain/scan_problem.dart';
+import 'quick_check_card.dart';
 import 'scan_result_card.dart';
 import 'scan_problem_panel.dart';
 
@@ -25,10 +28,16 @@ const String autoCaptureSetting = 'scanner.auto_capture';
 /// Live camera scanner. Papers are scanned one after another (batch); each is
 /// checked on the review screen before it is saved. Photos never leave the
 /// phone; the original photo is deleted right after it is read.
+///
+/// Without [examId] it is the **quick check** scanner (Home): any ACEkanner
+/// sheet, of any examination on this phone, is read, its examination found
+/// from the sheet's QR code and the paper checked with that examination's
+/// answer key. Nothing is saved and no scan is counted.
 class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({super.key, required this.examId});
 
-  final String examId;
+  /// The examination being scanned; null for a quick check.
+  final String? examId;
 
   @override
   ConsumerState<ScanScreen> createState() => _ScanScreenState();
@@ -50,6 +59,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   /// A sheet that was read and waits for Confirm or Review on the floating
   /// result card. Scanning stays paused meanwhile.
   ({OmrSheetReading reading, File image})? _pending;
+
+  /// Quick check result on screen (quick check mode only).
+  ({ScanContext ctx, OmrSheetReading reading})? _quick;
+  int _checked = 0;
+
+  bool get _quickMode => widget.examId == null;
   bool _processing = false;
   bool _detecting = false;
   bool _autoCapture = true;
@@ -81,7 +96,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
       _camera = null;
       camera?.dispose();
       if (mounted) setState(() {});
-    } else if (state == AppLifecycleState.resumed && camera == null && _ctx != null && !_processing) {
+    } else if (state == AppLifecycleState.resumed && camera == null && _guide != null && !_processing) {
       _openCamera();
     }
   }
@@ -89,15 +104,29 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   Future<void> _start() async {
     try {
       final repo = ref.read(scanRepositoryProvider);
-      final ctx = await repo.context(widget.examId);
       final auto = await ref.read(settingsRepositoryProvider).getBool(autoCaptureSetting, defaultValue: true);
-      final session = await repo.startSession(widget.examId, 'batch');
+      final examId = widget.examId;
+      if (examId == null) {
+        if (!mounted) return;
+        setState(() {
+          _autoCapture = auto;
+          _guide = CaptureGuide.forCounts(AppConstants.itemCounts);
+        });
+        await _openCamera();
+        return;
+      }
+      final ctx = await repo.context(examId);
+      final session = await repo.startSession(examId, 'batch');
       if (!mounted) return;
       setState(() {
         _ctx = ctx;
         _sessionId = session;
         _autoCapture = auto;
-        _guide = CaptureGuide(itemCount: ctx.exam.itemCount);
+        // Every sheet size with enough questions for this examination.
+        _guide = CaptureGuide.forCounts([
+          for (final n in AppConstants.itemCounts)
+            if (n >= ctx.exam.scoredItems) n,
+        ]);
       });
       await _openCamera();
     } catch (e) {
@@ -146,13 +175,15 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   Future<void> _resumeStream() async {
     final camera = _camera;
     // Paused while a problem or a read sheet waits for the instructor.
-    if (camera == null || camera.value.isStreamingImages || _problem != null || _pending != null) return;
+    if (camera == null || camera.value.isStreamingImages || _problem != null || _pending != null || _quick != null) {
+      return;
+    }
     _guide?.rearm();
     await camera.startImageStream(_onFrame);
   }
 
   void _onFrame(CameraImage image) {
-    if (_processing || _detecting || _problem != null || _pending != null) return;
+    if (_processing || _detecting || _problem != null || _pending != null || _quick != null) return;
     final now = DateTime.now();
     if (now.difference(_lastFrame) < const Duration(milliseconds: 250)) return;
     _lastFrame = now;
@@ -175,7 +206,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   Future<void> _capture() async {
     final camera = _camera;
     final ctx = _ctx;
-    if (camera == null || ctx == null || _processing || _problem != null || _pending != null || camera.value.isTakingPicture) {
+    if (camera == null ||
+        (ctx == null && !_quickMode) ||
+        _processing ||
+        _problem != null ||
+        _pending != null ||
+        _quick != null ||
+        camera.value.isTakingPicture) {
       return;
     }
     setState(() {
@@ -194,16 +231,18 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
       final engine = ref.read(omrEngineChannelProvider);
       final image = photo.path;
       final output = rectified.path;
-      final reading = await readSheet(
-        ctx,
-        (layout) => engine.analyzeSheet(
-          imagePath: image,
-          layout: layout,
-          rectifiedPath: output,
-          preset: ctx.exam.omrPreset,
-          customThresholds: ctx.exam.omrThresholds,
-        ),
-      );
+      Future<OmrReading> analyze(SheetLayout layout, ScanContext? c) => engine.analyzeSheet(
+            imagePath: image,
+            layout: layout,
+            rectifiedPath: output,
+            preset: c?.exam.omrPreset ?? 'standard',
+            customThresholds: c?.exam.omrThresholds,
+          );
+      if (ctx == null) {
+        await _quickCheck(analyze);
+        return;
+      }
+      final reading = await readSheet(ctx, (layout) => analyze(layout, ctx));
       switch (reading) {
         case OmrFailure():
           await repo.recordCapture(_sessionId!, rejected: true);
@@ -234,6 +273,38 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
         await _resumeStream();
       }
     }
+  }
+
+  /// Quick check: find the sheet's examination from its QR code, then read
+  /// it with that examination's settings. Nothing is saved.
+  Future<void> _quickCheck(Future<OmrReading> Function(SheetLayout, ScanContext?) analyze) async {
+    final repo = ref.read(scanRepositoryProvider);
+    final probe = await readAnySheet((layout) => analyze(layout, null));
+    if (probe is OmrFailure) {
+      _report(ScanProblem.fromFailure(probe));
+      return;
+    }
+    switch (await repo.examForSheet(probe as OmrSheetReading)) {
+      case SheetExamProblem(:final problem):
+        _report(problem);
+      case SheetExamFound(context: final found):
+        final reading = await readSheet(found, (layout) => analyze(layout, found));
+        switch (reading) {
+          case OmrFailure():
+            _report(ScanProblem.fromFailure(reading));
+          case OmrSheetReading():
+            if (mounted) setState(() => _quick = (ctx: found, reading: reading));
+        }
+    }
+  }
+
+  /// The quick check was read: on to the next sheet.
+  Future<void> _nextQuick() async {
+    setState(() {
+      _quick = null;
+      _checked++;
+    });
+    await _resumeStream();
   }
 
   void _report(ScanProblem problem) {
@@ -305,16 +376,20 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
     final guideColor = ready ? colors.correct : Colors.white;
     final problem = _problem;
     final pending = _pending;
+    final quick = _quick;
+    final paused = problem != null || pending != null || quick != null;
     final message = _processing
         ? 'Reading the sheet…'
         : problem != null
             ? 'Scanning paused: read the note below'
-            : pending != null
+            : pending != null || quick != null
                 ? 'Sheet read: check the result below'
-            : (_notice ?? state?.message ?? 'Point the camera at the answer sheet');
+                : (_notice ??
+                    state?.message ??
+                    (_quickMode ? 'Point the camera at any ACEkanner answer sheet' : 'Point the camera at the answer sheet'));
     final messageColor = problem != null
         ? colors.uncertain
-        : pending != null
+        : pending != null || quick != null
             ? colors.correct
         : _processing || _notice == null
             ? (ready ? colors.correct : Colors.black87)
@@ -325,12 +400,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: Text(_ctx?.exam.title ?? 'Scan papers', overflow: TextOverflow.ellipsis),
+        title: Text(_quickMode ? 'Quick check' : (_ctx?.exam.title ?? 'Scan papers'), overflow: TextOverflow.ellipsis),
         actions: [
           Center(
             child: Padding(
               padding: const EdgeInsets.only(right: Space.l),
-              child: Text('$_saved saved', style: const TextStyle(color: Colors.white)),
+              child: Text(_quickMode ? '$_checked checked' : '$_saved saved', style: const TextStyle(color: Colors.white)),
             ),
           ),
         ],
@@ -376,7 +451,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
                           Icon(
                             problem != null
                                 ? Icons.pause_circle_outline
-                                : pending != null
+                                : pending != null || quick != null
                                     ? Icons.task_alt
                                 : ready
                                     ? Icons.check_circle
@@ -395,6 +470,23 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
                     ),
                   ),
                 ),
+                if (quick != null)
+                  Positioned(
+                    left: Space.l,
+                    right: Space.l,
+                    bottom: Space.l,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.75),
+                      child: SingleChildScrollView(
+                        child: QuickCheckCard(
+                          key: ObjectKey(quick.reading),
+                          scanContext: quick.ctx,
+                          reading: quick.reading,
+                          onNext: _nextQuick,
+                        ),
+                      ),
+                    ),
+                  ),
                 if (pending != null)
                   Positioned(
                     left: Space.l,
@@ -444,7 +536,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
                       button: true,
                       label: 'Take photo',
                       child: GestureDetector(
-                        onTap: _processing || problem != null || pending != null ? null : _capture,
+                        onTap: _processing || paused ? null : _capture,
                         child: Container(
                           width: 76,
                           height: 76,
@@ -456,7 +548,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
                           child: Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: _processing || problem != null || pending != null ? Colors.white38 : (ready ? colors.correct : Colors.white),
+                              color: _processing || paused ? Colors.white38 : (ready ? colors.correct : Colors.white),
                             ),
                           ),
                         ),

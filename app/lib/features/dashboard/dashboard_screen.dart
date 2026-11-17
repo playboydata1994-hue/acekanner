@@ -60,7 +60,9 @@ class DashboardScreen extends ConsumerWidget {
               _ => const _LoadingBlock(height: 260),
             },
             const SizedBox(height: Space.m),
-            FilledButton.icon(
+            const _QuickCheckButton(),
+            const SizedBox(height: Space.s),
+            OutlinedButton.icon(
               onPressed: () => context.push(Routes.newExam),
               icon: const Icon(Icons.add),
               label: const Text('Create examination'),
@@ -314,5 +316,41 @@ Future<void> _openProfile(BuildContext context) async {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(const SnackBar(content: Text('Profile saved')));
+  }
+}
+
+/// Opens the scanner for any ACEkanner answer sheet: it finds the sheet's
+/// examination and shows the score. Nothing is saved.
+class _QuickCheckButton extends ConsumerWidget {
+  const _QuickCheckButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FilledButton.icon(
+          onPressed: () async {
+            final status = await ref.read(licenseRepositoryProvider).status();
+            if (!context.mounted) return;
+            if (status.block != null) {
+              await showScanBlocked(context, status.block!);
+            } else {
+              await context.push(Routes.quickCheck);
+            }
+          },
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+          icon: const Icon(Icons.document_scanner_outlined),
+          label: const Text('Scan any answer sheet'),
+        ),
+        const SizedBox(height: Space.xs),
+        Text(
+          'Quick check: finds the examination from the sheet and shows the score. Nothing is saved.',
+          style: theme.textTheme.bodySmall,
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
   }
 }

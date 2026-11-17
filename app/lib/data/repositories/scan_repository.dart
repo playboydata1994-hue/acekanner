@@ -8,6 +8,7 @@ import '../../core/util/clock.dart';
 import '../../core/util/ids.dart';
 import '../../domain/answer_mask.dart';
 import '../../domain/omr_reading.dart';
+import '../../domain/scan_problem.dart';
 import '../../domain/personal_sheet_code.dart';
 import '../../domain/sheet_layout.dart';
 import '../../domain/sheet_qr.dart';
@@ -149,6 +150,48 @@ class ScanRepository {
           'Print new sheets for this examination.';
     }
     return null;
+  }
+
+  /// Finds the examination a sheet was printed for, by the code in its QR
+  /// code: any examination on this phone, however old, including closed ones.
+  Future<SheetExamLookup> examForSheet(OmrSheetReading reading) async {
+    if (SheetQr.isOlderDesign(reading.qr)) {
+      return SheetExamProblem(
+        ScanProblem.fromFailure(const OmrFailure(code: 'old_sheet_design', message: '')),
+      );
+    }
+    final qr = SheetQr.tryParse(reading.qr);
+    if (qr == null) {
+      return const SheetExamProblem(ScanProblem(
+        title: 'Examination not recognised',
+        reason: 'The QR code at the top right of the sheet could not be read, so ACEkanner cannot '
+            'tell which examination the sheet belongs to.',
+        tips: [
+          'Keep the QR code clean, uncovered and inside the frame, then scan again.',
+          'Or open the examination in the Exams tab and scan the paper from there.',
+        ],
+      ));
+    }
+    final exam = await (_db.select(_db.examinations)..where((t) => t.shortCode.equals(qr.examCode)))
+        .getSingleOrNull();
+    if (exam == null) {
+      return SheetExamProblem(ScanProblem(
+        title: 'Examination not on this phone',
+        reason: 'This sheet belongs to examination code ${qr.examCode}, which is not on this phone.',
+        tips: const [
+          'The examination may have been deleted, or made on another phone.',
+          'Check the code printed on the sheet against your examinations.',
+        ],
+      ));
+    }
+    if (exam.deletedAt != null) {
+      return SheetExamProblem(ScanProblem(
+        title: 'Examination is in Recently deleted',
+        reason: 'This sheet belongs to "${exam.title}" (code ${exam.shortCode}), which was deleted.',
+        tips: const ['Restore it from Exams › Recently deleted, then scan again.'],
+      ));
+    }
+    return SheetExamFound(await context(exam.id));
   }
 
   /// Information (not a reason to refuse) about a sheet that was not printed
@@ -441,6 +484,32 @@ SheetLayout layoutOfReading(ScanContext ctx, OmrSheetReading r) {
   } on ArgumentError {
     return ctx.layout;
   }
+}
+
+/// Reads a photo of any current ACEkanner sheet without knowing its
+/// examination: first as a 50-item sheet, then again with the size the engine
+/// found. Used to read the QR code that names the examination.
+Future<OmrReading> readAnySheet(Future<OmrReading> Function(SheetLayout layout) analyze) async {
+  final first = await analyze(SheetLayout(itemCount: 50));
+  if (first is OmrFailure && first.code == 'wrong_template' && first.detectedItemCount != null) {
+    return analyze(SheetLayout(itemCount: first.detectedItemCount!));
+  }
+  return first;
+}
+
+/// Which examination a sheet belongs to (from its QR code).
+sealed class SheetExamLookup {
+  const SheetExamLookup();
+}
+
+class SheetExamFound extends SheetExamLookup {
+  const SheetExamFound(this.context);
+  final ScanContext context;
+}
+
+class SheetExamProblem extends SheetExamLookup {
+  const SheetExamProblem(this.problem);
+  final ScanProblem problem;
 }
 
 /// The exam set shaded on a paper: the only set, or the clearly shaded one;

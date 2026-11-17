@@ -5,6 +5,32 @@ and the next step.
 
 ---
 
+## 2026-11-17 · Revision: Home "Scan any answer sheet" quick check (0.7.1)
+
+Owner's choices: quick check only (nothing saved); message when the examination is not on
+the phone; keep the current circle design readable for good; mixed piles allowed.
+
+- **Home → "Scan any answer sheet"** (with "Quick check: finds the examination from the sheet
+  and shows the score. Nothing is saved."). Opens the scanner in quick-check mode: any sheet
+  size; the sheet's QR code names its examination (old or closed ones too); the paper is read
+  with that examination's settings and checked with its answer key.
+- **Quick check card**: "QUICK CHECK · NOT SAVED", examination title, code and date, student
+  (or shaded number), set, score (e.g. 88 % · 44 / 50), CORRECT / WRONG / UNCLEAR counts
+  (unclear answers count as no answer), the sheet note (other size / other examination),
+  **Show answers** (read · key · ✓/✗ per question), **Next sheet**. No paper, session or scan
+  count is recorded. Plan limits apply as for scanning.
+- **Problems** (stay until "OK, scan again"): "Examination not recognised" (QR unreadable),
+  "Examination not on this phone" (code shown), "Examination is in Recently deleted",
+  old design.
+- **Exam scanning**: the live guide now also accepts bigger sheet sizes (auto-capture works on
+  them).
+- **Printed sheets stay readable**: a compatibility test freezes sheet design 3 (fingerprints
+  of all 135 printable layouts and the QR format).
+- Verification: readAnySheet and examForSheet tests (found incl. closed; four problem cases),
+  guide tests for several sizes, quick check card test (score with an unclear answer, answers
+  list, nothing saved), Home button test, design freeze test; 263/263 pass. The camera flow
+  needs a phone check.
+
 ## 2026-11-17 · Revision: questions used (e.g. 90 of 100) and bigger sheets (0.7.0)
 
 Owner's choices: set it in the answer key; accept any bigger sheet; ignore answers after the
