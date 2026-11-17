@@ -4,6 +4,30 @@ Newest entries first.
 
 ---
 
+## 2026-11-17 · Licensing server deployed
+
+Owner's choices: install the server now; keep NYE94 and the same contact email; one instructor
+per phone.
+
+- Applied migration `acekor_licensing` to the live `acekanner` project (recorded in its migration
+  history). Deployed Edge Function `acekor-license` (version 1, `verify_jwt` off; the function
+  checks the session itself).
+- **Verified live:**
+  - `acekor_accounts`, `acekor_devices`, `acekor_subscriptions` and `acekor_tombstones` exist with
+    row-level security on.
+  - The 9 `acekor_*` functions exist, and `authenticated` cannot execute them; `anon` cannot read
+    the tables.
+  - POST without a session → 401 `not_signed_in`; GET → 405. The function starts, so the shared
+    signing-key secrets load.
+  - ACEkanner's `license` function still answers.
+- `GOOGLE_PLAY_SERVICE_ACCOUNT` is not set yet: purchase checks answer `billing_not_configured`
+  until Play is linked. Trial and check-in do not need it.
+- **Next:** the owner follows `GOOGLE_SIGNIN_SETUP.md` and sends the Web client ID.
+- The public pages in `docs/acekor/` go live when this branch reaches `main`, because GitHub
+  Pages serves `main` → `/docs`.
+
+---
+
 ## 2026-11-17 · 1.0.0 (build 1): Phases 1–8 built and tested on the host
 
 ### Owner's decisions
@@ -92,8 +116,7 @@ Highlights:
 
 ### Open items
 
-- **Server deployment:** apply the migration and deploy `acekor-license` to the `acekanner` Supabase
-  project. Needs the owner's go-ahead.
+- ~~Server deployment~~: done (see the entry above).
 - **Google sign-in:** `ACEKOR_GOOGLE_WEB_CLIENT_ID` is still empty (ACEkanner's is too). Until it is
   set, builds are test builds: phone-only trial, purchases off.
 - **Owner Play Console steps:** upload key, Play Console app, subscriptions, service-account access.

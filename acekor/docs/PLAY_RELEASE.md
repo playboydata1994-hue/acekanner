@@ -4,9 +4,12 @@ The app is built and tested. This checklist lists what is left before the Play u
 need your Google or Play account; never paste passwords, keystore passwords, the Play
 service-account JSON or Supabase tokens in chat.
 
-## 1. Licensing server (Supabase project `acekanner`)
+## 1. Licensing server (Supabase project `acekanner`) ✅ done 2026-11-17
 
-Done by Claude after your go-ahead; nothing changes for ACEkanner users.
+The migration `acekor_licensing` was applied and `acekor-license` was deployed (version 1).
+Checks: 4 tables with RLS; 9 functions not callable by clients; the live function answers 401
+without a session and 405 for GET; ACEkanner's `license` function is unchanged.
+The steps below are kept for reference and re-deployments.
 
 1. Apply `supabase/migrations/20261119000000_acekor_licensing.sql`. It adds only `acekor_*` tables and functions.
 2. Deploy the Edge Function `acekor-license`:
@@ -14,7 +17,10 @@ Done by Claude after your go-ahead; nothing changes for ACEkanner users.
 3. Optional secret `ACEKOR_PLAY_PACKAGE_NAME` (default `com.acekor.calculator`). It reuses the
    existing secrets `ENTITLEMENT_SIGNING_KEY`, `ENTITLEMENT_KEY_ID` and `GOOGLE_PLAY_SERVICE_ACCOUNT`.
 
-## 2. Google sign-in (owner, about 15 minutes)
+## 2. Google sign-in (owner, about 20 minutes)
+
+Click-by-click steps for both apps are in [`GOOGLE_SIGNIN_SETUP.md`](GOOGLE_SIGNIN_SETUP.md).
+Summary:
 
 1. In Google Cloud Console, use the same project as ACEkanner: **APIs & Services → Credentials**.
 2. If ACEkanner has no **Web** OAuth client yet, create one and put its ID in **both**
