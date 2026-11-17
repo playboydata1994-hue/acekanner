@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../app/providers.dart';
 import '../../core/theme/spacing.dart';
 import '../../core/widgets/acekanner_logo.dart';
+import '../../core/widgets/developer_footnote.dart';
 import '../../data/db/database_opener.dart';
 
 /// Brand screen shown while the encrypted local database opens. Navigation
@@ -16,6 +17,12 @@ class SplashScreen extends ConsumerWidget {
     final boot = ref.watch(bootstrapControllerProvider);
     final theme = Theme.of(context);
     return Scaffold(
+      bottomNavigationBar: const SafeArea(
+        child: Padding(
+          padding: EdgeInsets.only(bottom: Space.l),
+          child: DeveloperFootnote(),
+        ),
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

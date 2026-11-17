@@ -36,6 +36,8 @@ void main() {
     await pumpApp(tester, db);
     await tester.scrollUntilVisible(find.text('No examinations yet'), 200, scrollable: find.byType(Scrollable).first);
     expect(find.text('No examinations yet'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('ACEkanner · Developed by NYE94'), 200, scrollable: find.byType(Scrollable).first);
+    expect(find.text('ACEkanner · Developed by NYE94'), findsOneWidget);
 
     await insertExam(db, id: 'e1', title: 'Prelim Examination', itemCount: 75);
     await insertSheet(db, id: 's1', examId: 'e1');
@@ -86,6 +88,7 @@ void main() {
     expect(find.text('Not encrypted (development build)'), findsOneWidget);
     expect(find.textContaining('Android phones only'), findsOneWidget);
     expect(find.text('Version 5'), findsOneWidget);
+    expect(find.text('Developed by NYE94'), findsOneWidget);
     expect(find.text('Version 0.2.0 (build 2)'), findsOneWidget);
     expect(find.text('com.acekanner.app'), findsOneWidget);
     await disposeApp(tester);

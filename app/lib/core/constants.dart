@@ -1,6 +1,9 @@
 /// Product constants shared across features.
 abstract final class AppConstants {
   static const String appName = 'ACEkanner';
+
+  /// Developer credit shown on Home, About and the start-up screen.
+  static const String developerCredit = 'Developed by NYE94';
   static const String applicationId = 'com.acekanner.app';
 
   /// Lifetime successful (finalized) student-paper scans on the free plan.
