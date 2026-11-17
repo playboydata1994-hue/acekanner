@@ -3,7 +3,7 @@ description: "ACEkanner - offline-first examination scanner and grader for colle
 publish_to: 'none'
 
 # versionName+versionCode. Bump the build number (after +) for every Play upload.
-version: 0.5.2+7
+version: 0.6.0+8
 
 environment:
   sdk: ^3.14.0
@@ -41,6 +41,8 @@ dependencies:
   share_plus: ^13.3.1        # Phase 7 - share exports
   file_picker: ^13.3.3       # Phase 3/7 - roster import, backup restore
   in_app_purchase: ^3.3.1    # Phase 6 - Google Play Billing
+  in_app_purchase_android: ^0.5.5  # Phase 6 - choose the subscription base plan
+  url_launcher: ^6.3.2       # Phase 6 - "Manage subscription" in Google Play
   google_sign_in: ^7.2.0     # Phase 6 - one-time sign-in
   supabase_flutter: ^2.18.3  # Phase 6 - licensing backend
 

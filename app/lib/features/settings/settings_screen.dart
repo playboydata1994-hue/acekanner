@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/data_providers.dart';
+import '../../app/licensing_providers.dart';
 import '../../app/router.dart';
 import '../../core/theme/spacing.dart';
 import '../../core/widgets/section_header.dart';
@@ -15,6 +16,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileProvider).value;
     final format = ref.watch(studentNoFormatProvider).value;
+    final status = ref.watch(licenseStatusProvider).value;
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: SafeArea(
@@ -43,6 +45,23 @@ class SettingsScreen extends ConsumerWidget {
                   subtitle: Text(format ?? '…'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _openProfile(context),
+                ),
+              ],
+            ),
+            const SectionHeader('Plan'),
+            _Group(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.workspace_premium_outlined),
+                  title: const Text('Plan and account'),
+                  subtitle: Text(switch (status) {
+                    null => '…',
+                    final s when s.premiumActive => 'Premium · ${s.email ?? 'signed in'}',
+                    final s when s.configured && s.email == null => 'Free plan · not signed in',
+                    final s => 'Free plan · ${s.freeRemaining} of ${s.freeLimit} scans left',
+                  }),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(Routes.plan),
                 ),
               ],
             ),

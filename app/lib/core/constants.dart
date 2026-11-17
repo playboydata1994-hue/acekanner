@@ -8,7 +8,7 @@ abstract final class AppConstants {
 
   /// Google Play subscription product (Play IDs must be lower-case).
   static const String premiumProductId = 'acekanner_premium_yearly';
-  static const String premiumBasePlanId = 'yearly-autorenew';
+  static const String premiumBasePlanId = 'yearly';
   static const int premiumPricePhp = 399;
 
   /// Premium keeps working offline for this many days after the last

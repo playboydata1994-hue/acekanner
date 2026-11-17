@@ -4,17 +4,16 @@ import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/data_providers.dart';
+import '../../app/licensing_providers.dart';
 import '../../app/providers.dart';
 import '../../app/router.dart';
-import '../../core/constants.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/spacing.dart';
 import '../../core/widgets/acekanner_logo.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/widgets/stat_card.dart';
-import '../../core/widgets/status_pill.dart';
 import '../../data/db/app_database.dart';
+import '../plan/plan_widgets.dart';
 import 'dashboard_providers.dart';
 
 /// Home dashboard: plan status, totals and recent examinations.
@@ -130,7 +129,7 @@ class _DashboardBody extends StatelessWidget {
     final number = NumberFormat.decimalPattern();
     return Column(
       children: [
-        _PlanCard(stats: stats),
+        const _PlanCard(),
         const SizedBox(height: Space.m),
         Row(
           children: [
@@ -156,83 +155,36 @@ class _DashboardBody extends StatelessWidget {
   }
 }
 
-class _PlanCard extends StatelessWidget {
-  const _PlanCard({required this.stats});
-
-  final DashboardStats stats;
+class _PlanCard extends ConsumerWidget {
+  const _PlanCard();
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    const limit = AppConstants.freeScanLimit;
-    final remaining = stats.freeScansRemaining;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = ref.watch(licenseStatusProvider).value;
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(Space.l),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                StatusPill(
-                  label: 'FREE PLAN',
-                  color: scheme.primary,
-                  icon: Icons.verified_outlined,
-                ),
-                const SizedBox(width: Space.s),
-                Expanded(
-                  child: Text(
-                    'Premium · PHP ${AppConstants.premiumPricePhp}/year',
-                    textAlign: TextAlign.end,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: context.statusColors.premium,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: Space.m),
-            Semantics(
-              label: '$remaining of $limit free scans left',
-              excludeSemantics: true,
-              child: Text.rich(
-                TextSpan(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push(Routes.plan),
+        child: Padding(
+          padding: const EdgeInsets.all(Space.l),
+          child: status == null
+              ? const SizedBox(height: 96, child: Center(child: CircularProgressIndicator()))
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextSpan(
-                      text: '$remaining',
-                      style: theme.textTheme.displaySmall?.copyWith(
-                        color: scheme.primary,
+                    PlanSummary(status: status),
+                    const SizedBox(height: Space.s),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        status.premiumActive ? 'Plan and account ›' : 'Plan, sign-in and Premium ›',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                       ),
-                    ),
-                    TextSpan(
-                      text: '  of $limit free scans left',
-                      style: theme.textTheme.titleMedium,
                     ),
                   ],
                 ),
-              ),
-            ),
-            const SizedBox(height: Space.m),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: stats.freeScansUsed / limit,
-                minHeight: 8,
-                backgroundColor: scheme.surfaceContainerHighest,
-              ),
-            ),
-            const SizedBox(height: Space.m),
-            Text(
-              'Lifetime allowance. A scan is counted only when a student’s '
-              'result is saved.',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ],
         ),
       ),
     );

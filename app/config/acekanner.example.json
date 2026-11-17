@@ -1,0 +1,6 @@
+{
+  "ACEK_SUPABASE_URL": "https://your-project-ref.supabase.co",
+  "ACEK_SUPABASE_KEY": "sb_publishable_xxxxxxxxxxxxxxxxxxxxxxxx",
+  "ACEK_GOOGLE_WEB_CLIENT_ID": "000000000000-xxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com",
+  "ACEK_ENTITLEMENT_KEYS": "k1:BASE64_32_BYTE_ED25519_PUBLIC_KEY"
+}

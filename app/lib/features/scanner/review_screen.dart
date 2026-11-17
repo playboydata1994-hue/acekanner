@@ -3,6 +3,9 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../domain/licensing/license_status.dart';
+import '../plan/plan_widgets.dart';
+
 import '../../app/providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/spacing.dart';
@@ -150,6 +153,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
             ),
           );
       if (mounted) Navigator.of(context).pop(true);
+    } on ScanLimitException catch (e) {
+      if (mounted) await showScanBlocked(context, e.block);
     } catch (e) {
       if (mounted) showError(context, e);
     } finally {

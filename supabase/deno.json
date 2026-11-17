@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "strict": true
+  },
+  "lint": {
+    "rules": {
+      "exclude": [
+        "no-explicit-any",
+        "no-import-prefix",
+        "require-await"
+      ]
+    }
+  },
+  "tasks": {
+    "test": "deno test --allow-read=.,../app/test/fixtures tests/deno",
+    "vectors": "ACEK_WRITE_VECTORS=1 deno test --allow-read=.,../app/test/fixtures --allow-write=../app/test/fixtures --allow-env=ACEK_WRITE_VECTORS tests/deno/vectors_test.ts",
+    "check": "deno check functions/license/index.ts functions/play-rtdn/index.ts"
+  },
+  "fmt": {
+    "lineWidth": 120
+  }
+}

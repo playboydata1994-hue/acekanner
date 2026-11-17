@@ -4,6 +4,8 @@ import 'package:path_provider/path_provider.dart';
 import '../core/util/clock.dart';
 import '../data/audit/audit_logger.dart';
 import '../data/db/app_database.dart';
+import '../data/licensing/license_repository.dart';
+import '../data/licensing/scan_ledger.dart';
 import '../data/repositories/answer_key_repository.dart';
 import '../data/repositories/classes_repository.dart';
 import '../data/repositories/exams_repository.dart';
@@ -12,12 +14,21 @@ import '../data/repositories/printed_sheets_repository.dart';
 import '../data/repositories/scan_repository.dart';
 import '../data/repositories/profile_repository.dart';
 import '../data/repositories/students_repository.dart';
+import '../data/secure/secret_store.dart';
 import '../data/settings/settings_repository.dart';
+import '../domain/licensing/entitlement.dart';
 import '../platform/omr_engine_channel.dart';
 import '../services/branding_store.dart';
+import 'app_config.dart';
 import 'bootstrap.dart';
 
 final clockProvider = Provider<Clock>((ref) => const Clock());
+
+/// Licensing settings compiled into this build (empty in tests and early test builds).
+final licensingConfigProvider = Provider<LicensingConfig>((ref) => LicensingConfig.fromEnvironment());
+
+/// Android Keystore-backed secrets (ledger MAC key, install ID, session).
+final secretStoreProvider = Provider<SecretStore>((ref) => KeystoreSecretStore());
 
 final appBootstrapperProvider =
     Provider<AppBootstrapper>((ref) => AppBootstrapper.production());
@@ -133,6 +144,7 @@ final scanRepositoryProvider = Provider<ScanRepository>(
     ref.watch(auditLoggerProvider),
     scansDirectory: scansDirectoryIn(getApplicationSupportDirectory),
     grading: ref.watch(gradingRepositoryProvider),
+    charger: ref.watch(licenseRepositoryProvider),
     clock: ref.watch(clockProvider),
   ),
 );
@@ -146,3 +158,22 @@ final printedSheetsRepositoryProvider = Provider<PrintedSheetsRepository>(
 );
 
 final brandingStoreProvider = Provider<BrandingStore>((ref) => BrandingStore(getApplicationSupportDirectory));
+
+final entitlementVerifierProvider = Provider<EntitlementVerifier>(
+  (ref) => EntitlementVerifier(ref.watch(licensingConfigProvider).entitlementKeys),
+);
+
+final scanLedgerProvider = Provider<ScanLedgerStore>(
+  (ref) => ScanLedgerStore(ref.watch(databaseProvider), ref.watch(secretStoreProvider), clock: ref.watch(clockProvider)),
+);
+
+final licenseRepositoryProvider = Provider<LicenseRepository>(
+  (ref) => LicenseRepository(
+    ref.watch(databaseProvider),
+    ref.watch(scanLedgerProvider),
+    ref.watch(settingsRepositoryProvider),
+    configured: ref.watch(licensingConfigProvider).configured,
+    verifier: ref.watch(entitlementVerifierProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);

@@ -1,0 +1,11 @@
+# Supabase CLI settings for ACEkanner's licensing functions.
+project_id = "acekanner"
+
+# Both functions check authorization themselves: `license` validates the user's
+# session with Supabase Auth (works with legacy and new JWT signing keys), and
+# `play-rtdn` accepts only Google-signed Pub/Sub OIDC tokens.
+[functions.license]
+verify_jwt = false
+
+[functions.play-rtdn]
+verify_jwt = false

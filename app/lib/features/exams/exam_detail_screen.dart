@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../plan/plan_widgets.dart';
+
 import '../../app/data_providers.dart';
 import '../../app/providers.dart';
 import '../../core/theme/app_colors.dart';
@@ -146,7 +148,15 @@ class _DetailBody extends StatelessWidget {
               const SizedBox(width: Space.m),
               Expanded(
                 child: FilledButton.icon(
-                  onPressed: () => context.push('/scan/${exam.id}'),
+                  onPressed: () async {
+                    final status = await ProviderScope.containerOf(context, listen: false).read(licenseRepositoryProvider).status();
+                    if (!context.mounted) return;
+                    if (status.block != null) {
+                      await showScanBlocked(context, status.block!);
+                    } else {
+                      await context.push('/scan/${exam.id}');
+                    }
+                  },
                   icon: const Icon(Icons.document_scanner_outlined),
                   label: const Text('Scan papers'),
                 ),

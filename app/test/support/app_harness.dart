@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:acekanner/app/app.dart';
@@ -57,7 +58,13 @@ AppDatabase newTestAppDatabase() {
 }
 
 /// Pumps the whole app on [db] and waits for startup to finish.
-Future<void> pumpApp(WidgetTester tester, AppDatabase db, {bool onboarded = true}) async {
+Future<void> pumpApp(
+  WidgetTester tester,
+  AppDatabase db, {
+  bool onboarded = true,
+  List<Override> overrides = const [],
+  SecretStore? secrets,
+}) async {
   // A tall phone screen so long forms fit without scrolling.
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.6;
@@ -68,6 +75,7 @@ Future<void> pumpApp(WidgetTester tester, AppDatabase db, {bool onboarded = true
       overrides: [
         appBootstrapperProvider.overrideWithValue(InMemoryBootstrapper(db, onboarded: onboarded)),
         omrEngineChannelProvider.overrideWithValue(const HostEngine()),
+        secretStoreProvider.overrideWithValue(secrets ?? MemorySecretStore()),
         packageInfoProvider.overrideWith(
           (ref) async => PackageInfo(
             appName: 'ACEkanner',
@@ -76,6 +84,7 @@ Future<void> pumpApp(WidgetTester tester, AppDatabase db, {bool onboarded = true
             buildNumber: '2',
           ),
         ),
+        ...overrides,
       ],
       child: const AcekannerApp(),
     ),

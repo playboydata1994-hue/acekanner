@@ -12,6 +12,7 @@ import '../../domain/sheet_layout.dart';
 import '../../domain/sheet_qr.dart';
 import '../audit/audit_logger.dart';
 import '../db/app_database.dart';
+import '../licensing/license_repository.dart';
 import '../errors.dart';
 import 'grading_repository.dart';
 
@@ -90,13 +91,24 @@ class ScannedPaper {
 
 /// Scan sessions, student identification and saving reviewed papers.
 class ScanRepository {
-  ScanRepository(this._db, this._audit, {required this.scansDirectory, this.grading, this.clock = const Clock()});
+  ScanRepository(
+    this._db,
+    this._audit, {
+    required this.scansDirectory,
+    this.grading,
+    this.charger,
+    this.clock = const Clock(),
+  });
 
   final AppDatabase _db;
   final AuditLogger _audit;
 
   /// Grades a saved paper immediately when the examination's key is complete.
   final GradingRepository? grading;
+
+  /// Charges each newly saved paper against the plan (Phase 6). A refused
+  /// charge rolls the whole save back.
+  final ScanCharger? charger;
   final Clock clock;
 
   /// App-private folder for corrected sheet images.
@@ -249,6 +261,7 @@ class ScanRepository {
                 updatedAt: now,
               ),
             );
+        await charger?.charge(examId: s.examId, studentId: s.studentId, sheetId: sheetId);
         await _db.batch((b) {
           b.insertAll(_db.studentAnswers, [
             for (var i = 0; i < reading.questions.length; i++)

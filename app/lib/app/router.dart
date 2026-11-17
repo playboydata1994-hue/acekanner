@@ -12,6 +12,7 @@ import '../features/exams/exam_detail_screen.dart';
 import '../features/exams/exam_form_screen.dart';
 import '../features/exams/exams_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
+import '../features/plan/plan_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/recovery/recovery_screen.dart';
 import '../features/results/analytics_screen.dart';
@@ -40,6 +41,7 @@ abstract final class Routes {
   static const String about = '/settings/about';
   static const String privacy = '/settings/privacy';
   static const String profile = '/profile';
+  static const String plan = '/plan';
 
   static String exam(String id) => '/exams/$id';
   static String editExam(String id) => '/exam-editor/$id';
@@ -153,6 +155,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Full-screen editors (no bottom navigation). Each has its own
       // ScaffoldMessenger so its messages never leak onto other screens;
       // results the user should see after closing are shown by the caller.
+      GoRoute(
+        path: Routes.plan,
+        parentNavigatorKey: rootKey,
+        builder: (_, _) => const ScaffoldMessenger(child: PlanScreen()),
+      ),
       GoRoute(
         path: Routes.profile,
         parentNavigatorKey: rootKey,

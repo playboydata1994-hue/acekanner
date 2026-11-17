@@ -662,7 +662,7 @@ packages:
     source: hosted
     version: "3.3.1"
   in_app_purchase_android:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: in_app_purchase_android
       sha256: b76ab601573f8a848e72d015496257235066ba3479bef6300482239f417e0d72
@@ -1299,7 +1299,7 @@ packages:
     source: hosted
     version: "1.4.0"
   url_launcher:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: url_launcher
       sha256: e8cc955c97e06df9879140a1fe301f3d493f01b7c62dec7f46834be31d7e9fda

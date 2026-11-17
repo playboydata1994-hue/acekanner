@@ -5,6 +5,60 @@ and the next step.
 
 ---
 
+## 2026-11-17 · Phase 6: licensing, Google sign-in and Play billing (code complete; awaiting accounts)
+
+### What was built
+**Server** (`supabase/`, no student data)
+- SQL migration: accounts, phones, hashed scan charges, Play subscriptions, deletion
+  tombstones. Row Level Security on with no client access; only the service role may
+  call the `license_*` functions.
+- Free allowance of 100 lifetime scans, leased to one phone at a time. Charges are
+  idempotent per paper. A forged "premium" charge is counted as free. Deleting and
+  re-creating an account never restores free scans (hashed tombstone).
+- `license` Edge Function: check-in (upload scan hashes, refresh the plan, Ed25519-signed
+  token), purchase verification with Google (`subscriptionsv2`, acknowledgement,
+  account binding, replay protection), account deletion.
+- `play-rtdn` Edge Function: renewals, cancellations, holds, refunds and revocations from
+  Google, accepted only with a Google-signed OIDC token for this endpoint.
+
+**App**
+- Build-time configuration (public values only). Builds without it are test builds:
+  100 scans counted on the phone, no sign-in, never Premium.
+- Google sign-in → Supabase session, stored in the Android Keystore-backed store.
+- Entitlement verification (Ed25519, bound to account and phone), 30-day offline window
+  with a 7-day warning, clock-rollback detection.
+- Scan charging inside the paper-save transaction: one charge per student per exam
+  (re-scans free); refused charges save nothing. Hash-chained, HMAC-signed ledger.
+- Play Billing: purchase tied to the account, pending payments, server verification
+  before Premium, `completePurchase` only after the server confirms, restore, manage
+  subscription, delete account.
+- Screens: Plan and account (sign-in, plan, check now, Premium, restore, manage, delete
+  account), plan card on Home, Settings entry, "why can't I scan" dialog before scanning
+  and on save.
+- Release signing with an upload key (kept outside the repository).
+
+### Verification
+| Check | Result |
+|---|---|
+| SQL tests (PostgreSQL 16) | **34 / 34 checks passed** (lease, idempotency, forged premium, ownership, refunds, tombstone, no client access) |
+| Deno tests | **32 / 32 passed** (tokens, Google auth, Play rules, OIDC, both handlers, SQL signature consistency, app test vectors); `deno check` and `deno lint` clean |
+| `flutter analyze` | No issues |
+| `flutter test` | **188 / 188 passed** (43 new: verifier with server vectors, plan rules, charging and rollback, ledger tamper checks, check-in batching, purchase flow incl. "Play success alone never unlocks Premium", Plan screen flows) |
+
+### Bug found by the new tests
+- The purchase listener started before the database opened and would have crashed
+  configured builds at launch. It now starts after startup.
+
+### Not verified yet (needs the owner's accounts)
+- Deployment to Supabase, real Google sign-in, real Play purchases (license testers),
+  real RTDN delivery. See `docs/PHASE6_SETUP.md`.
+
+### Next step
+Owner completes Parts 1–3 of the setup guide → I deploy the server, build a configured
+bundle → internal testing purchase test → Phase 7.
+
+---
+
 ## 2026-11-16 · Answer sheet design 3: back to circles
 
 Requested: "make it circle". The ovals of 0.5.1 were replaced by circles. Everything

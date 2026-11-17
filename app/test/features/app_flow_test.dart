@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:acekanner/data/db/app_database.dart';
 import 'package:acekanner/data/settings/settings_repository.dart';
 
@@ -53,8 +54,12 @@ void main() {
     await pumpApp(tester, db);
     await tapTab(tester, 'Settings');
     expect(find.text('Profile and school'), findsOneWidget);
+    expect(find.text('Plan and account'), findsOneWidget);
+    expect(find.text('Free plan · 100 of 100 scans left'), findsOneWidget);
 
-    await tester.tap(find.text('About ACEkanner'));
+    final about = find.text('About ACEkanner');
+    await tester.scrollUntilVisible(about, 200, scrollable: find.byType(Scrollable).first);
+    await tester.tap(about);
     await tester.pumpAndSettle();
     expect(find.text('Not encrypted (development build)'), findsOneWidget);
     expect(find.textContaining('Android phones only'), findsOneWidget);

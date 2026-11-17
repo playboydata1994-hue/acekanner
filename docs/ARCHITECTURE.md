@@ -354,17 +354,16 @@ A pure Dart, deterministic function: `(answer key revision, student answers, rul
 
 ### 7.1 What counts as a scan
 
-One scan = one **finalized** student answer sheet for an examination. Nothing is consumed
-by camera failures, rejected or unreadable photos, cancelled reviews, or re-scans of a paper
-already finalized.
+One scan = one student paper **saved** after review. Nothing is consumed by camera
+failures, rejected or unreadable photos, cancelled reviews, or re-scans of a paper already
+saved.
 
-Each finalized paper gets a **submission key**:
-`SHA-256(examination_id ‖ examination_version ‖ student identity ‖ paper identity)`.
-Student identity is the student's UUID, or the decoded number if the student isn't in the
-roster. Paper identity is the personalized sheet code, or `generic`. `scan_ledger` has a
-UNIQUE constraint on the submission key, so re-scanning or re-finalizing the same paper
-replaces its result without a second charge. This happens inside the same transaction as
-the result save.
+*As built (Phase 6):* the charge key is the submission key
+`SHA-256("acekanner-submission|v1|" ‖ examination_id ‖ "|" ‖ student_id)`, so each student
+is charged once per examination however often the paper is re-scanned or re-graded. A
+paper saved without an identified student is charged per paper
+(`…|sheet:<sheet id>`). `scan_ledger` has a UNIQUE constraint on the key and the charge is
+written in the same transaction as the saved paper: a refused charge saves nothing.
 
 ### 7.2 Free plan (100 lifetime scans) across reinstalls
 
@@ -392,9 +391,9 @@ the result save.
 
 ### 7.3 Premium (PHP 399 / year)
 
-1. The app queries `acekanner_premium_yearly` through Play Billing and launches the
-   purchase with `obfuscatedAccountId = HMAC(account id)`. This ties the purchase token
-   to the signed-in account.
+1. The app queries `acekanner_premium_yearly` (base plan `yearly`) through Play Billing and
+   launches the purchase with `obfuscatedAccountId = SHA-256("acekanner-account|v1|" ‖ account
+   id)`. This ties the purchase token to the signed-in account.
 2. The purchase update stream returns a purchase token. The app sends it to
    `verify-purchase` with the user's Supabase session.
 3. The server calls `purchases.subscriptionsv2.get` with a Google service account (kept
@@ -405,9 +404,10 @@ the result save.
 4. Only then does the app unlock unlimited scanning and call `completePurchase`.
 5. **Pending purchases** show "Payment pending" and grant nothing until Play confirms.
 6. **Renewal, cancellation, expiry, grace period, account hold, refund and revocation**
-   arrive as Real-time Developer Notifications (Pub/Sub push to `play-rtdn`, OIDC-verified).
-   A daily job also checks the Voided Purchases API. The account's entitlement is updated,
-   and the next app check-in receives it.
+   arrive as Real-time Developer Notifications (Pub/Sub push to `play-rtdn`, OIDC-verified),
+   including voided-purchase notifications for refunds. Each check-in also re-checks
+   subscriptions with Google that were not checked for 6 hours or expire within a day, in
+   case a notification was missed. The next app check-in receives the result.
 7. **Restore purchases:** after sign-in, the server returns any Premium linked to the
    account. The app also re-submits tokens from `queryPastPurchases` for verification.
 
@@ -424,6 +424,29 @@ viewing, grading, regrading and exporting existing results always work.
 The app keeps a high-water mark of trusted time (server time from the last check-in,
 moved forward by device time and elapsed real time). If the device clock is set backwards
 past it, the offline window is treated as expired until the app reaches the server.
+
+### 7.6 As built (Phase 6)
+
+| Part | Where | Notes |
+|---|---|---|
+| Server schema and rules | `supabase/migrations/20261117000000_licensing.sql` | Tables `accounts`, `devices`, `scan_charges`, `play_subscriptions`, `account_tombstones`. RLS on, no client access; only the service role calls the `license_*` functions. |
+| `license` function | `supabase/functions/license` | `checkin` (upload scan hashes, refresh, signed token), `verify-purchase`, `delete-account`. Validates the user's session with Supabase Auth. |
+| `play-rtdn` function | `supabase/functions/play-rtdn` | Pub/Sub push; accepts only Google-signed OIDC tokens for its own URL and service account. |
+| Token | `_shared/jws.ts` → `lib/domain/licensing/entitlement.dart` | Ed25519 compact JWS, `typ: ACEK-ENT+JWS`, key ID for rotation. Test vectors shared by both sides. |
+| Phone | `lib/data/licensing/*` | Ledger (hash chain + HMAC, Keystore key), repository (verified token, trusted time), service (check-in, sign-in, purchase), billing controller. |
+
+- **Lease:** the free allowance is leased to one phone. Signing in on another phone moves it;
+  scans the old phone made offline are still uploaded and counted.
+- **Premium charges are checked:** a scan reported as `premium` counts as free unless the
+  account had a subscription around that time.
+- **Account deletion** removes the account, phones, scan counts and subscriptions. A
+  tombstone keeps only `SHA-256(Google account ID)` and the number of free scans used, so
+  deleting and re-creating an account never restores free scans.
+- **Offline:** both plans work offline for 30 days after the last check-in; then new scans
+  pause until the phone reaches the server (saved papers, grading and exports are never
+  blocked).
+- **Builds without licensing** (no `--dart-define-from-file`): 100 free scans counted on the
+  phone, no sign-in, never Premium. Used for development and early test builds.
 
 ---
 
