@@ -11,6 +11,7 @@ import '../../data/repositories/students_repository.dart';
 import '../../domain/roster_csv.dart';
 import '../../domain/roster_file.dart';
 import '../../domain/validators.dart';
+import '../classes/class_list_help.dart';
 
 /// Section name suggested from a file name: "BSIT_2-A list.xlsx" -> "BSIT 2-A list".
 String sectionNameFromFile(String fileName) {
@@ -96,45 +97,55 @@ class _ClassListUploadBoxState extends ConsumerState<ClassListUploadBox> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Semantics(
-      button: true,
-      label: 'Upload class list',
-      excludeSemantics: true,
-      child: Material(
-        color: scheme.surfaceContainerLow,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: scheme.outline, width: 1.2),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: _busy ? null : _pick,
-          child: Padding(
-            padding: const EdgeInsets.all(Space.l),
-            child: Row(
-              children: [
-                _busy
-                    ? const SizedBox.square(dimension: 32, child: CircularProgressIndicator(strokeWidth: 3))
-                    : Icon(Icons.upload_file_outlined, size: 32, color: scheme.primary),
-                const SizedBox(width: Space.l),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    return Material(
+      color: scheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: scheme.outline, width: 1.2),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Row(
+        children: [
+          Expanded(
+            child: Semantics(
+              button: true,
+              label: 'Upload class list',
+              excludeSemantics: true,
+              child: InkWell(
+                onTap: _busy ? null : _pick,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(Space.l, Space.l, 0, Space.l),
+                  child: Row(
                     children: [
-                      Text('Upload class list', style: theme.textTheme.titleMedium),
-                      const SizedBox(height: Space.xs),
-                      Text(
-                        'Names and student numbers from Excel (.xlsx) or CSV. The students are '
-                        'saved as a section and selected for this examination.',
-                        style: theme.textTheme.bodySmall,
+                      _busy
+                          ? const SizedBox.square(dimension: 32, child: CircularProgressIndicator(strokeWidth: 3))
+                          : Icon(Icons.upload_file_outlined, size: 32, color: scheme.primary),
+                      const SizedBox(width: Space.l),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Upload class list', style: theme.textTheme.titleMedium),
+                            const SizedBox(height: Space.xs),
+                            Text(
+                              'Names and student numbers from Excel (.xlsx) or CSV. The students are '
+                              'saved as a section and selected for this examination.',
+                              style: theme.textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: Space.xs),
+            child: ClassListHelpButton(),
+          ),
+        ],
       ),
     );
   }

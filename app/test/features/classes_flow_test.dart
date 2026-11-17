@@ -46,6 +46,20 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('already in this section'), findsOneWidget);
     expect(await db.select(db.students).get(), hasLength(1));
+
+    // Import screen: "?" and "See a sample class list" show the sample.
+    await tester.scrollUntilVisible(find.text('Import class list (Excel or CSV)'), 200, scrollable: find.byType(Scrollable).first);
+    await tester.tap(find.text('Import class list (Excel or CSV)'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('See a sample class list'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sample class list'), findsOneWidget);
+    expect(find.text('Or one Name column'), findsOneWidget);
+    await tester.tapAt(const Offset(20, 20)); // close the sheet
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Sample class list'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sample class list'), findsWidgets);
     await disposeApp(tester);
   });
 

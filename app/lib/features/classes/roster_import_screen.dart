@@ -10,6 +10,7 @@ import '../../core/widgets/feedback.dart';
 import '../../core/widgets/section_header.dart';
 import '../../domain/roster_csv.dart';
 import '../../domain/roster_file.dart';
+import 'class_list_help.dart';
 
 /// Imports a class list from an Excel (.xlsx) or CSV file into a section.
 class RosterImportScreen extends ConsumerStatefulWidget {
@@ -73,7 +74,10 @@ class _RosterImportScreenState extends ConsumerState<RosterImportScreen> {
     final section = ref.watch(sectionProvider(widget.sectionId)).value;
     final result = _result;
     return Scaffold(
-      appBar: AppBar(title: Text('Import into ${section?.section.name ?? 'section'}')),
+      appBar: AppBar(
+        title: Text('Import into ${section?.section.name ?? 'section'}'),
+        actions: const [ClassListHelpButton()],
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(Space.page, Space.s, Space.page, Space.xxl),
         children: [
@@ -96,6 +100,14 @@ class _RosterImportScreenState extends ConsumerState<RosterImportScreen> {
                     'Excel (.xlsx) files can be chosen directly. From Google Sheets: '
                     'File › Download › Microsoft Excel (.xlsx) or CSV.',
                     style: theme.textTheme.bodySmall,
+                  ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () => showClassListHelp(context),
+                      icon: const Icon(Icons.table_chart_outlined, size: 18),
+                      label: const Text('See a sample class list'),
+                    ),
                   ),
                 ],
               ),

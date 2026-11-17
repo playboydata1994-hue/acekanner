@@ -253,6 +253,7 @@ class _ExamFormScreenState extends ConsumerState<ExamFormScreen> {
                       ),
                       const SizedBox(height: Space.l),
                       DropdownButtonFormField<int>(
+                        isExpanded: true,
                         initialValue: _idDigits,
                         decoration: InputDecoration(
                           labelText: 'Student-number digits on the sheet',
@@ -329,6 +330,7 @@ class _ExamFormScreenState extends ConsumerState<ExamFormScreen> {
                       ],
                       const SizedBox(height: Space.m),
                       DropdownButtonFormField<String>(
+                        isExpanded: true,
                         initialValue: _multiplePolicy,
                         decoration: const InputDecoration(labelText: 'Two or more shaded answers'),
                         items: const [

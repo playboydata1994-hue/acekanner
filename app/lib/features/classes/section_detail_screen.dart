@@ -97,7 +97,7 @@ class SectionDetailScreen extends ConsumerWidget {
               if (summary != null && context.mounted) showMessage(context, summary);
             },
             icon: const Icon(Icons.upload_file_outlined),
-            label: const Text('Import class list (CSV)'),
+            label: const Text('Import class list (Excel or CSV)'),
           ),
           SectionHeader(
             switch (roster) {

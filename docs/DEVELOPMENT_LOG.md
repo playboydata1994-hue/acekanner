@@ -5,6 +5,20 @@ and the next step.
 
 ---
 
+## 2026-11-17 · Revision: "?" sample class list (0.6.7)
+
+- A **"?"** button on the examination form's class-list upload box, and in Classes → Import
+  (app bar "?" and a "See a sample class list" link), opens **Sample class list**: a small
+  spreadsheet picture (column letters, row numbers, header row) with Student No, Last Name,
+  First Name, Middle Name; which columns are required/optional; the one-"Name"-column
+  alternative; tips (save as .xlsx/CSV, title row allowed, type numbers as on the ID, bad rows
+  are listed before saving).
+- The sample rows are real data: a test imports them with the app's own reader and checks
+  every student comes out exactly as shown.
+- Small fixes: the section screen button now says "Import class list (Excel or CSV)"; the exam
+  form's dropdowns shorten long text instead of overflowing on narrow screens / large text.
+- Verification: sample-import tests, exam-form and Import-screen widget tests; 233/233 pass.
+
 ## 2026-11-17 · Revision: save a paper without a student, assign later (0.6.6)
 
 - **Scan check:** the student is no longer required. With no student the button reads

@@ -21,6 +21,24 @@ void main() {
     expect(find.text('Not set · tap to choose'), findsOneWidget);
     expect(find.text('Upload class list'), findsOneWidget);
 
+    // "?" next to it shows a sample class list.
+    await tester.scrollUntilVisible(find.byTooltip('Sample class list'), 100, scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Sample class list'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sample class list'), findsWidgets);
+    expect(find.bySemanticsLabel(RegExp('Sample spreadsheet: Student No, Last Name, First Name, Middle Name; 2021-00123, Dela Cruz')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Got it'),
+      200,
+      scrollable: find.descendant(of: find.byType(DraggableScrollableSheet), matching: find.byType(Scrollable)).first,
+    );
+    await tester.tap(find.text('Got it'));
+    await tester.pumpAndSettle();
+    expect(find.text('Got it'), findsNothing);
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, 3000));
+    await tester.pumpAndSettle();
+
     // Saving without a title shows the validation message.
     await tester.tap(find.widgetWithText(TextButton, 'Save'));
     await tester.pumpAndSettle();
