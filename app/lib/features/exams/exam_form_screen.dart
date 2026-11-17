@@ -240,6 +240,7 @@ class _ExamFormScreenState extends ConsumerState<ExamFormScreen> {
                           ButtonSegment(value: 2, label: Text('A–B')),
                           ButtonSegment(value: 3, label: Text('A–C')),
                           ButtonSegment(value: 4, label: Text('A–D')),
+                          ButtonSegment(value: 5, label: Text('A–E')),
                         ],
                         selected: {_sets},
                         showSelectedIcon: false,

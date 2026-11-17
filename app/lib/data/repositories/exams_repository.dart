@@ -12,7 +12,7 @@ import '../live_query.dart';
 import 'grading_repository.dart';
 
 /// Version (set) labels in order.
-const List<String> versionLabels = ['A', 'B', 'C', 'D'];
+const List<String> versionLabels = ['A', 'B', 'C', 'D', 'E'];
 
 abstract final class ExamStatus {
   static const String draft = 'draft';

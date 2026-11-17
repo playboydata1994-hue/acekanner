@@ -37,7 +37,7 @@ class PrintedSheetTest {
         Fixture("a4-ack3-50-d10-s1", "ack3-50-d10-s1", 210.0, 297.0),
         // These two carry the sample school logo beside the top-left marker.
         Fixture("letter-ack3-75-d9-s2", "ack3-75-d9-s2", 215.9, 279.4),
-        Fixture("long-ack3-100-d12-s4", "ack3-100-d12-s4", 215.9, 330.2),
+        Fixture("long-ack3-100-d12-s5", "ack3-100-d12-s5", 215.9, 330.2),
     )
 
     @Test

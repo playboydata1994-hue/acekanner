@@ -5,6 +5,16 @@ and the next step.
 
 ---
 
+## 2026-11-17 · Revisions round 3 (0.6.3)
+
+- **Exam sets A–E:** a fifth set. Database schema v3 (`examination_versions.label` allows
+  E); existing data migrates automatically (table rebuild, references kept).
+- **Answer sheet:** a 5-set SET row starts further left so it fits under the QR code;
+  sheets with 2–4 sets are unchanged, so sheets already printed still scan.
+- Verification: migration tests (v2→v3 with sets, keys and references; all paths), SQL
+  upgrade chain test, geometry with 5 sets × 12 digits, engine suite on the 5-set
+  layout (0 misread; every set read) plus an explicit A–E set test; 211/211 app tests.
+
 ## 2026-11-17 · Revisions round 2 (0.6.2)
 
 - **Examination date optional:** a new examination starts with no date ("Examination

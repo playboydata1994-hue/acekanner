@@ -40,7 +40,7 @@ private class Tally {
 
 class EngineAccuracyTest {
     private lateinit var renderer: SheetRenderer
-    private val layouts = listOf("ack3-50-d10-s1", "ack3-75-d9-s2", "ack3-100-d12-s4")
+    private val layouts = listOf("ack3-50-d10-s1", "ack3-75-d9-s2", "ack3-100-d12-s5")
 
     @BeforeTest
     fun setUp() {
@@ -207,6 +207,23 @@ class EngineAccuracyTest {
         })
         assertEquals(0, t.silentErrors, t.errors.joinToString("\n"))
         assertTrue(t.flagged <= t.questions * 0.02, "flag rate too high: $t")
+    }
+
+    @Test
+    fun `every set of a five-set sheet is read, including E`() {
+        val layout = loadLayout("ack3-100-d12-s5")
+        val engine = OmrEngine()
+        for (set in 0 until 5) {
+            val rnd = Random(500 + set)
+            val (spec, _) = randomSheet(layout, rnd)
+            val page = renderer.render(SheetSpec(layout, spec.marks, spec.studentNumber, set, spec.qrText), rnd)
+            val photo = PhotoSimulator.photograph(page, PhotoParams(rotationDeg = rnd.nextDouble(-8.0, 8.0), tilt = 0.02, blurSigma = 0.9), rnd)
+            val result = engine.analyze(photo, layout)
+            check(result is OmrOutcome.Success) { "set ${'A' + set}: ${result.toJson()}" }
+            assertEquals(MarkState.ANSWERED, result.set!!.state, "set ${'A' + set}")
+            assertEquals(1 shl set, result.set.mask, "set ${'A' + set}")
+            page.release(); photo.release()
+        }
     }
 
     @Test

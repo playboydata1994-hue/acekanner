@@ -19,7 +19,7 @@ class BlurCalibrationTest {
         loadOpenCv()
         val renderer = SheetRenderer()
         val engine = OmrEngine(OmrThresholds.STANDARD.copy(maxEdgeWidthMm = 99.0))
-        val layout = loadLayout("ack3-100-d12-s4")
+        val layout = loadLayout("ack3-100-d12-s5")
         println("CAL sigma fill edgeMm answered flagged wrong")
         for (fill in listOf(0.6, 0.85)) {
             for (sigma in listOf(0.6, 1.2, 1.8, 2.4, 3.0, 4.0, 5.0, 6.0)) {

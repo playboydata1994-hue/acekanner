@@ -102,7 +102,7 @@ void main() {
     final fixtures = {
       'a4-ack3-50-d10-s1': (SheetLayout(itemCount: 50), PaperSize.a4, header),
       'letter-ack3-75-d9-s2': (SheetLayout(itemCount: 75, idDigits: 9, setCount: 2), PaperSize.letter, withLogo()),
-      'long-ack3-100-d12-s4': (SheetLayout(itemCount: 100, idDigits: 12, setCount: 4), PaperSize.long, withLogo()),
+      'long-ack3-100-d12-s5': (SheetLayout(itemCount: 100, idDigits: 12, setCount: 5), PaperSize.long, withLogo()),
     };
     for (final MapEntry(:key, value: (layout, paper, h)) in fixtures.entries) {
       final pdf = await AnswerSheetPdf.build(layout: layout, header: h, paper: paper, fonts: fonts);

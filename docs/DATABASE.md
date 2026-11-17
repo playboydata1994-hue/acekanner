@@ -8,7 +8,7 @@
 | Journal | WAL, `synchronous = FULL`: committed data survives app kills and power loss |
 | Schema version | 1 |
 | Source of truth | [`app/lib/data/db/schema/acekanner.drift`](../app/lib/data/db/schema/acekanner.drift) |
-| SQL schema | [`docs/sql/v2_schema.sql`](sql/v2_schema.sql) (generated; a test keeps it identical to the app). Upgrade from v1: [`docs/sql/v2_from_v1.sql`](sql/v2_from_v1.sql) |
+| SQL schema | [`docs/sql/v3_schema.sql`](sql/v3_schema.sql) (generated; a test keeps it identical to the app). Upgrades: [`v2_from_v1.sql`](sql/v2_from_v1.sql), [`v3_from_v2.sql`](sql/v3_from_v2.sql) |
 | Schema snapshot | `app/drift_schemas/app_database/drift_schema_v1.json` (for migration tests) |
 
 ## Conventions
@@ -212,7 +212,7 @@ History of local exports, cloud uploads (opt-in) and restores: `status`, `size_b
 5. Run the generated migration tests. They open a database at every older version and
    verify the upgrade preserves data.
 
-History: **v1** initial schema; **v2** (app 0.6.1) `instructor_profiles.full_name` optional.
+History: **v1** initial schema; **v2** (app 0.6.1) `instructor_profiles.full_name` optional; **v3** (app 0.6.3) exam set E allowed in `examination_versions.label`.
 
 The app refuses to open a database from an unknown older version rather than guess.
 There's no silent data loss.
@@ -230,5 +230,5 @@ There's no silent data loss.
 - Audit log can't be updated or deleted.
 - Deleting an examination removes all of its scan data in one statement.
 - Dashboard queries count correctly.
-- `docs/sql/v2_schema.sql` produces exactly the app's schema, and `v1_schema.sql` + `v2_from_v1.sql` upgrades to it without losing rows.
-- The v1 → v2 app migration keeps every profile row (`test/drift/app_database/migration_test.dart`).
+- `docs/sql/v3_schema.sql` produces exactly the app's schema, and `v1_schema.sql` + the upgrade scripts reach it without losing rows.
+- The app migrations keep every row (`test/drift/app_database/migration_test.dart`: v1→v2 profiles, v2→v3 sets, keys and references).

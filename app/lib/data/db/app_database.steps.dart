@@ -2328,8 +2328,621 @@ i1.GeneratedColumn<int> _column_144(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: '',
     );
+
+final class Schema3 extends i0.VersionedSchema {
+  Schema3({required super.database}) : super(version: 3);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    instructorProfiles,
+    subjects,
+    subjectsCodeActive,
+    courses,
+    coursesCodeActive,
+    sections,
+    sectionsCourse,
+    sectionsNameTermActive,
+    students,
+    studentsNoKeyActive,
+    studentsName,
+    sectionStudents,
+    sectionStudentsStudent,
+    examinations,
+    examinationsSubject,
+    examinationsRecent,
+    examinationSections,
+    examinationSectionsSection,
+    examinationVersions,
+    answerKeys,
+    answerKeysOneCurrent,
+    answerKeyItems,
+    printedSheets,
+    printedSheetsExam,
+    printedSheetsStudent,
+    scanSessions,
+    scanSessionsExam,
+    answerSheets,
+    answerSheetsOneFinal,
+    answerSheetsExamStatus,
+    answerSheetsStudent,
+    studentAnswers,
+    examinationResults,
+    examinationResultsOneCurrent,
+    examinationResultsKey,
+    subscriptionEntitlements,
+    subscriptionEntitlementsOneCurrent,
+    scanLedger,
+    scanLedgerUnsynced,
+    scanLedgerNoDelete,
+    scanLedgerImmutable,
+    auditLogs,
+    auditLogsExam,
+    auditLogsEntity,
+    auditLogsNoDelete,
+    auditLogsNoUpdate,
+    applicationSettings,
+    backupRecords,
+    backupRecordsStarted,
+  ];
+  late final Shape0 instructorProfiles = Shape0(
+    source: i0.VersionedTable(
+      entityName: 'instructor_profiles',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_3,
+        _column_4,
+        _column_5,
+        _column_6,
+        _column_7,
+        _column_8,
+        _column_9,
+        _column_10,
+        _column_11,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape1 subjects = Shape1(
+    source: i0.VersionedTable(
+      entityName: 'subjects',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_0,
+        _column_12,
+        _column_13,
+        _column_14,
+        _column_15,
+        _column_9,
+        _column_10,
+        _column_11,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index subjectsCodeActive = i1.Index(
+    'subjects_code_active',
+    'CREATE UNIQUE INDEX subjects_code_active ON subjects (code COLLATE NOCASE) WHERE deleted_at IS NULL',
+  );
+  late final Shape2 courses = Shape2(
+    source: i0.VersionedTable(
+      entityName: 'courses',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_0,
+        _column_12,
+        _column_16,
+        _column_9,
+        _column_10,
+        _column_11,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index coursesCodeActive = i1.Index(
+    'courses_code_active',
+    'CREATE UNIQUE INDEX courses_code_active ON courses (code COLLATE NOCASE) WHERE deleted_at IS NULL',
+  );
+  late final Shape3 sections = Shape3(
+    source: i0.VersionedTable(
+      entityName: 'sections',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_0,
+        _column_17,
+        _column_18,
+        _column_19,
+        _column_20,
+        _column_21,
+        _column_9,
+        _column_10,
+        _column_11,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index sectionsCourse = i1.Index(
+    'sections_course',
+    'CREATE INDEX sections_course ON sections (course_id)',
+  );
+  final i1.Index sectionsNameTermActive = i1.Index(
+    'sections_name_term_active',
+    'CREATE UNIQUE INDEX sections_name_term_active ON sections (name COLLATE NOCASE, ifnull(school_year, \'\'), ifnull(term, \'\')) WHERE deleted_at IS NULL',
+  );
+  late final Shape4 students = Shape4(
+    source: i0.VersionedTable(
+      entityName: 'students',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_0,
+        _column_22,
+        _column_23,
+        _column_24,
+        _column_25,
+        _column_26,
+        _column_27,
+        _column_3,
+        _column_9,
+        _column_10,
+        _column_11,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index studentsNoKeyActive = i1.Index(
+    'students_no_key_active',
+    'CREATE UNIQUE INDEX students_no_key_active ON students (student_no_key) WHERE deleted_at IS NULL',
+  );
+  final i1.Index studentsName = i1.Index(
+    'students_name',
+    'CREATE INDEX students_name ON students (last_name COLLATE NOCASE, first_name COLLATE NOCASE)',
+  );
+  late final Shape5 sectionStudents = Shape5(
+    source: i0.VersionedTable(
+      entityName: 'section_students',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(section_id, student_id)'],
+      columns: [_column_28, _column_29, _column_30],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index sectionStudentsStudent = i1.Index(
+    'section_students_student',
+    'CREATE INDEX section_students_student ON section_students (student_id)',
+  );
+  late final Shape6 examinations = Shape6(
+    source: i0.VersionedTable(
+      entityName: 'examinations',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_0,
+        _column_31,
+        _column_13,
+        _column_32,
+        _column_33,
+        _column_34,
+        _column_35,
+        _column_36,
+        _column_37,
+        _column_38,
+        _column_39,
+        _column_40,
+        _column_41,
+        _column_42,
+        _column_43,
+        _column_9,
+        _column_10,
+        _column_11,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index examinationsSubject = i1.Index(
+    'examinations_subject',
+    'CREATE INDEX examinations_subject ON examinations (subject_id)',
+  );
+  final i1.Index examinationsRecent = i1.Index(
+    'examinations_recent',
+    'CREATE INDEX examinations_recent ON examinations (deleted_at, updated_at)',
+  );
+  late final Shape7 examinationSections = Shape7(
+    source: i0.VersionedTable(
+      entityName: 'examination_sections',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(examination_id, section_id)'],
+      columns: [_column_44, _column_45],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index examinationSectionsSection = i1.Index(
+    'examination_sections_section',
+    'CREATE INDEX examination_sections_section ON examination_sections (section_id)',
+  );
+  late final Shape8 examinationVersions = Shape8(
+    source: i0.VersionedTable(
+      entityName: 'examination_versions',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['UNIQUE(examination_id, label)'],
+      columns: [_column_0, _column_44, _column_145, _column_9],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape9 answerKeys = Shape9(
+    source: i0.VersionedTable(
+      entityName: 'answer_keys',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['UNIQUE(examination_version_id, revision)'],
+      columns: [
+        _column_0,
+        _column_47,
+        _column_48,
+        _column_49,
+        _column_50,
+        _column_9,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index answerKeysOneCurrent = i1.Index(
+    'answer_keys_one_current',
+    'CREATE UNIQUE INDEX answer_keys_one_current ON answer_keys (examination_version_id) WHERE is_current = 1',
+  );
+  late final Shape10 answerKeyItems = Shape10(
+    source: i0.VersionedTable(
+      entityName: 'answer_key_items',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(answer_key_id, question_no)'],
+      columns: [
+        _column_51,
+        _column_52,
+        _column_53,
+        _column_54,
+        _column_55,
+        _column_56,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape11 printedSheets = Shape11(
+    source: i0.VersionedTable(
+      entityName: 'printed_sheets',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_0,
+        _column_44,
+        _column_57,
+        _column_58,
+        _column_59,
+        _column_60,
+        _column_61,
+        _column_62,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index printedSheetsExam = i1.Index(
+    'printed_sheets_exam',
+    'CREATE INDEX printed_sheets_exam ON printed_sheets (examination_id)',
+  );
+  final i1.Index printedSheetsStudent = i1.Index(
+    'printed_sheets_student',
+    'CREATE INDEX printed_sheets_student ON printed_sheets (student_id)',
+  );
+  late final Shape12 scanSessions = Shape12(
+    source: i0.VersionedTable(
+      entityName: 'scan_sessions',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_0,
+        _column_44,
+        _column_63,
+        _column_64,
+        _column_65,
+        _column_66,
+        _column_67,
+        _column_68,
+        _column_69,
+        _column_70,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index scanSessionsExam = i1.Index(
+    'scan_sessions_exam',
+    'CREATE INDEX scan_sessions_exam ON scan_sessions (examination_id, started_at)',
+  );
+  late final Shape13 answerSheets = Shape13(
+    source: i0.VersionedTable(
+      entityName: 'answer_sheets',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'CHECK(status <> \'finalized\' OR(submission_key IS NOT NULL AND finalized_at IS NOT NULL))',
+      ],
+      columns: [
+        _column_0,
+        _column_44,
+        _column_57,
+        _column_71,
+        _column_72,
+        _column_58,
+        _column_73,
+        _column_74,
+        _column_75,
+        _column_76,
+        _column_77,
+        _column_78,
+        _column_79,
+        _column_80,
+        _column_81,
+        _column_82,
+        _column_83,
+        _column_10,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index answerSheetsOneFinal = i1.Index(
+    'answer_sheets_one_final',
+    'CREATE UNIQUE INDEX answer_sheets_one_final ON answer_sheets (submission_key) WHERE status = \'finalized\'',
+  );
+  final i1.Index answerSheetsExamStatus = i1.Index(
+    'answer_sheets_exam_status',
+    'CREATE INDEX answer_sheets_exam_status ON answer_sheets (examination_id, status)',
+  );
+  final i1.Index answerSheetsStudent = i1.Index(
+    'answer_sheets_student',
+    'CREATE INDEX answer_sheets_student ON answer_sheets (student_id)',
+  );
+  late final Shape14 studentAnswers = Shape14(
+    source: i0.VersionedTable(
+      entityName: 'student_answers',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(answer_sheet_id, question_no)'],
+      columns: [
+        _column_84,
+        _column_52,
+        _column_85,
+        _column_86,
+        _column_87,
+        _column_88,
+        _column_89,
+        _column_90,
+        _column_91,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape15 examinationResults = Shape15(
+    source: i0.VersionedTable(
+      entityName: 'examination_results',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['UNIQUE(answer_sheet_id, answer_key_id)'],
+      columns: [
+        _column_0,
+        _column_84,
+        _column_92,
+        _column_93,
+        _column_94,
+        _column_95,
+        _column_96,
+        _column_97,
+        _column_98,
+        _column_99,
+        _column_100,
+        _column_49,
+        _column_101,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index examinationResultsOneCurrent = i1.Index(
+    'examination_results_one_current',
+    'CREATE UNIQUE INDEX examination_results_one_current ON examination_results (answer_sheet_id) WHERE is_current = 1',
+  );
+  final i1.Index examinationResultsKey = i1.Index(
+    'examination_results_key',
+    'CREATE INDEX examination_results_key ON examination_results (answer_key_id)',
+  );
+  late final Shape16 subscriptionEntitlements = Shape16(
+    source: i0.VersionedTable(
+      entityName: 'subscription_entitlements',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_0,
+        _column_102,
+        _column_103,
+        _column_104,
+        _column_105,
+        _column_106,
+        _column_107,
+        _column_108,
+        _column_109,
+        _column_110,
+        _column_111,
+        _column_112,
+        _column_113,
+        _column_49,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index subscriptionEntitlementsOneCurrent = i1.Index(
+    'subscription_entitlements_one_current',
+    'CREATE UNIQUE INDEX subscription_entitlements_one_current ON subscription_entitlements (is_current) WHERE is_current = 1',
+  );
+  late final Shape17 scanLedger = Shape17(
+    source: i0.VersionedTable(
+      entityName: 'scan_ledger',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_114,
+        _column_115,
+        _column_116,
+        _column_117,
+        _column_118,
+        _column_104,
+        _column_119,
+        _column_120,
+        _column_121,
+        _column_122,
+        _column_123,
+        _column_124,
+        _column_125,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index scanLedgerUnsynced = i1.Index(
+    'scan_ledger_unsynced',
+    'CREATE INDEX scan_ledger_unsynced ON scan_ledger (synced_at, seq)',
+  );
+  final i1.Trigger scanLedgerNoDelete = i1.Trigger(
+    'CREATE TRIGGER scan_ledger_no_delete BEFORE DELETE ON scan_ledger BEGIN SELECT RAISE (ABORT, \'scan_ledger is append-only\');END',
+    'scan_ledger_no_delete',
+  );
+  final i1.Trigger scanLedgerImmutable = i1.Trigger(
+    'CREATE TRIGGER scan_ledger_immutable BEFORE UPDATE ON scan_ledger WHEN NEW.seq IS NOT OLD.seq OR NEW.id IS NOT OLD.id OR NEW.account_id IS NOT OLD.account_id OR NEW.submission_key IS NOT OLD.submission_key OR NEW.tier IS NOT OLD.tier OR NEW.entitlement_token_id IS NOT OLD.entitlement_token_id OR NEW.consumed_at IS NOT OLD.consumed_at OR NEW.prev_hash IS NOT OLD.prev_hash OR NEW.entry_hash IS NOT OLD.entry_hash OR NEW.mac IS NOT OLD.mac OR(NEW.answer_sheet_id IS NOT OLD.answer_sheet_id AND NEW.answer_sheet_id IS NOT NULL)OR(OLD.synced_at IS NOT NULL AND NEW.synced_at IS NOT OLD.synced_at)OR(OLD.server_receipt IS NOT NULL AND NEW.server_receipt IS NOT OLD.server_receipt)BEGIN SELECT RAISE (ABORT, \'scan_ledger rows are immutable\');END',
+    'scan_ledger_immutable',
+  );
+  late final Shape18 auditLogs = Shape18(
+    source: i0.VersionedTable(
+      entityName: 'audit_logs',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_114,
+        _column_115,
+        _column_126,
+        _column_127,
+        _column_128,
+        _column_129,
+        _column_130,
+        _column_131,
+        _column_132,
+        _column_121,
+        _column_122,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index auditLogsExam = i1.Index(
+    'audit_logs_exam',
+    'CREATE INDEX audit_logs_exam ON audit_logs (examination_id, seq)',
+  );
+  final i1.Index auditLogsEntity = i1.Index(
+    'audit_logs_entity',
+    'CREATE INDEX audit_logs_entity ON audit_logs (entity_type, entity_id)',
+  );
+  final i1.Trigger auditLogsNoDelete = i1.Trigger(
+    'CREATE TRIGGER audit_logs_no_delete BEFORE DELETE ON audit_logs BEGIN SELECT RAISE (ABORT, \'audit_logs is append-only\');END',
+    'audit_logs_no_delete',
+  );
+  final i1.Trigger auditLogsNoUpdate = i1.Trigger(
+    'CREATE TRIGGER audit_logs_no_update BEFORE UPDATE ON audit_logs BEGIN SELECT RAISE (ABORT, \'audit_logs is append-only\');END',
+    'audit_logs_no_update',
+  );
+  late final Shape19 applicationSettings = Shape19(
+    source: i0.VersionedTable(
+      entityName: 'application_settings',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [_column_133, _column_134, _column_10],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape20 backupRecords = Shape20(
+    source: i0.VersionedTable(
+      entityName: 'backup_records',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_0,
+        _column_135,
+        _column_136,
+        _column_137,
+        _column_138,
+        _column_139,
+        _column_140,
+        _column_141,
+        _column_142,
+        _column_143,
+        _column_64,
+        _column_144,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index backupRecordsStarted = i1.Index(
+    'backup_records_started',
+    'CREATE INDEX backup_records_started ON backup_records (started_at)',
+  );
+}
+
+i1.GeneratedColumn<String> _column_145(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'label',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints:
+          'NOT NULL CHECK (label IN (\'A\', \'B\', \'C\', \'D\', \'E\'))',
+    );
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
+  required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -2338,6 +2951,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from1To2(migrator, schema);
         return 2;
+      case 2:
+        final schema = Schema3(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from2To3(migrator, schema);
+        return 3;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -2346,6 +2964,7 @@ i0.MigrationStepWithVersion migrationSteps({
 
 i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
+  required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
 }) => i0.VersionedSchema.stepByStepHelper(
-  step: migrationSteps(from1To2: from1To2),
+  step: migrationSteps(from1To2: from1To2, from2To3: from2To3),
 );

@@ -25,7 +25,7 @@ class ExamStatusPill extends StatelessWidget {
 
 String formatExamDate(DateTime? date) => date == null ? 'No date' : DateFormat('d MMM y').format(date);
 
-/// "A", "A–B", "A–C", "A–D".
+/// "Set A", "Sets A–B" … "Sets A–E".
 String setsLabel(int count) => count <= 1 ? 'Set A' : 'Sets A–${versionLabels[count - 1]}';
 
 /// One line summary for lists.

@@ -22,7 +22,7 @@ import org.opencv.imgproc.Imgproc
 class RejectionTest {
     private lateinit var renderer: SheetRenderer
     private val layout50 by lazy { loadLayout("ack3-50-d10-s1") }
-    private val layout100 by lazy { loadLayout("ack3-100-d12-s4") }
+    private val layout100 by lazy { loadLayout("ack3-100-d12-s5") }
 
     @BeforeTest
     fun setUp() {

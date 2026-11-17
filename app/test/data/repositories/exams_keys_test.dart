@@ -62,9 +62,19 @@ void main() {
     expect(() => exams.create(const ExamInput(title: ' ', itemCount: 50)), throwsA(isA<DataException>()));
     expect(() => exams.create(const ExamInput(title: 'X', itemCount: 60)), throwsA(isA<DataException>()));
     expect(
-      () => exams.create(const ExamInput(title: 'X', itemCount: 50, versionCount: 5)),
+      () => exams.create(const ExamInput(title: 'X', itemCount: 50, versionCount: 6)),
       throwsA(isA<DataException>()),
     );
+  });
+
+  test('an examination can have five sets, A to E', () async {
+    final id = await exams.create(const ExamInput(title: 'Finals', itemCount: 100, versionCount: 5));
+    final detail = (await exams.loadDetail(id))!;
+    expect(detail.versions.map((v) => v.version.label), ['A', 'B', 'C', 'D', 'E']);
+    // Growing from 2 sets to 5 adds C, D and E.
+    final other = await createExam(items: 50, sets: 2);
+    await exams.update(other, const ExamInput(title: 'Midterm', itemCount: 50, versionCount: 5));
+    expect((await exams.loadDetail(other))!.versions.map((v) => v.version.label), ['A', 'B', 'C', 'D', 'E']);
   });
 
   test('item count and sets can change until sheets exist, then they lock', () async {

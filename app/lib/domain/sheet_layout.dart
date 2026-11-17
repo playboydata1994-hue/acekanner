@@ -107,7 +107,7 @@ class SheetLayout {
   /// Builds the layout for an examination.
   factory SheetLayout({required int itemCount, int idDigits = 10, int setCount = 1}) {
     if (idDigits < 4 || idDigits > 12) throw ArgumentError('idDigits must be 4–12');
-    if (setCount < 1 || setCount > 4) throw ArgumentError('setCount must be 1–4');
+    if (setCount < 1 || setCount > 5) throw ArgumentError('setCount must be 1–5');
     final ids = ArucoMarkers.idsFor(itemCount);
 
     // Answer columns of 25 rows, centred horizontally.
@@ -135,7 +135,7 @@ class SheetLayout {
 
     final setBubbles = setCount == 1
         ? const <Mm>[]
-        : [for (var i = 0; i < setCount; i++) Mm(setFirstX + i * choicePitch, setY)];
+        : [for (var i = 0; i < setCount; i++) Mm(setRowStartX(setCount) + i * choicePitch, setY)];
 
     return SheetLayout._(
       itemCount: itemCount,
@@ -191,7 +191,14 @@ class SheetLayout {
 
   static const MmRect qr = MmRect(163, 16, 25, 25);
   static const double setFirstX = 165.3;
+
+  /// Five sets do not fit beside the QR code, so their row starts further
+  /// left (still clear of a 12-digit student-number grid). Rows of 2–4 sets
+  /// keep their original position, so sheets already printed still read.
+  static const double setFirstX5 = 159.5;
   static const double setY = 51.5;
+
+  static double setRowStartX(int setCount) => setCount == 5 ? setFirstX5 : setFirstX;
 
   /// Bottom of the header area (a rule is printed here).
   static const double headerBottom = 72;
@@ -211,7 +218,7 @@ class SheetLayout {
   /// idColumns[column][digit], digit = 0..9.
   final List<List<Mm>> idColumns;
 
-  /// Set A–D bubbles; empty when the examination has a single set.
+  /// Set A–E bubbles; empty when the examination has a single set.
   final List<Mm> setBubbles;
 
   String get templateId => 'ack$formatVersion-$itemCount';

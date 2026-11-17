@@ -15,7 +15,7 @@ class DiagnosticTest {
         val renderer = SheetRenderer()
         for (seedSheet in listOf(1, 3, 5)) {
             val rnd = Random(4 * 1000 + seedSheet)
-            val layout = loadLayout(listOf("ack3-50-d10-s1", "ack3-75-d9-s2", "ack3-100-d12-s4")[seedSheet % 3])
+            val layout = loadLayout(listOf("ack3-50-d10-s1", "ack3-75-d9-s2", "ack3-100-d12-s5")[seedSheet % 3])
             val marks = (0 until layout.itemCount).map { BubbleMark(it, rnd.nextInt(5), MarkStyle.PENCIL) }
             val page = renderer.render(SheetSpec(layout, marks, studentNumber = "1234"), rnd)
             val photo = PhotoSimulator.photograph(page, PhotoParams(rotationDeg = 180.0 + 5, tilt = 0.03, fill = 0.8, blurSigma = 0.7, width = 1080, height = 1920), rnd)

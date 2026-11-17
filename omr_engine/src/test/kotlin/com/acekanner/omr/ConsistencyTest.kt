@@ -35,7 +35,7 @@ class ConsistencyTest {
 
     @Test
     fun `layout fixtures parse and validate`() {
-        for (name in listOf("ack3-50-d10-s1", "ack3-75-d9-s2", "ack3-100-d12-s4")) {
+        for (name in listOf("ack3-50-d10-s1", "ack3-75-d9-s2", "ack3-100-d12-s5")) {
             val l = loadLayout(name)
             assertEquals(l.itemCount, l.questions.size)
             assertEquals(1520, l.widthPx)

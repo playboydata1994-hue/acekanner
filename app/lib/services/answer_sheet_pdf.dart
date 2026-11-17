@@ -270,7 +270,7 @@ abstract final class AnswerSheetPdf {
 
               // Set row.
               if (l.setBubbles.isNotEmpty) {
-                text('SET', SheetLayout.qr.left, 47.2, 6.5, bold, _muted);
+                text('SET', l.setBubbles.first.x - SheetLayout.bubbleRx, 47.2, 6.5, bold, _muted);
                 for (var i = 0; i < l.setBubbles.length; i++) {
                   bubble(l.setBubbles[i], SheetLayout.bubbleRx, SheetLayout.bubbleRy, letters[i], 5.5);
                 }

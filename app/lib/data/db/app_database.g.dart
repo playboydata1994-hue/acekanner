@@ -4491,7 +4491,7 @@ class ExaminationVersions extends Table
     type: DriftSqlType.string,
     requiredDuringInsert: true,
     $customConstraints:
-        'NOT NULL CHECK (label IN (\'A\', \'B\', \'C\', \'D\'))',
+        'NOT NULL CHECK (label IN (\'A\', \'B\', \'C\', \'D\', \'E\'))',
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -4597,6 +4597,8 @@ class ExaminationVersionRow extends DataClass
     implements Insertable<ExaminationVersionRow> {
   final String id;
   final String examinationId;
+
+  /// Set E since schema v3.
   final String label;
   final DateTime createdAt;
   const ExaminationVersionRow({

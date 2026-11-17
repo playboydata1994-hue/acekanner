@@ -113,7 +113,7 @@ CREATE TABLE section_students (
 CREATE INDEX section_students_student ON section_students (student_id);
 
 ------------------------------------------------------------------------------
--- 5-8. Examinations, versions (sets A-D), answer keys and key items
+-- 5-8. Examinations, versions (sets A-E), answer keys and key items
 ------------------------------------------------------------------------------
 CREATE TABLE examinations (
     id TEXT NOT NULL PRIMARY KEY,
@@ -157,7 +157,8 @@ CREATE INDEX examination_sections_section ON examination_sections (section_id);
 CREATE TABLE examination_versions (
     id TEXT NOT NULL PRIMARY KEY,
     examination_id TEXT NOT NULL REFERENCES examinations (id) ON DELETE CASCADE,
-    label TEXT NOT NULL CHECK (label IN ('A', 'B', 'C', 'D')),
+    -- Set E since schema v3.
+    label TEXT NOT NULL CHECK (label IN ('A', 'B', 'C', 'D', 'E')),
     created_at DATETIME NOT NULL,
     UNIQUE (examination_id, label)
 ) AS ExaminationVersionRow;

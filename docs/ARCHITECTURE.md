@@ -233,7 +233,7 @@ size.
 - **Student-number grid**: one column of bubbles 0–9 per digit. The number of columns
   follows the school's ID format (for example `####-#####` gives 9 columns; up to
   12 supported). Write-in boxes sit above each column.
-- **Exam set row** (A–D) for exams with shuffled versions.
+- **Exam set row** (A–E) for exams with shuffled versions. Rows of 2–4 sets start under the QR code's left edge; a 5-set row starts 5.8 mm further left so it fits inside the frame (clear of a 12-digit student-number grid).
 - **Answer area**: 25 rows per column. 50 items = 2 columns, 75 = 3, 100 = 4.
   5 **circles** (A–E) per item, 4.6 mm across, with the letter printed inside;
   6.4 mm horizontal and row pitch. Student-number circles are 3.5 mm across, 5.0 mm

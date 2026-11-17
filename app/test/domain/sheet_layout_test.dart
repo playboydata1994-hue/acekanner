@@ -8,7 +8,7 @@ import 'package:acekanner/domain/sheet_qr.dart';
 final Map<String, SheetLayout> engineFixtures = {
   'ack3-50-d10-s1': SheetLayout(itemCount: 50),
   'ack3-75-d9-s2': SheetLayout(itemCount: 75, idDigits: 9, setCount: 2),
-  'ack3-100-d12-s4': SheetLayout(itemCount: 100, idDigits: 12, setCount: 4),
+  'ack3-100-d12-s5': SheetLayout(itemCount: 100, idDigits: 12, setCount: 5),
 };
 
 void main() {
@@ -16,7 +16,7 @@ void main() {
 
   for (final items in [50, 75, 100]) {
     for (final digits in [4, 10, 12]) {
-      for (final sets in [1, 4]) {
+      for (final sets in [1, 4, 5]) {
         test('$items items, $digits digits, $sets sets: geometry is valid', () {
           final l = SheetLayout(itemCount: items, idDigits: digits, setCount: sets);
           expect(l.questions, hasLength(items));
@@ -91,6 +91,11 @@ void main() {
     expect(ArucoMarkers.idsFor(100), [32, 33, 34, 35]);
     expect(ArucoMarkers.bits, hasLength(36));
     expect(() => ArucoMarkers.idsFor(60), throwsArgumentError);
+    expect(() => SheetLayout(itemCount: 50, setCount: 6), throwsArgumentError);
+    // Rows of 2-4 sets keep their printed position; five sets start further left.
+    expect(SheetLayout(itemCount: 50, setCount: 4).setBubbles.first.x, SheetLayout.setFirstX);
+    expect(SheetLayout(itemCount: 50, setCount: 5).setBubbles.map((b) => b.x).toList(),
+        [for (var i = 0; i < 5; i++) SheetLayout.setFirstX5 + i * SheetLayout.choicePitch]);
     expect(ArucoMarkers.bits.every((b) => RegExp(r'^[01]{16}$').hasMatch(b)), isTrue);
   });
 

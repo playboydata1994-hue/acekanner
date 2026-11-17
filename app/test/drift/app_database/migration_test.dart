@@ -72,4 +72,46 @@ void main() {
     expect(fk.data.values.first, 1, reason: 'foreign keys back on after migrating');
     await db.close();
   });
+
+  test('v2 -> v3 keeps sets, keys and references, and allows set E', () async {
+    final schema = await verifier.schemaAt(2);
+    final raw = schema.rawDatabase;
+    raw.execute(
+      "INSERT INTO examinations (id, short_code, title, item_count, created_at, updated_at) "
+      "VALUES ('e1', 'K7M2Q9XA', 'Finals', 50, 1, 1)",
+    );
+    for (final l in ['A', 'B', 'C', 'D']) {
+      raw.execute("INSERT INTO examination_versions (id, examination_id, label, created_at) VALUES ('v$l', 'e1', '$l', 1)");
+    }
+    raw.execute(
+      "INSERT INTO answer_keys (id, examination_version_id, revision, created_at) VALUES ('k1', 'vC', 1, 1)",
+    );
+    expect(
+      () => raw.execute("INSERT INTO examination_versions (id, examination_id, label, created_at) VALUES ('vE', 'e1', 'E', 1)"),
+      throwsA(anything),
+      reason: 'v2 allows only A-D',
+    );
+
+    final db = AppDatabase(schema.newConnection());
+    await verifier.migrateAndValidate(db, 3);
+
+    final labels = await db.customSelect('SELECT label FROM examination_versions ORDER BY label').get();
+    expect(labels.map((r) => r.read<String>('label')), ['A', 'B', 'C', 'D']);
+    final key = await db.customSelect("SELECT examination_version_id v FROM answer_keys WHERE id = 'k1'").getSingle();
+    expect(key.read<String>('v'), 'vC');
+    expect(await db.customSelect('PRAGMA foreign_key_check').get(), isEmpty, reason: 'references intact');
+
+    await db.customStatement(
+      "INSERT INTO examination_versions (id, examination_id, label, created_at) VALUES ('vE', 'e1', 'E', 1)",
+    );
+    await expectLater(
+      db.customStatement("INSERT INTO examination_versions (id, examination_id, label, created_at) VALUES ('vF', 'e1', 'F', 1)"),
+      throwsA(anything),
+    );
+    // Deleting the examination still cascades to its sets after the rebuild.
+    await db.customStatement("DELETE FROM answer_keys");
+    await db.customStatement("DELETE FROM examinations WHERE id = 'e1'");
+    expect(await db.customSelect('SELECT id FROM examination_versions').get(), isEmpty);
+    await db.close();
+  });
 }

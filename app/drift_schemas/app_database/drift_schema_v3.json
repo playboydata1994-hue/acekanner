@@ -1,0 +1,3516 @@
+{
+  "_meta": {
+    "description": "This file contains a serialized version of schema entities for drift.",
+    "version": "1.3.0"
+  },
+  "options": {
+    "store_date_time_values_as_text": false
+  },
+  "entities": [
+    {
+      "id": 0,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "instructor_profiles",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "full_name",
+            "getter_name": "fullName",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (full_name IS NULL OR length(trim(full_name)) BETWEEN 1 AND 120)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "honorific",
+            "getter_name": "honorific",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (honorific IS NULL OR length(honorific) <= 20)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "email",
+            "getter_name": "email",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (email IS NULL OR length(email) <= 254)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "employee_no",
+            "getter_name": "employeeNo",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (employee_no IS NULL OR length(employee_no) <= 40)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "school_name",
+            "getter_name": "schoolName",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (school_name IS NULL OR length(school_name) <= 160)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "school_address",
+            "getter_name": "schoolAddress",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (school_address IS NULL OR length(school_address) <= 240)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "department",
+            "getter_name": "department",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (department IS NULL OR length(department) <= 160)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "logo_path",
+            "getter_name": "logoPath",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "deleted_at",
+            "getter_name": "deletedAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 1,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "subjects",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "code",
+            "getter_name": "code",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(trim(code)) BETWEEN 1 AND 30)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "title",
+            "getter_name": "title",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(trim(title)) BETWEEN 1 AND 160)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "description",
+            "getter_name": "description",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (description IS NULL OR length(description) <= 1000)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "units",
+            "getter_name": "units",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "CHECK (units IS NULL OR units BETWEEN 0 AND 12)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "deleted_at",
+            "getter_name": "deletedAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 2,
+      "references": [
+        1
+      ],
+      "type": "index",
+      "data": {
+        "on": 1,
+        "name": "subjects_code_active",
+        "sql": "CREATE UNIQUE INDEX subjects_code_active ON subjects (code COLLATE NOCASE)\n    WHERE deleted_at IS NULL;",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 3,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "courses",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "code",
+            "getter_name": "code",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(trim(code)) BETWEEN 1 AND 30)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "name",
+            "getter_name": "name",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 160)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "deleted_at",
+            "getter_name": "deletedAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 4,
+      "references": [
+        3
+      ],
+      "type": "index",
+      "data": {
+        "on": 3,
+        "name": "courses_code_active",
+        "sql": "CREATE UNIQUE INDEX courses_code_active ON courses (code COLLATE NOCASE)\n    WHERE deleted_at IS NULL;",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 5,
+      "references": [
+        3
+      ],
+      "type": "table",
+      "data": {
+        "name": "sections",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "course_id",
+            "getter_name": "courseId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "REFERENCES courses(id)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "courses",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "name",
+            "getter_name": "name",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 60)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "year_level",
+            "getter_name": "yearLevel",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "CHECK (year_level IS NULL OR year_level BETWEEN 1 AND 6)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "school_year",
+            "getter_name": "schoolYear",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (school_year IS NULL OR length(school_year) <= 20)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "term",
+            "getter_name": "term",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (term IS NULL OR length(term) <= 40)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "deleted_at",
+            "getter_name": "deletedAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 6,
+      "references": [
+        5
+      ],
+      "type": "index",
+      "data": {
+        "on": 5,
+        "name": "sections_course",
+        "sql": "CREATE INDEX sections_course ON sections (course_id);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 7,
+      "references": [
+        5
+      ],
+      "type": "index",
+      "data": {
+        "on": 5,
+        "name": "sections_name_term_active",
+        "sql": "CREATE UNIQUE INDEX sections_name_term_active\n    ON sections (name COLLATE NOCASE, ifnull(school_year, ''), ifnull(term, ''))\n    WHERE deleted_at IS NULL;",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 8,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "students",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "student_no",
+            "getter_name": "studentNo",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(trim(student_no)) BETWEEN 1 AND 30)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "student_no_key",
+            "getter_name": "studentNoKey",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(student_no_key) BETWEEN 1 AND 30)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "last_name",
+            "getter_name": "lastName",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(trim(last_name)) BETWEEN 1 AND 80)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "first_name",
+            "getter_name": "firstName",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(trim(first_name)) BETWEEN 1 AND 80)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "middle_name",
+            "getter_name": "middleName",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (middle_name IS NULL OR length(middle_name) <= 80)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "suffix",
+            "getter_name": "suffix",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (suffix IS NULL OR length(suffix) <= 10)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "email",
+            "getter_name": "email",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (email IS NULL OR length(email) <= 254)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "deleted_at",
+            "getter_name": "deletedAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 9,
+      "references": [
+        8
+      ],
+      "type": "index",
+      "data": {
+        "on": 8,
+        "name": "students_no_key_active",
+        "sql": "CREATE UNIQUE INDEX students_no_key_active ON students (student_no_key)\n    WHERE deleted_at IS NULL;",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 10,
+      "references": [
+        8
+      ],
+      "type": "index",
+      "data": {
+        "on": 8,
+        "name": "students_name",
+        "sql": "CREATE INDEX students_name ON students (last_name COLLATE NOCASE, first_name COLLATE NOCASE);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 11,
+      "references": [
+        5,
+        8
+      ],
+      "type": "table",
+      "data": {
+        "name": "section_students",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "section_id",
+            "getter_name": "sectionId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES sections(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "sections",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "student_id",
+            "getter_name": "studentId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES students(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "students",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "enrolled_at",
+            "getter_name": "enrolledAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "PRIMARY KEY(section_id, student_id)"
+        ],
+        "explicit_pk": [
+          "section_id",
+          "student_id"
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "references": [
+        11
+      ],
+      "type": "index",
+      "data": {
+        "on": 11,
+        "name": "section_students_student",
+        "sql": "CREATE INDEX section_students_student ON section_students (student_id);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 13,
+      "references": [
+        1,
+        0
+      ],
+      "type": "table",
+      "data": {
+        "name": "examinations",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "short_code",
+            "getter_name": "shortCode",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL UNIQUE CHECK (length(short_code) = 8)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique"
+            ]
+          },
+          {
+            "name": "title",
+            "getter_name": "title",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(trim(title)) BETWEEN 1 AND 160)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "subject_id",
+            "getter_name": "subjectId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "REFERENCES subjects(id)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "subjects",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "instructor_id",
+            "getter_name": "instructorId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "REFERENCES instructor_profiles(id)ON DELETE SET NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "instructor_profiles",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "setNull"
+                }
+              }
+            ]
+          },
+          {
+            "name": "exam_date",
+            "getter_name": "examDate",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "item_count",
+            "getter_name": "itemCount",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (item_count IN (50, 75, 100))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "choice_count",
+            "getter_name": "choiceCount",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 5 CHECK (choice_count BETWEEN 2 AND 5)",
+            "default_dart": "const CustomExpression('5')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "passing_percentage",
+            "getter_name": "passingPercentage",
+            "moor_type": "double",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 75 CHECK (passing_percentage BETWEEN 0 AND 100)",
+            "default_dart": "const CustomExpression('75')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "multiple_mark_policy",
+            "getter_name": "multipleMarkPolicy",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 'incorrect' CHECK (multiple_mark_policy IN ('incorrect', 'zero'))",
+            "default_dart": "const CustomExpression('\\'incorrect\\'')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "allow_negative_total",
+            "getter_name": "allowNegativeTotal",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT FALSE",
+            "default_dart": "const CustomExpression('FALSE')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "omr_preset",
+            "getter_name": "omrPreset",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 'standard' CHECK (omr_preset IN ('lenient', 'standard', 'strict', 'custom'))",
+            "default_dart": "const CustomExpression('\\'standard\\'')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "omr_thresholds",
+            "getter_name": "omrThresholds",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "student_id_digits",
+            "getter_name": "studentIdDigits",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 10 CHECK (student_id_digits BETWEEN 4 AND 12)",
+            "default_dart": "const CustomExpression('10')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "status",
+            "getter_name": "status",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'ready', 'closed'))",
+            "default_dart": "const CustomExpression('\\'draft\\'')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "deleted_at",
+            "getter_name": "deletedAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 14,
+      "references": [
+        13
+      ],
+      "type": "index",
+      "data": {
+        "on": 13,
+        "name": "examinations_subject",
+        "sql": "CREATE INDEX examinations_subject ON examinations (subject_id);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 15,
+      "references": [
+        13
+      ],
+      "type": "index",
+      "data": {
+        "on": 13,
+        "name": "examinations_recent",
+        "sql": "CREATE INDEX examinations_recent ON examinations (deleted_at, updated_at);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 16,
+      "references": [
+        13,
+        5
+      ],
+      "type": "table",
+      "data": {
+        "name": "examination_sections",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "examination_id",
+            "getter_name": "examinationId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES examinations(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "examinations",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "section_id",
+            "getter_name": "sectionId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES sections(id)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "sections",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "PRIMARY KEY(examination_id, section_id)"
+        ],
+        "explicit_pk": [
+          "examination_id",
+          "section_id"
+        ]
+      }
+    },
+    {
+      "id": 17,
+      "references": [
+        16
+      ],
+      "type": "index",
+      "data": {
+        "on": 16,
+        "name": "examination_sections_section",
+        "sql": "CREATE INDEX examination_sections_section ON examination_sections (section_id);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 18,
+      "references": [
+        13
+      ],
+      "type": "table",
+      "data": {
+        "name": "examination_versions",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "examination_id",
+            "getter_name": "examinationId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES examinations(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "examinations",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "label",
+            "getter_name": "label",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (label IN ('A', 'B', 'C', 'D', 'E'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "UNIQUE(examination_id, label)"
+        ],
+        "unique_keys": [
+          [
+            "examination_id",
+            "label"
+          ]
+        ]
+      }
+    },
+    {
+      "id": 19,
+      "references": [
+        18
+      ],
+      "type": "table",
+      "data": {
+        "name": "answer_keys",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "examination_version_id",
+            "getter_name": "examinationVersionId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES examination_versions(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "examination_versions",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "revision",
+            "getter_name": "revision",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (revision >= 1)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "is_current",
+            "getter_name": "isCurrent",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT TRUE",
+            "default_dart": "const CustomExpression('TRUE')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "change_note",
+            "getter_name": "changeNote",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (change_note IS NULL OR length(change_note) <= 500)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "UNIQUE(examination_version_id, revision)"
+        ],
+        "unique_keys": [
+          [
+            "examination_version_id",
+            "revision"
+          ]
+        ]
+      }
+    },
+    {
+      "id": 20,
+      "references": [
+        19
+      ],
+      "type": "index",
+      "data": {
+        "on": 19,
+        "name": "answer_keys_one_current",
+        "sql": "CREATE UNIQUE INDEX answer_keys_one_current ON answer_keys (examination_version_id)\n    WHERE is_current = 1;",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 21,
+      "references": [
+        19
+      ],
+      "type": "table",
+      "data": {
+        "name": "answer_key_items",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "answer_key_id",
+            "getter_name": "answerKeyId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES answer_keys(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "answer_keys",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "question_no",
+            "getter_name": "questionNo",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (question_no BETWEEN 1 AND 100)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "correct_mask",
+            "getter_name": "correctMask",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 0 CHECK (correct_mask BETWEEN 0 AND 31)",
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "points",
+            "getter_name": "points",
+            "moor_type": "double",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 1 CHECK (points BETWEEN 0 AND 100)",
+            "default_dart": "const CustomExpression('1')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "negative_points",
+            "getter_name": "negativePoints",
+            "moor_type": "double",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 0 CHECK (negative_points BETWEEN 0 AND 100)",
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mode",
+            "getter_name": "mode",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 'normal' CHECK (mode IN ('normal', 'bonus', 'dropped'))",
+            "default_dart": "const CustomExpression('\\'normal\\'')",
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "PRIMARY KEY(answer_key_id, question_no)"
+        ],
+        "explicit_pk": [
+          "answer_key_id",
+          "question_no"
+        ]
+      }
+    },
+    {
+      "id": 22,
+      "references": [
+        13,
+        18,
+        8
+      ],
+      "type": "table",
+      "data": {
+        "name": "printed_sheets",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "examination_id",
+            "getter_name": "examinationId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES examinations(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "examinations",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "examination_version_id",
+            "getter_name": "examinationVersionId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "REFERENCES examination_versions(id)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "examination_versions",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "student_id",
+            "getter_name": "studentId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "REFERENCES students(id)ON DELETE SET NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "students",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "setNull"
+                }
+              }
+            ]
+          },
+          {
+            "name": "sheet_code",
+            "getter_name": "sheetCode",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL UNIQUE CHECK (length(sheet_code) BETWEEN 6 AND 32)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique"
+            ]
+          },
+          {
+            "name": "paper_size",
+            "getter_name": "paperSize",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (paper_size IN ('a4', 'letter', 'long'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "copies",
+            "getter_name": "copies",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 1 CHECK (copies BETWEEN 1 AND 1000)",
+            "default_dart": "const CustomExpression('1')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "generated_at",
+            "getter_name": "generatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 23,
+      "references": [
+        22
+      ],
+      "type": "index",
+      "data": {
+        "on": 22,
+        "name": "printed_sheets_exam",
+        "sql": "CREATE INDEX printed_sheets_exam ON printed_sheets (examination_id);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 24,
+      "references": [
+        22
+      ],
+      "type": "index",
+      "data": {
+        "on": 22,
+        "name": "printed_sheets_student",
+        "sql": "CREATE INDEX printed_sheets_student ON printed_sheets (student_id);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 25,
+      "references": [
+        13
+      ],
+      "type": "table",
+      "data": {
+        "name": "scan_sessions",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "examination_id",
+            "getter_name": "examinationId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES examinations(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "examinations",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "mode",
+            "getter_name": "mode",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (mode IN ('single', 'batch'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "started_at",
+            "getter_name": "startedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "ended_at",
+            "getter_name": "endedAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "captures_attempted",
+            "getter_name": "capturesAttempted",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 0 CHECK (captures_attempted >= 0)",
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "captures_rejected",
+            "getter_name": "capturesRejected",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 0 CHECK (captures_rejected >= 0)",
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "sheets_finalized",
+            "getter_name": "sheetsFinalized",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 0 CHECK (sheets_finalized >= 0)",
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "device_model",
+            "getter_name": "deviceModel",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "app_version",
+            "getter_name": "appVersion",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 26,
+      "references": [
+        25
+      ],
+      "type": "index",
+      "data": {
+        "on": 25,
+        "name": "scan_sessions_exam",
+        "sql": "CREATE INDEX scan_sessions_exam ON scan_sessions (examination_id, started_at);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 27,
+      "references": [
+        13,
+        18,
+        25,
+        22,
+        8
+      ],
+      "type": "table",
+      "data": {
+        "name": "answer_sheets",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "examination_id",
+            "getter_name": "examinationId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES examinations(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "examinations",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "examination_version_id",
+            "getter_name": "examinationVersionId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "REFERENCES examination_versions(id)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "examination_versions",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "scan_session_id",
+            "getter_name": "scanSessionId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "REFERENCES scan_sessions(id)ON DELETE SET NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "scan_sessions",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "setNull"
+                }
+              }
+            ]
+          },
+          {
+            "name": "printed_sheet_id",
+            "getter_name": "printedSheetId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "REFERENCES printed_sheets(id)ON DELETE SET NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "printed_sheets",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "setNull"
+                }
+              }
+            ]
+          },
+          {
+            "name": "student_id",
+            "getter_name": "studentId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "REFERENCES students(id)ON DELETE SET NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "students",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "setNull"
+                }
+              }
+            ]
+          },
+          {
+            "name": "detected_student_no",
+            "getter_name": "detectedStudentNo",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (detected_student_no IS NULL OR length(detected_student_no) <= 30)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "status",
+            "getter_name": "status",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (status IN ('needs_review', 'finalized', 'rejected', 'superseded'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "submission_key",
+            "getter_name": "submissionKey",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (submission_key IS NULL OR length(submission_key) = 64)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "image_path",
+            "getter_name": "imagePath",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "rectified_image_path",
+            "getter_name": "rectifiedImagePath",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "omr_engine_version",
+            "getter_name": "omrEngineVersion",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "omr_payload",
+            "getter_name": "omrPayload",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "quality_score",
+            "getter_name": "qualityScore",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "CHECK (quality_score IS NULL OR quality_score BETWEEN 0 AND 1)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "flagged_count",
+            "getter_name": "flaggedCount",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 0 CHECK (flagged_count >= 0)",
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "captured_at",
+            "getter_name": "capturedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "finalized_at",
+            "getter_name": "finalizedAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "CHECK(status <> 'finalized' OR(submission_key IS NOT NULL AND finalized_at IS NOT NULL))"
+        ]
+      }
+    },
+    {
+      "id": 28,
+      "references": [
+        27
+      ],
+      "type": "index",
+      "data": {
+        "on": 27,
+        "name": "answer_sheets_one_final",
+        "sql": "CREATE UNIQUE INDEX answer_sheets_one_final ON answer_sheets (submission_key)\n    WHERE status = 'finalized';",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 29,
+      "references": [
+        27
+      ],
+      "type": "index",
+      "data": {
+        "on": 27,
+        "name": "answer_sheets_exam_status",
+        "sql": "CREATE INDEX answer_sheets_exam_status ON answer_sheets (examination_id, status);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 30,
+      "references": [
+        27
+      ],
+      "type": "index",
+      "data": {
+        "on": 27,
+        "name": "answer_sheets_student",
+        "sql": "CREATE INDEX answer_sheets_student ON answer_sheets (student_id);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 31,
+      "references": [
+        27
+      ],
+      "type": "table",
+      "data": {
+        "name": "student_answers",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "answer_sheet_id",
+            "getter_name": "answerSheetId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES answer_sheets(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "answer_sheets",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "question_no",
+            "getter_name": "questionNo",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (question_no BETWEEN 1 AND 100)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "detected_state",
+            "getter_name": "detectedState",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (detected_state IN ('answered', 'blank', 'multiple', 'uncertain'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "detected_mask",
+            "getter_name": "detectedMask",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 0 CHECK (detected_mask BETWEEN 0 AND 31)",
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "bubble_scores",
+            "getter_name": "bubbleScores",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "confidence",
+            "getter_name": "confidence",
+            "moor_type": "double",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (confidence BETWEEN 0 AND 1)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "final_mask",
+            "getter_name": "finalMask",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "CHECK (final_mask IS NULL OR final_mask BETWEEN 0 AND 31)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "resolved_by",
+            "getter_name": "resolvedBy",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (resolved_by IS NULL OR resolved_by IN ('engine', 'instructor'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "review_note",
+            "getter_name": "reviewNote",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (review_note IS NULL OR length(review_note) <= 300)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "PRIMARY KEY(answer_sheet_id, question_no)"
+        ],
+        "explicit_pk": [
+          "answer_sheet_id",
+          "question_no"
+        ]
+      }
+    },
+    {
+      "id": 32,
+      "references": [
+        27,
+        19
+      ],
+      "type": "table",
+      "data": {
+        "name": "examination_results",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "answer_sheet_id",
+            "getter_name": "answerSheetId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES answer_sheets(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "answer_sheets",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "answer_key_id",
+            "getter_name": "answerKeyId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES answer_keys(id)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "answer_keys",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "correct_count",
+            "getter_name": "correctCount",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (correct_count >= 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "incorrect_count",
+            "getter_name": "incorrectCount",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (incorrect_count >= 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "blank_count",
+            "getter_name": "blankCount",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (blank_count >= 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "multiple_count",
+            "getter_name": "multipleCount",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (multiple_count >= 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "earned_points",
+            "getter_name": "earnedPoints",
+            "moor_type": "double",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "possible_points",
+            "getter_name": "possiblePoints",
+            "moor_type": "double",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (possible_points >= 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "percentage",
+            "getter_name": "percentage",
+            "moor_type": "double",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (percentage <= 100)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "passed",
+            "getter_name": "passed",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "is_current",
+            "getter_name": "isCurrent",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT TRUE",
+            "default_dart": "const CustomExpression('TRUE')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "graded_at",
+            "getter_name": "gradedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "UNIQUE(answer_sheet_id, answer_key_id)"
+        ],
+        "unique_keys": [
+          [
+            "answer_sheet_id",
+            "answer_key_id"
+          ]
+        ]
+      }
+    },
+    {
+      "id": 33,
+      "references": [
+        32
+      ],
+      "type": "index",
+      "data": {
+        "on": 32,
+        "name": "examination_results_one_current",
+        "sql": "CREATE UNIQUE INDEX examination_results_one_current ON examination_results (answer_sheet_id)\n    WHERE is_current = 1;",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 34,
+      "references": [
+        32
+      ],
+      "type": "index",
+      "data": {
+        "on": 32,
+        "name": "examination_results_key",
+        "sql": "CREATE INDEX examination_results_key ON examination_results (answer_key_id);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 35,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "subscription_entitlements",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "account_id",
+            "getter_name": "accountId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "token",
+            "getter_name": "token",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "tier",
+            "getter_name": "tier",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (tier IN ('free', 'premium'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "free_limit",
+            "getter_name": "freeLimit",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (free_limit >= 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "free_used",
+            "getter_name": "freeUsed",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (free_used >= 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "lease",
+            "getter_name": "lease",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (lease >= 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "premium_until",
+            "getter_name": "premiumUntil",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "verified_at",
+            "getter_name": "verifiedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "offline_until",
+            "getter_name": "offlineUntil",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "issued_at",
+            "getter_name": "issuedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "token_id",
+            "getter_name": "tokenId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL UNIQUE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique"
+            ]
+          },
+          {
+            "name": "received_at",
+            "getter_name": "receivedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "is_current",
+            "getter_name": "isCurrent",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT TRUE",
+            "default_dart": "const CustomExpression('TRUE')",
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 36,
+      "references": [
+        35
+      ],
+      "type": "index",
+      "data": {
+        "on": 35,
+        "name": "subscription_entitlements_one_current",
+        "sql": "CREATE UNIQUE INDEX subscription_entitlements_one_current\n    ON subscription_entitlements (is_current) WHERE is_current = 1;",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 37,
+      "references": [
+        27
+      ],
+      "type": "table",
+      "data": {
+        "name": "scan_ledger",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "seq",
+            "getter_name": "seq",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY AUTOINCREMENT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "auto-increment"
+            ]
+          },
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL UNIQUE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique"
+            ]
+          },
+          {
+            "name": "account_id",
+            "getter_name": "accountId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "submission_key",
+            "getter_name": "submissionKey",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL UNIQUE CHECK (length(submission_key) = 64)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique"
+            ]
+          },
+          {
+            "name": "answer_sheet_id",
+            "getter_name": "answerSheetId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "REFERENCES answer_sheets(id)ON DELETE SET NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "answer_sheets",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "setNull"
+                }
+              }
+            ]
+          },
+          {
+            "name": "tier",
+            "getter_name": "tier",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (tier IN ('free', 'premium'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "entitlement_token_id",
+            "getter_name": "entitlementTokenId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "consumed_at",
+            "getter_name": "consumedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "prev_hash",
+            "getter_name": "prevHash",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(prev_hash) = 64)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "entry_hash",
+            "getter_name": "entryHash",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL UNIQUE CHECK (length(entry_hash) = 64)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique"
+            ]
+          },
+          {
+            "name": "mac",
+            "getter_name": "mac",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(mac) = 64)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "synced_at",
+            "getter_name": "syncedAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "server_receipt",
+            "getter_name": "serverReceipt",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 38,
+      "references": [
+        37
+      ],
+      "type": "index",
+      "data": {
+        "on": 37,
+        "name": "scan_ledger_unsynced",
+        "sql": "CREATE INDEX scan_ledger_unsynced ON scan_ledger (synced_at, seq);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 39,
+      "references": [
+        37
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 37,
+        "references_in_body": [
+          37
+        ],
+        "name": "scan_ledger_no_delete",
+        "sql": "CREATE TRIGGER scan_ledger_no_delete BEFORE DELETE ON scan_ledger\nBEGIN\n    SELECT RAISE(ABORT, 'scan_ledger is append-only');\nEND;"
+      }
+    },
+    {
+      "id": 40,
+      "references": [
+        37
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 37,
+        "references_in_body": [
+          37
+        ],
+        "name": "scan_ledger_immutable",
+        "sql": "CREATE TRIGGER scan_ledger_immutable BEFORE UPDATE ON scan_ledger\nWHEN NEW.seq IS NOT OLD.seq\n  OR NEW.id IS NOT OLD.id\n  OR NEW.account_id IS NOT OLD.account_id\n  OR NEW.submission_key IS NOT OLD.submission_key\n  OR NEW.tier IS NOT OLD.tier\n  OR NEW.entitlement_token_id IS NOT OLD.entitlement_token_id\n  OR NEW.consumed_at IS NOT OLD.consumed_at\n  OR NEW.prev_hash IS NOT OLD.prev_hash\n  OR NEW.entry_hash IS NOT OLD.entry_hash\n  OR NEW.mac IS NOT OLD.mac\n  OR (NEW.answer_sheet_id IS NOT OLD.answer_sheet_id AND NEW.answer_sheet_id IS NOT NULL)\n  OR (OLD.synced_at IS NOT NULL AND NEW.synced_at IS NOT OLD.synced_at)\n  OR (OLD.server_receipt IS NOT NULL AND NEW.server_receipt IS NOT OLD.server_receipt)\nBEGIN\n    SELECT RAISE(ABORT, 'scan_ledger rows are immutable');\nEND;"
+      }
+    },
+    {
+      "id": 41,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "audit_logs",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "seq",
+            "getter_name": "seq",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY AUTOINCREMENT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "auto-increment"
+            ]
+          },
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL UNIQUE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique"
+            ]
+          },
+          {
+            "name": "occurred_at",
+            "getter_name": "occurredAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "actor",
+            "getter_name": "actor",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (actor IN ('instructor', 'system'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "event",
+            "getter_name": "event",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(event) BETWEEN 1 AND 80)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "entity_type",
+            "getter_name": "entityType",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(entity_type) BETWEEN 1 AND 60)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "entity_id",
+            "getter_name": "entityId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "examination_id",
+            "getter_name": "examinationId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "details",
+            "getter_name": "details",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "prev_hash",
+            "getter_name": "prevHash",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(prev_hash) = 64)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "entry_hash",
+            "getter_name": "entryHash",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL UNIQUE CHECK (length(entry_hash) = 64)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique"
+            ]
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 42,
+      "references": [
+        41
+      ],
+      "type": "index",
+      "data": {
+        "on": 41,
+        "name": "audit_logs_exam",
+        "sql": "CREATE INDEX audit_logs_exam ON audit_logs (examination_id, seq);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 43,
+      "references": [
+        41
+      ],
+      "type": "index",
+      "data": {
+        "on": 41,
+        "name": "audit_logs_entity",
+        "sql": "CREATE INDEX audit_logs_entity ON audit_logs (entity_type, entity_id);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 44,
+      "references": [
+        41
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 41,
+        "references_in_body": [
+          41
+        ],
+        "name": "audit_logs_no_delete",
+        "sql": "CREATE TRIGGER audit_logs_no_delete BEFORE DELETE ON audit_logs\nBEGIN\n    SELECT RAISE(ABORT, 'audit_logs is append-only');\nEND;"
+      }
+    },
+    {
+      "id": 45,
+      "references": [
+        41
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 41,
+        "references_in_body": [
+          41
+        ],
+        "name": "audit_logs_no_update",
+        "sql": "CREATE TRIGGER audit_logs_no_update BEFORE UPDATE ON audit_logs\nBEGIN\n    SELECT RAISE(ABORT, 'audit_logs is append-only');\nEND;"
+      }
+    },
+    {
+      "id": 46,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "application_settings",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "key",
+            "getter_name": "key",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (length(\"key\") BETWEEN 1 AND 100)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "value",
+            "getter_name": "value",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(value) <= 10000)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 47,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "backup_records",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "kind",
+            "getter_name": "kind",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (kind IN ('local_export', 'cloud_upload', 'restore'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "status",
+            "getter_name": "status",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (status IN ('in_progress', 'completed', 'failed'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "file_name",
+            "getter_name": "fileName",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "remote_ref",
+            "getter_name": "remoteRef",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "size_bytes",
+            "getter_name": "sizeBytes",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "CHECK (size_bytes IS NULL OR size_bytes >= 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "sha256",
+            "getter_name": "sha256",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (sha256 IS NULL OR length(sha256) = 64)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "schema_version",
+            "getter_name": "schemaVersion",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (schema_version >= 1)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "encrypted",
+            "getter_name": "encrypted",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT TRUE",
+            "default_dart": "const CustomExpression('TRUE')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "error_message",
+            "getter_name": "errorMessage",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (error_message IS NULL OR length(error_message) <= 500)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "started_at",
+            "getter_name": "startedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "completed_at",
+            "getter_name": "completedAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 48,
+      "references": [
+        47
+      ],
+      "type": "index",
+      "data": {
+        "on": 47,
+        "name": "backup_records_started",
+        "sql": "CREATE INDEX backup_records_started ON backup_records (started_at);",
+        "unique": false,
+        "columns": []
+      }
+    }
+  ],
+  "fixed_sql": [
+    {
+      "name": "instructor_profiles",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"instructor_profiles\" (\"id\" TEXT NOT NULL PRIMARY KEY, \"full_name\" TEXT CHECK (full_name IS NULL OR length(trim(full_name)) BETWEEN 1 AND 120), \"honorific\" TEXT CHECK (honorific IS NULL OR length(honorific) <= 20), \"email\" TEXT CHECK (email IS NULL OR length(email) <= 254), \"employee_no\" TEXT CHECK (employee_no IS NULL OR length(employee_no) <= 40), \"school_name\" TEXT CHECK (school_name IS NULL OR length(school_name) <= 160), \"school_address\" TEXT CHECK (school_address IS NULL OR length(school_address) <= 240), \"department\" TEXT CHECK (department IS NULL OR length(department) <= 160), \"logo_path\" TEXT, \"created_at\" INTEGER NOT NULL, \"updated_at\" INTEGER NOT NULL, \"deleted_at\" INTEGER);"
+        }
+      ]
+    },
+    {
+      "name": "subjects",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"subjects\" (\"id\" TEXT NOT NULL PRIMARY KEY, \"code\" TEXT NOT NULL CHECK (length(trim(code)) BETWEEN 1 AND 30), \"title\" TEXT NOT NULL CHECK (length(trim(title)) BETWEEN 1 AND 160), \"description\" TEXT CHECK (description IS NULL OR length(description) <= 1000), \"units\" REAL CHECK (units IS NULL OR units BETWEEN 0 AND 12), \"created_at\" INTEGER NOT NULL, \"updated_at\" INTEGER NOT NULL, \"deleted_at\" INTEGER);"
+        }
+      ]
+    },
+    {
+      "name": "subjects_code_active",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX subjects_code_active ON subjects (code COLLATE NOCASE) WHERE deleted_at IS NULL"
+        }
+      ]
+    },
+    {
+      "name": "courses",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"courses\" (\"id\" TEXT NOT NULL PRIMARY KEY, \"code\" TEXT NOT NULL CHECK (length(trim(code)) BETWEEN 1 AND 30), \"name\" TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 160), \"created_at\" INTEGER NOT NULL, \"updated_at\" INTEGER NOT NULL, \"deleted_at\" INTEGER);"
+        }
+      ]
+    },
+    {
+      "name": "courses_code_active",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX courses_code_active ON courses (code COLLATE NOCASE) WHERE deleted_at IS NULL"
+        }
+      ]
+    },
+    {
+      "name": "sections",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"sections\" (\"id\" TEXT NOT NULL PRIMARY KEY, \"course_id\" TEXT REFERENCES courses(id), \"name\" TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 60), \"year_level\" INTEGER CHECK (year_level IS NULL OR year_level BETWEEN 1 AND 6), \"school_year\" TEXT CHECK (school_year IS NULL OR length(school_year) <= 20), \"term\" TEXT CHECK (term IS NULL OR length(term) <= 40), \"created_at\" INTEGER NOT NULL, \"updated_at\" INTEGER NOT NULL, \"deleted_at\" INTEGER);"
+        }
+      ]
+    },
+    {
+      "name": "sections_course",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX sections_course ON sections (course_id)"
+        }
+      ]
+    },
+    {
+      "name": "sections_name_term_active",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX sections_name_term_active ON sections (name COLLATE NOCASE, ifnull(school_year, ''), ifnull(term, '')) WHERE deleted_at IS NULL"
+        }
+      ]
+    },
+    {
+      "name": "students",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"students\" (\"id\" TEXT NOT NULL PRIMARY KEY, \"student_no\" TEXT NOT NULL CHECK (length(trim(student_no)) BETWEEN 1 AND 30), \"student_no_key\" TEXT NOT NULL CHECK (length(student_no_key) BETWEEN 1 AND 30), \"last_name\" TEXT NOT NULL CHECK (length(trim(last_name)) BETWEEN 1 AND 80), \"first_name\" TEXT NOT NULL CHECK (length(trim(first_name)) BETWEEN 1 AND 80), \"middle_name\" TEXT CHECK (middle_name IS NULL OR length(middle_name) <= 80), \"suffix\" TEXT CHECK (suffix IS NULL OR length(suffix) <= 10), \"email\" TEXT CHECK (email IS NULL OR length(email) <= 254), \"created_at\" INTEGER NOT NULL, \"updated_at\" INTEGER NOT NULL, \"deleted_at\" INTEGER);"
+        }
+      ]
+    },
+    {
+      "name": "students_no_key_active",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX students_no_key_active ON students (student_no_key) WHERE deleted_at IS NULL"
+        }
+      ]
+    },
+    {
+      "name": "students_name",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX students_name ON students (last_name COLLATE NOCASE, first_name COLLATE NOCASE)"
+        }
+      ]
+    },
+    {
+      "name": "section_students",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"section_students\" (\"section_id\" TEXT NOT NULL REFERENCES sections(id)ON DELETE CASCADE, \"student_id\" TEXT NOT NULL REFERENCES students(id)ON DELETE CASCADE, \"enrolled_at\" INTEGER NOT NULL, PRIMARY KEY(section_id, student_id));"
+        }
+      ]
+    },
+    {
+      "name": "section_students_student",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX section_students_student ON section_students (student_id)"
+        }
+      ]
+    },
+    {
+      "name": "examinations",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"examinations\" (\"id\" TEXT NOT NULL PRIMARY KEY, \"short_code\" TEXT NOT NULL UNIQUE CHECK (length(short_code) = 8), \"title\" TEXT NOT NULL CHECK (length(trim(title)) BETWEEN 1 AND 160), \"subject_id\" TEXT REFERENCES subjects(id), \"instructor_id\" TEXT REFERENCES instructor_profiles(id)ON DELETE SET NULL, \"exam_date\" INTEGER, \"item_count\" INTEGER NOT NULL CHECK (item_count IN (50, 75, 100)), \"choice_count\" INTEGER NOT NULL DEFAULT 5 CHECK (choice_count BETWEEN 2 AND 5), \"passing_percentage\" REAL NOT NULL DEFAULT 75 CHECK (passing_percentage BETWEEN 0 AND 100), \"multiple_mark_policy\" TEXT NOT NULL DEFAULT 'incorrect' CHECK (multiple_mark_policy IN ('incorrect', 'zero')), \"allow_negative_total\" INTEGER NOT NULL DEFAULT FALSE, \"omr_preset\" TEXT NOT NULL DEFAULT 'standard' CHECK (omr_preset IN ('lenient', 'standard', 'strict', 'custom')), \"omr_thresholds\" TEXT, \"student_id_digits\" INTEGER NOT NULL DEFAULT 10 CHECK (student_id_digits BETWEEN 4 AND 12), \"status\" TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'ready', 'closed')), \"created_at\" INTEGER NOT NULL, \"updated_at\" INTEGER NOT NULL, \"deleted_at\" INTEGER);"
+        }
+      ]
+    },
+    {
+      "name": "examinations_subject",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX examinations_subject ON examinations (subject_id)"
+        }
+      ]
+    },
+    {
+      "name": "examinations_recent",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX examinations_recent ON examinations (deleted_at, updated_at)"
+        }
+      ]
+    },
+    {
+      "name": "examination_sections",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"examination_sections\" (\"examination_id\" TEXT NOT NULL REFERENCES examinations(id)ON DELETE CASCADE, \"section_id\" TEXT NOT NULL REFERENCES sections(id), PRIMARY KEY(examination_id, section_id));"
+        }
+      ]
+    },
+    {
+      "name": "examination_sections_section",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX examination_sections_section ON examination_sections (section_id)"
+        }
+      ]
+    },
+    {
+      "name": "examination_versions",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"examination_versions\" (\"id\" TEXT NOT NULL PRIMARY KEY, \"examination_id\" TEXT NOT NULL REFERENCES examinations(id)ON DELETE CASCADE, \"label\" TEXT NOT NULL CHECK (label IN ('A', 'B', 'C', 'D', 'E')), \"created_at\" INTEGER NOT NULL, UNIQUE(examination_id, label));"
+        }
+      ]
+    },
+    {
+      "name": "answer_keys",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"answer_keys\" (\"id\" TEXT NOT NULL PRIMARY KEY, \"examination_version_id\" TEXT NOT NULL REFERENCES examination_versions(id)ON DELETE CASCADE, \"revision\" INTEGER NOT NULL CHECK (revision >= 1), \"is_current\" INTEGER NOT NULL DEFAULT TRUE, \"change_note\" TEXT CHECK (change_note IS NULL OR length(change_note) <= 500), \"created_at\" INTEGER NOT NULL, UNIQUE(examination_version_id, revision));"
+        }
+      ]
+    },
+    {
+      "name": "answer_keys_one_current",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX answer_keys_one_current ON answer_keys (examination_version_id) WHERE is_current = 1"
+        }
+      ]
+    },
+    {
+      "name": "answer_key_items",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"answer_key_items\" (\"answer_key_id\" TEXT NOT NULL REFERENCES answer_keys(id)ON DELETE CASCADE, \"question_no\" INTEGER NOT NULL CHECK (question_no BETWEEN 1 AND 100), \"correct_mask\" INTEGER NOT NULL DEFAULT 0 CHECK (correct_mask BETWEEN 0 AND 31), \"points\" REAL NOT NULL DEFAULT 1 CHECK (points BETWEEN 0 AND 100), \"negative_points\" REAL NOT NULL DEFAULT 0 CHECK (negative_points BETWEEN 0 AND 100), \"mode\" TEXT NOT NULL DEFAULT 'normal' CHECK (mode IN ('normal', 'bonus', 'dropped')), PRIMARY KEY(answer_key_id, question_no));"
+        }
+      ]
+    },
+    {
+      "name": "printed_sheets",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"printed_sheets\" (\"id\" TEXT NOT NULL PRIMARY KEY, \"examination_id\" TEXT NOT NULL REFERENCES examinations(id)ON DELETE CASCADE, \"examination_version_id\" TEXT REFERENCES examination_versions(id), \"student_id\" TEXT REFERENCES students(id)ON DELETE SET NULL, \"sheet_code\" TEXT NOT NULL UNIQUE CHECK (length(sheet_code) BETWEEN 6 AND 32), \"paper_size\" TEXT NOT NULL CHECK (paper_size IN ('a4', 'letter', 'long')), \"copies\" INTEGER NOT NULL DEFAULT 1 CHECK (copies BETWEEN 1 AND 1000), \"generated_at\" INTEGER NOT NULL);"
+        }
+      ]
+    },
+    {
+      "name": "printed_sheets_exam",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX printed_sheets_exam ON printed_sheets (examination_id)"
+        }
+      ]
+    },
+    {
+      "name": "printed_sheets_student",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX printed_sheets_student ON printed_sheets (student_id)"
+        }
+      ]
+    },
+    {
+      "name": "scan_sessions",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"scan_sessions\" (\"id\" TEXT NOT NULL PRIMARY KEY, \"examination_id\" TEXT NOT NULL REFERENCES examinations(id)ON DELETE CASCADE, \"mode\" TEXT NOT NULL CHECK (mode IN ('single', 'batch')), \"started_at\" INTEGER NOT NULL, \"ended_at\" INTEGER, \"captures_attempted\" INTEGER NOT NULL DEFAULT 0 CHECK (captures_attempted >= 0), \"captures_rejected\" INTEGER NOT NULL DEFAULT 0 CHECK (captures_rejected >= 0), \"sheets_finalized\" INTEGER NOT NULL DEFAULT 0 CHECK (sheets_finalized >= 0), \"device_model\" TEXT, \"app_version\" TEXT);"
+        }
+      ]
+    },
+    {
+      "name": "scan_sessions_exam",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX scan_sessions_exam ON scan_sessions (examination_id, started_at)"
+        }
+      ]
+    },
+    {
+      "name": "answer_sheets",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"answer_sheets\" (\"id\" TEXT NOT NULL PRIMARY KEY, \"examination_id\" TEXT NOT NULL REFERENCES examinations(id)ON DELETE CASCADE, \"examination_version_id\" TEXT REFERENCES examination_versions(id), \"scan_session_id\" TEXT REFERENCES scan_sessions(id)ON DELETE SET NULL, \"printed_sheet_id\" TEXT REFERENCES printed_sheets(id)ON DELETE SET NULL, \"student_id\" TEXT REFERENCES students(id)ON DELETE SET NULL, \"detected_student_no\" TEXT CHECK (detected_student_no IS NULL OR length(detected_student_no) <= 30), \"status\" TEXT NOT NULL CHECK (status IN ('needs_review', 'finalized', 'rejected', 'superseded')), \"submission_key\" TEXT CHECK (submission_key IS NULL OR length(submission_key) = 64), \"image_path\" TEXT, \"rectified_image_path\" TEXT, \"omr_engine_version\" TEXT, \"omr_payload\" TEXT, \"quality_score\" REAL CHECK (quality_score IS NULL OR quality_score BETWEEN 0 AND 1), \"flagged_count\" INTEGER NOT NULL DEFAULT 0 CHECK (flagged_count >= 0), \"captured_at\" INTEGER NOT NULL, \"finalized_at\" INTEGER, \"updated_at\" INTEGER NOT NULL, CHECK(status <> 'finalized' OR(submission_key IS NOT NULL AND finalized_at IS NOT NULL)));"
+        }
+      ]
+    },
+    {
+      "name": "answer_sheets_one_final",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX answer_sheets_one_final ON answer_sheets (submission_key) WHERE status = 'finalized'"
+        }
+      ]
+    },
+    {
+      "name": "answer_sheets_exam_status",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX answer_sheets_exam_status ON answer_sheets (examination_id, status)"
+        }
+      ]
+    },
+    {
+      "name": "answer_sheets_student",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX answer_sheets_student ON answer_sheets (student_id)"
+        }
+      ]
+    },
+    {
+      "name": "student_answers",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"student_answers\" (\"answer_sheet_id\" TEXT NOT NULL REFERENCES answer_sheets(id)ON DELETE CASCADE, \"question_no\" INTEGER NOT NULL CHECK (question_no BETWEEN 1 AND 100), \"detected_state\" TEXT NOT NULL CHECK (detected_state IN ('answered', 'blank', 'multiple', 'uncertain')), \"detected_mask\" INTEGER NOT NULL DEFAULT 0 CHECK (detected_mask BETWEEN 0 AND 31), \"bubble_scores\" TEXT NOT NULL, \"confidence\" REAL NOT NULL CHECK (confidence BETWEEN 0 AND 1), \"final_mask\" INTEGER CHECK (final_mask IS NULL OR final_mask BETWEEN 0 AND 31), \"resolved_by\" TEXT CHECK (resolved_by IS NULL OR resolved_by IN ('engine', 'instructor')), \"review_note\" TEXT CHECK (review_note IS NULL OR length(review_note) <= 300), PRIMARY KEY(answer_sheet_id, question_no));"
+        }
+      ]
+    },
+    {
+      "name": "examination_results",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"examination_results\" (\"id\" TEXT NOT NULL PRIMARY KEY, \"answer_sheet_id\" TEXT NOT NULL REFERENCES answer_sheets(id)ON DELETE CASCADE, \"answer_key_id\" TEXT NOT NULL REFERENCES answer_keys(id), \"correct_count\" INTEGER NOT NULL CHECK (correct_count >= 0), \"incorrect_count\" INTEGER NOT NULL CHECK (incorrect_count >= 0), \"blank_count\" INTEGER NOT NULL CHECK (blank_count >= 0), \"multiple_count\" INTEGER NOT NULL CHECK (multiple_count >= 0), \"earned_points\" REAL NOT NULL, \"possible_points\" REAL NOT NULL CHECK (possible_points >= 0), \"percentage\" REAL NOT NULL CHECK (percentage <= 100), \"passed\" INTEGER NOT NULL, \"is_current\" INTEGER NOT NULL DEFAULT TRUE, \"graded_at\" INTEGER NOT NULL, UNIQUE(answer_sheet_id, answer_key_id));"
+        }
+      ]
+    },
+    {
+      "name": "examination_results_one_current",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX examination_results_one_current ON examination_results (answer_sheet_id) WHERE is_current = 1"
+        }
+      ]
+    },
+    {
+      "name": "examination_results_key",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX examination_results_key ON examination_results (answer_key_id)"
+        }
+      ]
+    },
+    {
+      "name": "subscription_entitlements",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"subscription_entitlements\" (\"id\" TEXT NOT NULL PRIMARY KEY, \"account_id\" TEXT NOT NULL, \"token\" TEXT NOT NULL, \"tier\" TEXT NOT NULL CHECK (tier IN ('free', 'premium')), \"free_limit\" INTEGER NOT NULL CHECK (free_limit >= 0), \"free_used\" INTEGER NOT NULL CHECK (free_used >= 0), \"lease\" INTEGER NOT NULL CHECK (lease >= 0), \"premium_until\" INTEGER, \"verified_at\" INTEGER NOT NULL, \"offline_until\" INTEGER NOT NULL, \"issued_at\" INTEGER NOT NULL, \"token_id\" TEXT NOT NULL UNIQUE, \"received_at\" INTEGER NOT NULL, \"is_current\" INTEGER NOT NULL DEFAULT TRUE);"
+        }
+      ]
+    },
+    {
+      "name": "subscription_entitlements_one_current",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX subscription_entitlements_one_current ON subscription_entitlements (is_current) WHERE is_current = 1"
+        }
+      ]
+    },
+    {
+      "name": "scan_ledger",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"scan_ledger\" (\"seq\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"id\" TEXT NOT NULL UNIQUE, \"account_id\" TEXT, \"submission_key\" TEXT NOT NULL UNIQUE CHECK (length(submission_key) = 64), \"answer_sheet_id\" TEXT REFERENCES answer_sheets(id)ON DELETE SET NULL, \"tier\" TEXT NOT NULL CHECK (tier IN ('free', 'premium')), \"entitlement_token_id\" TEXT, \"consumed_at\" INTEGER NOT NULL, \"prev_hash\" TEXT NOT NULL CHECK (length(prev_hash) = 64), \"entry_hash\" TEXT NOT NULL UNIQUE CHECK (length(entry_hash) = 64), \"mac\" TEXT NOT NULL CHECK (length(mac) = 64), \"synced_at\" INTEGER, \"server_receipt\" TEXT);"
+        }
+      ]
+    },
+    {
+      "name": "scan_ledger_unsynced",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX scan_ledger_unsynced ON scan_ledger (synced_at, seq)"
+        }
+      ]
+    },
+    {
+      "name": "scan_ledger_no_delete",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER scan_ledger_no_delete BEFORE DELETE ON scan_ledger BEGIN SELECT RAISE (ABORT, 'scan_ledger is append-only');END"
+        }
+      ]
+    },
+    {
+      "name": "scan_ledger_immutable",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER scan_ledger_immutable BEFORE UPDATE ON scan_ledger WHEN NEW.seq IS NOT OLD.seq OR NEW.id IS NOT OLD.id OR NEW.account_id IS NOT OLD.account_id OR NEW.submission_key IS NOT OLD.submission_key OR NEW.tier IS NOT OLD.tier OR NEW.entitlement_token_id IS NOT OLD.entitlement_token_id OR NEW.consumed_at IS NOT OLD.consumed_at OR NEW.prev_hash IS NOT OLD.prev_hash OR NEW.entry_hash IS NOT OLD.entry_hash OR NEW.mac IS NOT OLD.mac OR(NEW.answer_sheet_id IS NOT OLD.answer_sheet_id AND NEW.answer_sheet_id IS NOT NULL)OR(OLD.synced_at IS NOT NULL AND NEW.synced_at IS NOT OLD.synced_at)OR(OLD.server_receipt IS NOT NULL AND NEW.server_receipt IS NOT OLD.server_receipt)BEGIN SELECT RAISE (ABORT, 'scan_ledger rows are immutable');END"
+        }
+      ]
+    },
+    {
+      "name": "audit_logs",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"audit_logs\" (\"seq\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"id\" TEXT NOT NULL UNIQUE, \"occurred_at\" INTEGER NOT NULL, \"actor\" TEXT NOT NULL CHECK (actor IN ('instructor', 'system')), \"event\" TEXT NOT NULL CHECK (length(event) BETWEEN 1 AND 80), \"entity_type\" TEXT NOT NULL CHECK (length(entity_type) BETWEEN 1 AND 60), \"entity_id\" TEXT, \"examination_id\" TEXT, \"details\" TEXT, \"prev_hash\" TEXT NOT NULL CHECK (length(prev_hash) = 64), \"entry_hash\" TEXT NOT NULL UNIQUE CHECK (length(entry_hash) = 64));"
+        }
+      ]
+    },
+    {
+      "name": "audit_logs_exam",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX audit_logs_exam ON audit_logs (examination_id, seq)"
+        }
+      ]
+    },
+    {
+      "name": "audit_logs_entity",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX audit_logs_entity ON audit_logs (entity_type, entity_id)"
+        }
+      ]
+    },
+    {
+      "name": "audit_logs_no_delete",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER audit_logs_no_delete BEFORE DELETE ON audit_logs BEGIN SELECT RAISE (ABORT, 'audit_logs is append-only');END"
+        }
+      ]
+    },
+    {
+      "name": "audit_logs_no_update",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER audit_logs_no_update BEFORE UPDATE ON audit_logs BEGIN SELECT RAISE (ABORT, 'audit_logs is append-only');END"
+        }
+      ]
+    },
+    {
+      "name": "application_settings",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"application_settings\" (\"key\" TEXT NOT NULL PRIMARY KEY CHECK (length(\"key\") BETWEEN 1 AND 100), \"value\" TEXT NOT NULL CHECK (length(value) <= 10000), \"updated_at\" INTEGER NOT NULL);"
+        }
+      ]
+    },
+    {
+      "name": "backup_records",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"backup_records\" (\"id\" TEXT NOT NULL PRIMARY KEY, \"kind\" TEXT NOT NULL CHECK (kind IN ('local_export', 'cloud_upload', 'restore')), \"status\" TEXT NOT NULL CHECK (status IN ('in_progress', 'completed', 'failed')), \"file_name\" TEXT, \"remote_ref\" TEXT, \"size_bytes\" INTEGER CHECK (size_bytes IS NULL OR size_bytes >= 0), \"sha256\" TEXT CHECK (sha256 IS NULL OR length(sha256) = 64), \"schema_version\" INTEGER NOT NULL CHECK (schema_version >= 1), \"encrypted\" INTEGER NOT NULL DEFAULT TRUE, \"error_message\" TEXT CHECK (error_message IS NULL OR length(error_message) <= 500), \"started_at\" INTEGER NOT NULL, \"completed_at\" INTEGER);"
+        }
+      ]
+    },
+    {
+      "name": "backup_records_started",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX backup_records_started ON backup_records (started_at)"
+        }
+      ]
+    }
+  ]
+}
