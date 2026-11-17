@@ -76,7 +76,7 @@ void main() {
     await pumpApp(tester, db);
     await tester.tap(find.text('Add your name and school'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.widgetWithText(TextFormField, 'Full name'), 'Maria Santos');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Full name (optional)'), 'Maria Santos');
     await tester.enterText(find.widgetWithText(TextFormField, 'School name'), 'State University');
     await tester.enterText(find.widgetWithText(TextFormField, 'Student number format'), '####-#####');
     await tester.pumpAndSettle();
@@ -94,6 +94,22 @@ void main() {
     await tapTab(tester, 'Settings');
     expect(find.text('Maria Santos · State University'), findsOneWidget);
     expect(find.text('####-#####'), findsOneWidget);
+    await disposeApp(tester);
+  });
+
+  testWidgets('profile can be saved without an instructor name or title', (tester) async {
+    await pumpApp(tester, db);
+    await tester.tap(find.text('Add your name and school'));
+    await tester.pumpAndSettle();
+    expect(find.text('Full name (optional)'), findsOneWidget);
+    expect(find.text('Title (optional)'), findsOneWidget);
+    await tester.enterText(find.widgetWithText(TextFormField, 'School name'), 'State University');
+    await tester.tap(find.widgetWithText(TextButton, 'Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('Enter your name.'), findsNothing);
+    expect(find.text('Add your name and school'), findsNothing, reason: 'saved and closed');
+    await tapTab(tester, 'Settings');
+    expect(find.text('State University'), findsOneWidget);
     await disposeApp(tester);
   });
 }

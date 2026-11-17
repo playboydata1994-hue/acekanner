@@ -34,6 +34,18 @@ void main() {
     expect(rows.single.schoolName, isNull, reason: 'cleared on second save');
   });
 
+  test('the instructor name and title are optional', () async {
+    await profiles.save(const ProfileInput(schoolName: 'SSU'));
+    final p = (await profiles.get())!;
+    expect(p.fullName, isNull);
+    expect(p.honorific, isNull);
+    expect(p.schoolName, 'SSU');
+    await profiles.save(const ProfileInput(fullName: '   ', honorific: ' ', schoolName: 'SSU'));
+    expect((await profiles.get())!.fullName, isNull, reason: 'blank is stored as no name');
+    await profiles.save(const ProfileInput(fullName: 'Maria  Santos'));
+    expect((await profiles.get())!.fullName, 'Maria Santos');
+  });
+
   test('school logo path is set, kept across profile saves, and cleared', () async {
     await expectLater(profiles.setLogoPath('/x/logo.png'), throwsStateError);
     await profiles.save(const ProfileInput(fullName: 'Maria Santos'));

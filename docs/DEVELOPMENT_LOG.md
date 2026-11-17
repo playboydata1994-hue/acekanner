@@ -5,6 +5,19 @@ and the next step.
 
 ---
 
+## 2026-11-17 · Revisions round 1 (0.6.1)
+
+The owner is testing the app and sending revisions before the Google/Play setup resumes.
+
+- **Instructor title and full name are optional** in Profile and school. Database schema
+  v2 (`full_name` may be empty); existing installs migrate automatically, keeping their
+  data (Drift step-by-step migration, table rebuild). Sheets leave the instructor line
+  off when there is no name; Settings and Home cope with no name.
+- Verification: migration test (v1 database with a profile → v2, data identical, FK on),
+  SQL upgrade script test, new repository and screen tests; `flutter test` 193/193.
+
+---
+
 ## 2026-11-17 · Phase 6: licensing, Google sign-in and Play billing (code complete; awaiting accounts)
 
 ### What was built

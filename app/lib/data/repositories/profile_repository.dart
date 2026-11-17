@@ -8,7 +8,7 @@ import '../settings/settings_repository.dart';
 
 class ProfileInput {
   const ProfileInput({
-    required this.fullName,
+    this.fullName,
     this.honorific,
     this.email,
     this.employeeNo,
@@ -17,7 +17,8 @@ class ProfileInput {
     this.department,
   });
 
-  final String fullName;
+  /// Optional: the instructor may leave the name out.
+  final String? fullName;
   final String? honorific;
   final String? email;
   final String? employeeNo;
@@ -51,7 +52,7 @@ class ProfileRepository {
       final now = clock.now();
       final existing = await get();
       final companion = InstructorProfilesCompanion(
-        fullName: Value(cleanSpaces(input.fullName)),
+        fullName: Value(blankToNull(cleanSpaces(input.fullName ?? ''))),
         honorific: Value(blankToNull(input.honorific)),
         email: Value(blankToNull(input.email)),
         employeeNo: Value(blankToNull(input.employeeNo)),

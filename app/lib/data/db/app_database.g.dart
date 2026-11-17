@@ -24,11 +24,10 @@ class InstructorProfiles extends Table
   late final GeneratedColumn<String> fullName = GeneratedColumn<String>(
     'full_name',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints:
-        'NOT NULL CHECK (length(trim(full_name)) BETWEEN 1 AND 120)',
+    requiredDuringInsert: false,
+    $customConstraints: 'CHECK (full_name IS NULL OR length(trim(full_name)) BETWEEN 1 AND 120)',
   );
   static const VerificationMeta _honorificMeta = const VerificationMeta(
     'honorific',
@@ -179,8 +178,6 @@ class InstructorProfiles extends Table
         _fullNameMeta,
         fullName.isAcceptableOrUnknown(data['full_name']!, _fullNameMeta),
       );
-    } else if (isInserting) {
-      context.missing(_fullNameMeta);
     }
     if (data.containsKey('honorific')) {
       context.handle(
@@ -265,7 +262,7 @@ class InstructorProfiles extends Table
       fullName: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}full_name'],
-      )!,
+      ),
       honorific: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}honorific'],
@@ -321,7 +318,9 @@ class InstructorProfiles extends Table
 class InstructorProfileRow extends DataClass
     implements Insertable<InstructorProfileRow> {
   final String id;
-  final String fullName;
+
+  /// Optional since schema v2 (the instructor may leave it out).
+  final String? fullName;
   final String? honorific;
   final String? email;
   final String? employeeNo;
@@ -334,7 +333,7 @@ class InstructorProfileRow extends DataClass
   final DateTime? deletedAt;
   const InstructorProfileRow({
     required this.id,
-    required this.fullName,
+    this.fullName,
     this.honorific,
     this.email,
     this.employeeNo,
@@ -350,7 +349,9 @@ class InstructorProfileRow extends DataClass
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['full_name'] = Variable<String>(fullName);
+    if (!nullToAbsent || fullName != null) {
+      map['full_name'] = Variable<String>(fullName);
+    }
     if (!nullToAbsent || honorific != null) {
       map['honorific'] = Variable<String>(honorific);
     }
@@ -383,7 +384,9 @@ class InstructorProfileRow extends DataClass
   InstructorProfilesCompanion toCompanion(bool nullToAbsent) {
     return InstructorProfilesCompanion(
       id: Value(id),
-      fullName: Value(fullName),
+      fullName: fullName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fullName),
       honorific: honorific == null && nullToAbsent
           ? const Value.absent()
           : Value(honorific),
@@ -420,7 +423,7 @@ class InstructorProfileRow extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return InstructorProfileRow(
       id: serializer.fromJson<String>(json['id']),
-      fullName: serializer.fromJson<String>(json['full_name']),
+      fullName: serializer.fromJson<String?>(json['full_name']),
       honorific: serializer.fromJson<String?>(json['honorific']),
       email: serializer.fromJson<String?>(json['email']),
       employeeNo: serializer.fromJson<String?>(json['employee_no']),
@@ -438,7 +441,7 @@ class InstructorProfileRow extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'full_name': serializer.toJson<String>(fullName),
+      'full_name': serializer.toJson<String?>(fullName),
       'honorific': serializer.toJson<String?>(honorific),
       'email': serializer.toJson<String?>(email),
       'employee_no': serializer.toJson<String?>(employeeNo),
@@ -454,7 +457,7 @@ class InstructorProfileRow extends DataClass
 
   InstructorProfileRow copyWith({
     String? id,
-    String? fullName,
+    Value<String?> fullName = const Value.absent(),
     Value<String?> honorific = const Value.absent(),
     Value<String?> email = const Value.absent(),
     Value<String?> employeeNo = const Value.absent(),
@@ -467,7 +470,7 @@ class InstructorProfileRow extends DataClass
     Value<DateTime?> deletedAt = const Value.absent(),
   }) => InstructorProfileRow(
     id: id ?? this.id,
-    fullName: fullName ?? this.fullName,
+    fullName: fullName.present ? fullName.value : this.fullName,
     honorific: honorific.present ? honorific.value : this.honorific,
     email: email.present ? email.value : this.email,
     employeeNo: employeeNo.present ? employeeNo.value : this.employeeNo,
@@ -561,7 +564,7 @@ class InstructorProfileRow extends DataClass
 class InstructorProfilesCompanion
     extends UpdateCompanion<InstructorProfileRow> {
   final Value<String> id;
-  final Value<String> fullName;
+  final Value<String?> fullName;
   final Value<String?> honorific;
   final Value<String?> email;
   final Value<String?> employeeNo;
@@ -590,7 +593,7 @@ class InstructorProfilesCompanion
   });
   InstructorProfilesCompanion.insert({
     required String id,
-    required String fullName,
+    this.fullName = const Value.absent(),
     this.honorific = const Value.absent(),
     this.email = const Value.absent(),
     this.employeeNo = const Value.absent(),
@@ -603,7 +606,6 @@ class InstructorProfilesCompanion
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
-       fullName = Value(fullName),
        createdAt = Value(createdAt),
        updatedAt = Value(updatedAt);
   static Insertable<InstructorProfileRow> custom({
@@ -640,7 +642,7 @@ class InstructorProfilesCompanion
 
   InstructorProfilesCompanion copyWith({
     Value<String>? id,
-    Value<String>? fullName,
+    Value<String?>? fullName,
     Value<String?>? honorific,
     Value<String?>? email,
     Value<String?>? employeeNo,

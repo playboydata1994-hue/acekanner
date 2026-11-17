@@ -146,17 +146,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 padding: const EdgeInsets.fromLTRB(Space.page, Space.s, Space.page, Space.xxl),
                 children: [
                   Text(
-                    'These details appear on answer sheets and reports.',
+                    'These details appear on answer sheets and reports. Everything here is optional.',
                     style: theme.textTheme.bodyMedium,
                   ),
                   const SectionHeader('Instructor'),
                   Row(
                     children: [
                       SizedBox(
-                        width: 96,
+                        width: 128,
                         child: TextFormField(
                           controller: _honorific,
-                          decoration: const InputDecoration(labelText: 'Title', hintText: 'Prof.'),
+                          decoration: const InputDecoration(labelText: 'Title (optional)', hintText: 'Prof.'),
                           validator: (v) => Validators.optional(v, max: 20),
                         ),
                       ),
@@ -164,9 +164,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       Expanded(
                         child: TextFormField(
                           controller: _name,
-                          decoration: const InputDecoration(labelText: 'Full name'),
+                          decoration: const InputDecoration(labelText: 'Full name (optional)'),
                           textCapitalization: TextCapitalization.words,
-                          validator: (v) => Validators.required(v, 'your name', max: 120),
+                          validator: (v) => Validators.optional(v, max: 120),
                         ),
                       ),
                     ],

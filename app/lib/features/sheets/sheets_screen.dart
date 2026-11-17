@@ -59,7 +59,8 @@ class _SheetsScreenState extends ConsumerState<SheetsScreen> {
     final showLogo = await settings.getBool(SettingKeys.sheetsShowLogo, defaultValue: true);
     if (!mounted) return;
     setState(() {
-      _instructor = profile == null ? null : [profile.honorific, profile.fullName].whereType<String>().join(' ');
+      // No name, no instructor line (a title alone is not printed).
+      _instructor = profile?.fullName == null ? null : [?profile!.honorific, profile.fullName!].join(' ');
       _logo = logo;
       _showInstructor = showInstructor;
       _showLogo = showLogo;

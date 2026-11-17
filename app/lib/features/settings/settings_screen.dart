@@ -31,9 +31,11 @@ class SettingsScreen extends ConsumerWidget {
                   leading: const Icon(Icons.badge_outlined),
                   title: const Text('Profile and school'),
                   subtitle: Text(
-                    profile == null
-                        ? 'Not set up yet'
-                        : [profile.fullName, ?profile.schoolName].join(' · '),
+                    switch ([?profile?.fullName, ?profile?.schoolName]) {
+                      final parts when parts.isNotEmpty => parts.join(' · '),
+                      _ when profile != null => 'Saved',
+                      _ => 'Not set up yet',
+                    },
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _openProfile(context),
