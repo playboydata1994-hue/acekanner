@@ -5,8 +5,8 @@ import 'package:sqlite3/sqlite3.dart';
 
 import '../../support/test_db.dart';
 
-/// Keeps docs/sql/v4_schema.sql (the documented schema) and the upgrade scripts
-/// (v2_from_v1.sql, v3_from_v2.sql, v4_from_v3.sql) identical to the schema the app creates.
+/// Keeps docs/sql/v5_schema.sql (the documented schema) and the upgrade scripts
+/// (v2_from_v1.sql … v5_from_v4.sql) identical to the schema the app creates.
 void main() {
   Future<List<String>> appSchemaNow() async {
     final db = openTestDatabase();
@@ -45,18 +45,21 @@ void main() {
       "VALUES ('s1', 1, 'multiple', 5, '[0.9,0,0.9,0,0]', 0.9, 5)",
     );
     db.execute(File('../docs/sql/v4_from_v3.sql').readAsStringSync());
+    db.execute(File('../docs/sql/v5_from_v4.sql').readAsStringSync());
     expect(_schema(db), await appSchemaNow());
+    expect(db.select('SELECT title, item_count, questions_used FROM examinations').single.values, ['Finals', 50, null]);
+    db.execute('UPDATE examinations SET questions_used = 45');
     expect(db.select('SELECT final_mask FROM student_answers').single['final_mask'], 5);
     db.execute("UPDATE student_answers SET final_mask = 32");
     expect(db.select('SELECT full_name FROM instructor_profiles').single['full_name'], 'Maria Santos');
     expect(db.select('SELECT label FROM examination_versions').single['label'], 'A');
-    expect(db.select('PRAGMA user_version').single.values.first, 4);
+    expect(db.select('PRAGMA user_version').single.values.first, 5);
     db.execute("INSERT INTO examination_versions (id, examination_id, label, created_at) VALUES ('vE', 'e1', 'E', 1)");
     db.close();
   });
 
-  test('docs/sql/v4_schema.sql creates exactly the app schema', () async {
-    final script = File('../docs/sql/v4_schema.sql').readAsStringSync();
+  test('docs/sql/v5_schema.sql creates exactly the app schema', () async {
+    final script = File('../docs/sql/v5_schema.sql').readAsStringSync();
 
     final fromScript = sqlite3.openInMemory()..execute(script);
     final scriptSchema = _schema(fromScript);

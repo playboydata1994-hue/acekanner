@@ -155,4 +155,34 @@ void main() {
     expect(await db.customSelect('SELECT 1 FROM student_answers').get(), isEmpty);
     await db.close();
   });
+
+  test('v4 -> v5 keeps examinations (and what refers to them) and adds questions used', () async {
+    final schema = await verifier.schemaAt(4);
+    final raw = schema.rawDatabase;
+    raw.execute(
+      "INSERT INTO examinations (id, short_code, title, item_count, status, created_at, updated_at) "
+      "VALUES ('e1', 'K7M2Q9XA', 'Finals', 100, 'ready', 1, 1)",
+    );
+    raw.execute("INSERT INTO examination_versions (id, examination_id, label, created_at) VALUES ('vA', 'e1', 'A', 1)");
+    raw.execute(
+      "INSERT INTO answer_sheets (id, examination_id, status, captured_at, updated_at) VALUES ('s1', 'e1', 'needs_review', 1, 1)",
+    );
+
+    final db = AppDatabase(schema.newConnection());
+    await verifier.migrateAndValidate(db, 5);
+
+    final exam = await db.select(db.examinations).getSingle();
+    expect((exam.title, exam.itemCount, exam.status, exam.questionsUsed), ('Finals', 100, 'ready', null));
+    expect(exam.scoredItems, 100);
+    expect(await db.customSelect('PRAGMA foreign_key_check').get(), isEmpty, reason: 'references intact');
+
+    await db.customStatement("UPDATE examinations SET questions_used = 90");
+    expect((await db.select(db.examinations).getSingle()).scoredItems, 90);
+    await expectLater(db.customStatement("UPDATE examinations SET questions_used = 101"), throwsA(anything));
+    await expectLater(db.customStatement("UPDATE examinations SET questions_used = 0"), throwsA(anything));
+    // Deleting the examination still cascades after the rebuild.
+    await db.customStatement("DELETE FROM examinations WHERE id = 'e1'");
+    expect(await db.customSelect('SELECT id FROM answer_sheets').get(), isEmpty);
+    await db.close();
+  });
 }

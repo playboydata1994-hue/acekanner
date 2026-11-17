@@ -140,7 +140,10 @@ CREATE TABLE examinations (
     status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'ready', 'closed')),
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
-    deleted_at DATETIME
+    deleted_at DATETIME,
+    -- Questions actually used (v5): only 1..questions_used are in the key and
+    -- graded, e.g. 90 on a 100-item sheet. NULL = all item_count questions.
+    questions_used INTEGER CHECK (questions_used IS NULL OR questions_used BETWEEN 1 AND item_count)
 ) AS ExaminationRow;
 
 CREATE INDEX examinations_subject ON examinations (subject_id);
@@ -518,8 +521,13 @@ SELECT
     k.revision AS revision,
     (SELECT COUNT(*) FROM answer_key_items i
         WHERE i.answer_key_id = k.id
+          AND i.question_no <= (SELECT COALESCE(e.questions_used, e.item_count) FROM examinations e
+                                WHERE e.id = v.examination_id)
           AND (i.mode <> 'normal' OR i.correct_mask <> 0)) AS complete_count,
-    (SELECT COUNT(*) FROM answer_key_items i WHERE i.answer_key_id = k.id) AS item_total
+    (SELECT COUNT(*) FROM answer_key_items i
+        WHERE i.answer_key_id = k.id
+          AND i.question_no <= (SELECT COALESCE(e.questions_used, e.item_count) FROM examinations e
+                                WHERE e.id = v.examination_id)) AS item_total
 FROM examination_versions v
 INNER JOIN answer_keys k ON k.examination_version_id = v.id AND k.is_current = 1
 WHERE v.examination_id = :examination_id
@@ -538,4 +546,6 @@ FROM answer_key_items i
 INNER JOIN answer_keys k ON k.id = i.answer_key_id AND k.is_current = 1
 INNER JOIN examination_versions v ON v.id = k.examination_version_id
 WHERE v.examination_id = :examination_id
+  AND i.question_no <= (SELECT COALESCE(e.questions_used, e.item_count) FROM examinations e
+                        WHERE e.id = :examination_id)
   AND i.mode = 'normal' AND i.correct_mask = 0;

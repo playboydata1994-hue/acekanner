@@ -63,7 +63,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Not encrypted (development build)'), findsOneWidget);
     expect(find.textContaining('Android phones only'), findsOneWidget);
-    expect(find.text('Version 4'), findsOneWidget);
+    expect(find.text('Version 5'), findsOneWidget);
     expect(find.text('Version 0.2.0 (build 2)'), findsOneWidget);
     expect(find.text('com.acekanner.app'), findsOneWidget);
     await disposeApp(tester);

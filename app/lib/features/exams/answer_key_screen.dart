@@ -6,6 +6,7 @@ import '../../app/providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/spacing.dart';
 import '../../core/widgets/feedback.dart';
+import '../../data/db/app_database.dart';
 import '../../data/repositories/answer_key_repository.dart';
 import '../../domain/answer_mask.dart';
 import '../../domain/validators.dart';
@@ -32,7 +33,36 @@ class _AnswerKeyScreenState extends ConsumerState<AnswerKeyScreen> {
 
   bool get _dirty => !_listEquals(_items, _saved);
 
-  int get _completeCount => _items.where((i) => i.isComplete).length;
+  /// Questions in use (1.._used); the rest of the sheet is not graded.
+  int get _used => _data?.exam.scoredItems ?? _items.length;
+
+  List<KeyItem> get _usedItems => _items.where((i) => i.questionNo <= _used).toList();
+
+  int get _completeCount => _usedItems.where((i) => i.isComplete).length;
+
+  Future<void> _changeUsed() async {
+    final data = _data;
+    if (data == null) return;
+    final value = await showDialog<int>(
+      context: context,
+      builder: (_) => _QuestionsUsedDialog(itemCount: data.exam.itemCount, current: _used),
+    );
+    if (value == null || value == _used) return;
+    try {
+      await ref.read(examsRepositoryProvider).setQuestionsUsed(data.exam.id, value);
+      final fresh = await ref.read(answerKeyRepositoryProvider).load(widget.versionId);
+      if (!mounted) return;
+      setState(() => _data = fresh);
+      showMessage(
+        context,
+        value == data.exam.itemCount
+            ? 'All ${data.exam.itemCount} questions are used.'
+            : 'Questions 1–$value are used. ${value + 1}–${data.exam.itemCount} are ignored when grading.',
+      );
+    } catch (e) {
+      if (mounted) showError(context, e);
+    }
+  }
 
   @override
   void initState() {
@@ -69,7 +99,7 @@ class _AnswerKeyScreenState extends ConsumerState<AnswerKeyScreen> {
   }
 
   Future<void> _quickEntry() async {
-    final itemCount = _items.length;
+    final itemCount = _used;
     final parsed = await showDialog<Map<int, int>>(
       context: context,
       builder: (_) => _QuickEntryDialog(itemCount: itemCount),
@@ -214,7 +244,9 @@ class _AnswerKeyScreenState extends ConsumerState<AnswerKeyScreen> {
                     children: [
                       _Header(
                         complete: _completeCount,
-                        total: _items.length,
+                        total: _used,
+                        itemCount: data.exam.itemCount,
+                        onChangeUsed: _changeUsed,
                         revisionNotice: data.hasFinalizedPapers
                             ? 'Papers were already scanned. Saving creates revision '
                                 '${data.key.revision + 1} and asks for the reason.'
@@ -226,15 +258,18 @@ class _AnswerKeyScreenState extends ConsumerState<AnswerKeyScreen> {
                       Expanded(
                         child: ListView.builder(
                           padding: const EdgeInsets.only(bottom: 96),
-                          itemCount: _items.length,
+                          itemCount: _usedItems.length,
                           itemExtent: 64,
-                          itemBuilder: (context, i) => _KeyRow(
-                            item: _items[i],
-                            allowMultiple: _multi.contains(_items[i].questionNo),
-                            defaultPoints: _items.first.points,
-                            onChoice: (c) => _tapChoice(_items[i], c),
-                            onAction: (a) => _rowAction(_items[i], a),
-                          ),
+                          itemBuilder: (context, i) {
+                            final item = _usedItems[i];
+                            return _KeyRow(
+                              item: item,
+                              allowMultiple: _multi.contains(item.questionNo),
+                              defaultPoints: _items.first.points,
+                              onChoice: (c) => _tapChoice(item, c),
+                              onAction: (a) => _rowAction(item, a),
+                            );
+                          },
                         ),
                       ),
                     ],
@@ -263,13 +298,21 @@ class _Header extends StatelessWidget {
   const _Header({
     required this.complete,
     required this.total,
+    required this.itemCount,
+    required this.onChangeUsed,
     required this.onQuickEntry,
     required this.onPoints,
     this.revisionNotice,
   });
 
   final int complete;
+
+  /// Questions used (graded).
   final int total;
+
+  /// Questions on the answer sheet.
+  final int itemCount;
+  final VoidCallback onChangeUsed;
   final String? revisionNotice;
   final VoidCallback onQuickEntry;
   final VoidCallback onPoints;
@@ -283,7 +326,19 @@ class _Header extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('$complete of $total answers set', style: theme.textTheme.titleMedium),
-          const SizedBox(height: Space.s),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  total == itemCount
+                      ? 'Questions used: all $itemCount'
+                      : 'Questions used: 1–$total of $itemCount (${total + 1}–$itemCount ignored)',
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
+              TextButton(onPressed: onChangeUsed, child: const Text('Change')),
+            ],
+          ),
           ClipRRect(
             borderRadius: BorderRadius.circular(3),
             child: LinearProgressIndicator(value: total == 0 ? 0 : complete / total, minHeight: 6),
@@ -667,4 +722,65 @@ class _ChangeNoteDialogState extends State<_ChangeNoteDialog> {
       ],
     );
   }
+}
+
+/// Asks how many questions of the sheet are used (1..[itemCount]).
+class _QuestionsUsedDialog extends StatefulWidget {
+  const _QuestionsUsedDialog({required this.itemCount, required this.current});
+
+  final int itemCount;
+  final int current;
+
+  @override
+  State<_QuestionsUsedDialog> createState() => _QuestionsUsedDialogState();
+}
+
+class _QuestionsUsedDialogState extends State<_QuestionsUsedDialog> {
+  late final TextEditingController _text = TextEditingController(text: '${widget.current}');
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+        title: const Text('Questions used'),
+        content: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'The answer sheet has ${widget.itemCount} questions. Enter how many your examination '
+                'uses. Only questions 1 to that number are checked; answers after it are ignored.',
+              ),
+              const SizedBox(height: Space.m),
+              TextFormField(
+                controller: _text,
+                autofocus: true,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: 'Questions used (1–${widget.itemCount})'),
+                validator: (v) {
+                  final n = int.tryParse(v?.trim() ?? '');
+                  if (n == null || n < 1 || n > widget.itemCount) return 'Enter a number from 1 to ${widget.itemCount}';
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () {
+              if (_formKey.currentState!.validate()) Navigator.of(context).pop(int.parse(_text.text.trim()));
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      );
 }

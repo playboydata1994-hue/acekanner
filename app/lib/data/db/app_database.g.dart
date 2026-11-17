@@ -3392,6 +3392,17 @@ class Examinations extends Table with TableInfo<Examinations, ExaminationRow> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _questionsUsedMeta = const VerificationMeta(
+    'questionsUsed',
+  );
+  late final GeneratedColumn<int> questionsUsed = GeneratedColumn<int>(
+    'questions_used',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'CHECK (questions_used IS NULL OR questions_used BETWEEN 1 AND item_count)',
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3412,6 +3423,7 @@ class Examinations extends Table with TableInfo<Examinations, ExaminationRow> {
     createdAt,
     updatedAt,
     deletedAt,
+    questionsUsed,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3563,6 +3575,15 @@ class Examinations extends Table with TableInfo<Examinations, ExaminationRow> {
         deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
       );
     }
+    if (data.containsKey('questions_used')) {
+      context.handle(
+        _questionsUsedMeta,
+        questionsUsed.isAcceptableOrUnknown(
+          data['questions_used']!,
+          _questionsUsedMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -3644,6 +3665,10 @@ class Examinations extends Table with TableInfo<Examinations, ExaminationRow> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
       ),
+      questionsUsed: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}questions_used'],
+      ),
     );
   }
 
@@ -3683,6 +3708,10 @@ class ExaminationRow extends DataClass implements Insertable<ExaminationRow> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+
+  /// Questions actually used (v5): only 1..questions_used are in the key and
+  /// graded, e.g. 90 on a 100-item sheet. NULL = all item_count questions.
+  final int? questionsUsed;
   const ExaminationRow({
     required this.id,
     required this.shortCode,
@@ -3702,6 +3731,7 @@ class ExaminationRow extends DataClass implements Insertable<ExaminationRow> {
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
+    this.questionsUsed,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3733,6 +3763,9 @@ class ExaminationRow extends DataClass implements Insertable<ExaminationRow> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    if (!nullToAbsent || questionsUsed != null) {
+      map['questions_used'] = Variable<int>(questionsUsed);
     }
     return map;
   }
@@ -3767,6 +3800,9 @@ class ExaminationRow extends DataClass implements Insertable<ExaminationRow> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      questionsUsed: questionsUsed == null && nullToAbsent
+          ? const Value.absent()
+          : Value(questionsUsed),
     );
   }
 
@@ -3800,6 +3836,7 @@ class ExaminationRow extends DataClass implements Insertable<ExaminationRow> {
       createdAt: serializer.fromJson<DateTime>(json['created_at']),
       updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
       deletedAt: serializer.fromJson<DateTime?>(json['deleted_at']),
+      questionsUsed: serializer.fromJson<int?>(json['questions_used']),
     );
   }
   @override
@@ -3824,6 +3861,7 @@ class ExaminationRow extends DataClass implements Insertable<ExaminationRow> {
       'created_at': serializer.toJson<DateTime>(createdAt),
       'updated_at': serializer.toJson<DateTime>(updatedAt),
       'deleted_at': serializer.toJson<DateTime?>(deletedAt),
+      'questions_used': serializer.toJson<int?>(questionsUsed),
     };
   }
 
@@ -3846,6 +3884,7 @@ class ExaminationRow extends DataClass implements Insertable<ExaminationRow> {
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
+    Value<int?> questionsUsed = const Value.absent(),
   }) => ExaminationRow(
     id: id ?? this.id,
     shortCode: shortCode ?? this.shortCode,
@@ -3867,6 +3906,9 @@ class ExaminationRow extends DataClass implements Insertable<ExaminationRow> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    questionsUsed: questionsUsed.present
+        ? questionsUsed.value
+        : this.questionsUsed,
   );
   ExaminationRow copyWithCompanion(ExaminationsCompanion data) {
     return ExaminationRow(
@@ -3902,6 +3944,9 @@ class ExaminationRow extends DataClass implements Insertable<ExaminationRow> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      questionsUsed: data.questionsUsed.present
+          ? data.questionsUsed.value
+          : this.questionsUsed,
     );
   }
 
@@ -3925,7 +3970,8 @@ class ExaminationRow extends DataClass implements Insertable<ExaminationRow> {
           ..write('status: $status, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('deletedAt: $deletedAt')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('questionsUsed: $questionsUsed')
           ..write(')'))
         .toString();
   }
@@ -3950,6 +3996,7 @@ class ExaminationRow extends DataClass implements Insertable<ExaminationRow> {
     createdAt,
     updatedAt,
     deletedAt,
+    questionsUsed,
   );
   @override
   bool operator ==(Object other) =>
@@ -3972,7 +4019,8 @@ class ExaminationRow extends DataClass implements Insertable<ExaminationRow> {
           other.status == this.status &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.deletedAt == this.deletedAt);
+          other.deletedAt == this.deletedAt &&
+          other.questionsUsed == this.questionsUsed);
 }
 
 class ExaminationsCompanion extends UpdateCompanion<ExaminationRow> {
@@ -3994,6 +4042,7 @@ class ExaminationsCompanion extends UpdateCompanion<ExaminationRow> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
+  final Value<int?> questionsUsed;
   final Value<int> rowid;
   const ExaminationsCompanion({
     this.id = const Value.absent(),
@@ -4014,6 +4063,7 @@ class ExaminationsCompanion extends UpdateCompanion<ExaminationRow> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.questionsUsed = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ExaminationsCompanion.insert({
@@ -4035,6 +4085,7 @@ class ExaminationsCompanion extends UpdateCompanion<ExaminationRow> {
     required DateTime createdAt,
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
+    this.questionsUsed = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        shortCode = Value(shortCode),
@@ -4061,6 +4112,7 @@ class ExaminationsCompanion extends UpdateCompanion<ExaminationRow> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
+    Expression<int>? questionsUsed,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -4084,6 +4136,7 @@ class ExaminationsCompanion extends UpdateCompanion<ExaminationRow> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (questionsUsed != null) 'questions_used': questionsUsed,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4107,6 +4160,7 @@ class ExaminationsCompanion extends UpdateCompanion<ExaminationRow> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
+    Value<int?>? questionsUsed,
     Value<int>? rowid,
   }) {
     return ExaminationsCompanion(
@@ -4128,6 +4182,7 @@ class ExaminationsCompanion extends UpdateCompanion<ExaminationRow> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      questionsUsed: questionsUsed ?? this.questionsUsed,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4189,6 +4244,9 @@ class ExaminationsCompanion extends UpdateCompanion<ExaminationRow> {
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
+    if (questionsUsed.present) {
+      map['questions_used'] = Variable<int>(questionsUsed.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -4216,6 +4274,7 @@ class ExaminationsCompanion extends UpdateCompanion<ExaminationRow> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('questionsUsed: $questionsUsed, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -12799,7 +12858,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 
   Selectable<ActiveExaminationListResult> activeExaminationList() {
     return customSelect(
-      'SELECT"e"."id" AS "nested_0.id", "e"."short_code" AS "nested_0.short_code", "e"."title" AS "nested_0.title", "e"."subject_id" AS "nested_0.subject_id", "e"."instructor_id" AS "nested_0.instructor_id", "e"."exam_date" AS "nested_0.exam_date", "e"."item_count" AS "nested_0.item_count", "e"."choice_count" AS "nested_0.choice_count", "e"."passing_percentage" AS "nested_0.passing_percentage", "e"."multiple_mark_policy" AS "nested_0.multiple_mark_policy", "e"."allow_negative_total" AS "nested_0.allow_negative_total", "e"."omr_preset" AS "nested_0.omr_preset", "e"."omr_thresholds" AS "nested_0.omr_thresholds", "e"."student_id_digits" AS "nested_0.student_id_digits", "e"."status" AS "nested_0.status", "e"."created_at" AS "nested_0.created_at", "e"."updated_at" AS "nested_0.updated_at", "e"."deleted_at" AS "nested_0.deleted_at", sub.code AS subject_code, sub.title AS subject_title, (SELECT COUNT(*) FROM examination_versions AS v WHERE v.examination_id = e.id) AS version_count, (SELECT COUNT(*) FROM answer_sheets AS a WHERE a.examination_id = e.id AND a.status IN (\'needs_review\', \'finalized\')) AS paper_count FROM examinations AS e LEFT JOIN subjects AS sub ON sub.id = e.subject_id WHERE e.deleted_at IS NULL ORDER BY e.updated_at DESC',
+      'SELECT"e"."id" AS "nested_0.id", "e"."short_code" AS "nested_0.short_code", "e"."title" AS "nested_0.title", "e"."subject_id" AS "nested_0.subject_id", "e"."instructor_id" AS "nested_0.instructor_id", "e"."exam_date" AS "nested_0.exam_date", "e"."item_count" AS "nested_0.item_count", "e"."choice_count" AS "nested_0.choice_count", "e"."passing_percentage" AS "nested_0.passing_percentage", "e"."multiple_mark_policy" AS "nested_0.multiple_mark_policy", "e"."allow_negative_total" AS "nested_0.allow_negative_total", "e"."omr_preset" AS "nested_0.omr_preset", "e"."omr_thresholds" AS "nested_0.omr_thresholds", "e"."student_id_digits" AS "nested_0.student_id_digits", "e"."status" AS "nested_0.status", "e"."created_at" AS "nested_0.created_at", "e"."updated_at" AS "nested_0.updated_at", "e"."deleted_at" AS "nested_0.deleted_at", "e"."questions_used" AS "nested_0.questions_used", sub.code AS subject_code, sub.title AS subject_title, (SELECT COUNT(*) FROM examination_versions AS v WHERE v.examination_id = e.id) AS version_count, (SELECT COUNT(*) FROM answer_sheets AS a WHERE a.examination_id = e.id AND a.status IN (\'needs_review\', \'finalized\')) AS paper_count FROM examinations AS e LEFT JOIN subjects AS sub ON sub.id = e.subject_id WHERE e.deleted_at IS NULL ORDER BY e.updated_at DESC',
       variables: [],
       readsFrom: {
         this.subjects,
@@ -12820,7 +12879,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 
   Selectable<DeletedExaminationListResult> deletedExaminationList() {
     return customSelect(
-      'SELECT"e"."id" AS "nested_0.id", "e"."short_code" AS "nested_0.short_code", "e"."title" AS "nested_0.title", "e"."subject_id" AS "nested_0.subject_id", "e"."instructor_id" AS "nested_0.instructor_id", "e"."exam_date" AS "nested_0.exam_date", "e"."item_count" AS "nested_0.item_count", "e"."choice_count" AS "nested_0.choice_count", "e"."passing_percentage" AS "nested_0.passing_percentage", "e"."multiple_mark_policy" AS "nested_0.multiple_mark_policy", "e"."allow_negative_total" AS "nested_0.allow_negative_total", "e"."omr_preset" AS "nested_0.omr_preset", "e"."omr_thresholds" AS "nested_0.omr_thresholds", "e"."student_id_digits" AS "nested_0.student_id_digits", "e"."status" AS "nested_0.status", "e"."created_at" AS "nested_0.created_at", "e"."updated_at" AS "nested_0.updated_at", "e"."deleted_at" AS "nested_0.deleted_at", sub.code AS subject_code, sub.title AS subject_title, (SELECT COUNT(*) FROM examination_versions AS v WHERE v.examination_id = e.id) AS version_count, (SELECT COUNT(*) FROM answer_sheets AS a WHERE a.examination_id = e.id AND a.status IN (\'needs_review\', \'finalized\')) AS paper_count FROM examinations AS e LEFT JOIN subjects AS sub ON sub.id = e.subject_id WHERE e.deleted_at IS NOT NULL ORDER BY e.deleted_at DESC',
+      'SELECT"e"."id" AS "nested_0.id", "e"."short_code" AS "nested_0.short_code", "e"."title" AS "nested_0.title", "e"."subject_id" AS "nested_0.subject_id", "e"."instructor_id" AS "nested_0.instructor_id", "e"."exam_date" AS "nested_0.exam_date", "e"."item_count" AS "nested_0.item_count", "e"."choice_count" AS "nested_0.choice_count", "e"."passing_percentage" AS "nested_0.passing_percentage", "e"."multiple_mark_policy" AS "nested_0.multiple_mark_policy", "e"."allow_negative_total" AS "nested_0.allow_negative_total", "e"."omr_preset" AS "nested_0.omr_preset", "e"."omr_thresholds" AS "nested_0.omr_thresholds", "e"."student_id_digits" AS "nested_0.student_id_digits", "e"."status" AS "nested_0.status", "e"."created_at" AS "nested_0.created_at", "e"."updated_at" AS "nested_0.updated_at", "e"."deleted_at" AS "nested_0.deleted_at", "e"."questions_used" AS "nested_0.questions_used", sub.code AS subject_code, sub.title AS subject_title, (SELECT COUNT(*) FROM examination_versions AS v WHERE v.examination_id = e.id) AS version_count, (SELECT COUNT(*) FROM answer_sheets AS a WHERE a.examination_id = e.id AND a.status IN (\'needs_review\', \'finalized\')) AS paper_count FROM examinations AS e LEFT JOIN subjects AS sub ON sub.id = e.subject_id WHERE e.deleted_at IS NOT NULL ORDER BY e.deleted_at DESC',
       variables: [],
       readsFrom: {
         this.subjects,
@@ -12843,11 +12902,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     required String examinationId,
   }) {
     return customSelect(
-      'SELECT"v"."id" AS "nested_0.id", "v"."examination_id" AS "nested_0.examination_id", "v"."label" AS "nested_0.label", "v"."created_at" AS "nested_0.created_at", k.id AS key_id, k.revision AS revision, (SELECT COUNT(*) FROM answer_key_items AS i WHERE i.answer_key_id = k.id AND(i.mode <> \'normal\' OR i.correct_mask <> 0)) AS complete_count, (SELECT COUNT(*) FROM answer_key_items AS i WHERE i.answer_key_id = k.id) AS item_total FROM examination_versions AS v INNER JOIN answer_keys AS k ON k.examination_version_id = v.id AND k.is_current = 1 WHERE v.examination_id = ?1 ORDER BY v.label',
+      'SELECT"v"."id" AS "nested_0.id", "v"."examination_id" AS "nested_0.examination_id", "v"."label" AS "nested_0.label", "v"."created_at" AS "nested_0.created_at", k.id AS key_id, k.revision AS revision, (SELECT COUNT(*) FROM answer_key_items AS i WHERE i.answer_key_id = k.id AND i.question_no <= (SELECT COALESCE(e.questions_used, e.item_count) FROM examinations AS e WHERE e.id = v.examination_id) AND(i.mode <> \'normal\' OR i.correct_mask <> 0)) AS complete_count, (SELECT COUNT(*) FROM answer_key_items AS i WHERE i.answer_key_id = k.id AND i.question_no <= (SELECT COALESCE(e.questions_used, e.item_count) FROM examinations AS e WHERE e.id = v.examination_id)) AS item_total FROM examination_versions AS v INNER JOIN answer_keys AS k ON k.examination_version_id = v.id AND k.is_current = 1 WHERE v.examination_id = ?1 ORDER BY v.label',
       variables: [Variable<String>(examinationId)],
       readsFrom: {
         this.answerKeys,
         this.answerKeyItems,
+        this.examinations,
         this.examinationVersions,
       },
     ).asyncMap(
@@ -12876,12 +12936,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 
   Selectable<int> incompleteKeyItemCount({required String examinationId}) {
     return customSelect(
-      'SELECT COUNT(*) AS _c0 FROM answer_key_items AS i INNER JOIN answer_keys AS k ON k.id = i.answer_key_id AND k.is_current = 1 INNER JOIN examination_versions AS v ON v.id = k.examination_version_id WHERE v.examination_id = ?1 AND i.mode = \'normal\' AND i.correct_mask = 0',
+      'SELECT COUNT(*) AS _c0 FROM answer_key_items AS i INNER JOIN answer_keys AS k ON k.id = i.answer_key_id AND k.is_current = 1 INNER JOIN examination_versions AS v ON v.id = k.examination_version_id WHERE v.examination_id = ?1 AND i.question_no <= (SELECT COALESCE(e.questions_used, e.item_count) FROM examinations AS e WHERE e.id = ?1) AND i.mode = \'normal\' AND i.correct_mask = 0',
       variables: [Variable<String>(examinationId)],
       readsFrom: {
         this.answerKeyItems,
         this.answerKeys,
         this.examinationVersions,
+        this.examinations,
       },
     ).map((QueryRow row) => row.read<int>('_c0'));
   }

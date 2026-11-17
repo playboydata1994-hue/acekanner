@@ -224,6 +224,34 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('questions after the ones used are shown as not used and never block saving', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await tester.runAsync(() => (db.update(db.examinations)..where((t) => t.id.equals(examId)))
+        .write(const ExaminationsCompanion(questionsUsed: Value(45))));
+    await pumpReview(tester, uncertain: {47}, multiple: {48});
+
+    expect(find.text('50-item sheet: only questions 1–45 are checked.'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('ALL READ'), 200, scrollable: find.byType(Scrollable).first);
+    expect(find.text('ALL READ'), findsOneWidget, reason: 'the flag on 47 is outside the questions used');
+    expect(find.textContaining('Mark all as wrong'), findsNothing);
+    await tester.scrollUntilVisible(find.bySemanticsLabel('Question 47: not in this exam'), 200,
+        scrollable: find.byType(Scrollable).first);
+    expect(find.bySemanticsLabel('Question 46: not in this exam'), findsOneWidget);
+    expect(find.bySemanticsLabel('Question 45: E'), findsOneWidget);
+
+    final save = find.widgetWithText(FilledButton, 'Save paper');
+    expect(tester.widget<FilledButton>(save).onPressed, isNotNull);
+    await tester.runAsync(() async {
+      await tester.tap(save);
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    });
+    await tester.pumpAndSettle();
+    final answers = (await tester.runAsync(() => db.select(db.studentAnswers).get()))!;
+    expect(answers, hasLength(50), reason: 'the whole sheet is kept');
+    expect(answers.firstWhere((a) => a.questionNo == 47).finalMask, 0, reason: 'an unused unclear mark counts as no answer');
+    semantics.dispose();
+  });
+
   testWidgets('an unknown number must be matched to a student by hand', (tester) async {
     await pumpReview(tester, uncertain: const {}, number: '209999999');
     expect(find.text('Student not identified'), findsOneWidget);

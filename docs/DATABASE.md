@@ -8,7 +8,7 @@
 | Journal | WAL, `synchronous = FULL`: committed data survives app kills and power loss |
 | Schema version | 1 |
 | Source of truth | [`app/lib/data/db/schema/acekanner.drift`](../app/lib/data/db/schema/acekanner.drift) |
-| SQL schema | [`docs/sql/v4_schema.sql`](sql/v4_schema.sql) (generated; a test keeps it identical to the app). Upgrades: [`v2_from_v1.sql`](sql/v2_from_v1.sql), [`v3_from_v2.sql`](sql/v3_from_v2.sql), [`v4_from_v3.sql`](sql/v4_from_v3.sql) |
+| SQL schema | [`docs/sql/v5_schema.sql`](sql/v5_schema.sql) (generated; a test keeps it identical to the app). Upgrades: [`v2_from_v1.sql`](sql/v2_from_v1.sql), [`v3_from_v2.sql`](sql/v3_from_v2.sql), [`v4_from_v3.sql`](sql/v4_from_v3.sql), [`v5_from_v4.sql`](sql/v5_from_v4.sql) |
 | Schema snapshot | `app/drift_schemas/app_database/drift_schema_v1.json` (for migration tests) |
 
 ## Conventions
@@ -86,6 +86,7 @@ Which students belong to which section. Composite primary key (`section_id`,
 | `allow_negative_total` | Whether negative marking may push a total below 0 |
 | `omr_preset`, `omr_thresholds` | Recognition sensitivity (`lenient`/`standard`/`strict`/`custom` + JSON) |
 | `student_id_digits` | Digit columns in the shaded student-number grid (4–12) |
+| `questions_used` | v5. Questions actually used (1..`item_count`), e.g. 90 on a 100-item sheet: only questions 1..N are in the key's completeness, graded and analysed; later answers are ignored. NULL = all |
 | `status` | `draft` → `ready` (key complete) → `closed` |
 
 ### `examination_sections` (join)
@@ -214,7 +215,7 @@ History of local exports, cloud uploads (opt-in) and restores: `status`, `size_b
 5. Run the generated migration tests. They open a database at every older version and
    verify the upgrade preserves data.
 
-History: **v1** initial schema; **v2** (app 0.6.1) `instructor_profiles.full_name` optional; **v3** (app 0.6.3) exam set E allowed in `examination_versions.label`; **v4** (app 0.6.5) `student_answers.final_mask` may be 32 (counted wrong by the instructor).
+History: **v1** initial schema; **v2** (app 0.6.1) `instructor_profiles.full_name` optional; **v3** (app 0.6.3) exam set E allowed in `examination_versions.label`; **v4** (app 0.6.5) `student_answers.final_mask` may be 32 (counted wrong by the instructor); **v5** (app 0.7.0) `examinations.questions_used`.
 
 The app refuses to open a database from an unknown older version rather than guess.
 There's no silent data loss.
@@ -232,5 +233,5 @@ There's no silent data loss.
 - Audit log can't be updated or deleted.
 - Deleting an examination removes all of its scan data in one statement.
 - Dashboard queries count correctly.
-- `docs/sql/v4_schema.sql` produces exactly the app's schema, and `v1_schema.sql` + the upgrade scripts reach it without losing rows.
+- `docs/sql/v5_schema.sql` produces exactly the app's schema, and `v1_schema.sql` + the upgrade scripts reach it without losing rows.
 - The app migrations keep every row (`test/drift/app_database/migration_test.dart`: v1→v2 profiles, v2→v3 sets, keys and references).

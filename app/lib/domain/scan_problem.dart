@@ -67,6 +67,14 @@ class ScanProblem {
             'Print the right sheets from this examination\'s Answer sheets.',
           ],
         ),
+      'too_small_sheet' => (
+          'Answer sheet too short',
+          f.explanation,
+          const [
+            'Use an answer sheet with at least as many questions as this examination.',
+            'Print the right sheets from this examination\'s Answer sheets.',
+          ],
+        ),
       'old_sheet_design' => (
           'Old answer sheet design',
           f.explanation,

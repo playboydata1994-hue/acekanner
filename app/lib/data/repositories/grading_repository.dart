@@ -123,11 +123,11 @@ class GradingRepository {
       if (sheet.studentId == null) throw const DataException('Identify the student before grading.');
       if (sheet.examinationVersionId == null) throw const DataException('Choose the exam set before grading.');
       final exam = await _exam(sheet.examinationId);
-      final (key, items) = await _currentKey(sheet.examinationVersionId!);
+      final (key, items) = await _currentKey(sheet.examinationVersionId!, exam.scoredItems);
       if (items.any((i) => i.mode == 'normal' && i.correctMask == 0)) {
         throw const DataException('Finish the answer key before grading.');
       }
-      final answers = await _answers(sheetId, exam.itemCount);
+      final answers = await _answers(sheetId, exam.scoredItems);
       final g = grade(key: items, answers: answers, rules: _rules(exam));
 
       final subKey = submissionKey(exam.id, sheet.studentId!);
@@ -205,8 +205,8 @@ class GradingRepository {
       var changed = 0;
       final now = clock.now();
       for (final s in sheets) {
-        final (key, items) = keys[s.examinationVersionId!] ??= await _currentKey(s.examinationVersionId!);
-        final g = grade(key: items, answers: await _answers(s.id, exam.itemCount), rules: _rules(exam));
+        final (key, items) = keys[s.examinationVersionId!] ??= await _currentKey(s.examinationVersionId!, exam.scoredItems);
+        final g = grade(key: items, answers: await _answers(s.id, exam.scoredItems), rules: _rules(exam));
         final current = await _currentResult(s.id);
         if (current == null || current.answerKeyId != key.id) {
           if (current != null) {
@@ -258,8 +258,8 @@ class GradingRepository {
       if (sheet.status == 'finalized') {
         final exam = await _exam(sheet.examinationId);
         final current = await _currentResult(sheetId);
-        final (key, items) = await _currentKey(sheet.examinationVersionId!);
-        final g = grade(key: items, answers: await _answers(sheetId, exam.itemCount), rules: _rules(exam));
+        final (key, items) = await _currentKey(sheet.examinationVersionId!, exam.scoredItems);
+        final g = grade(key: items, answers: await _answers(sheetId, exam.scoredItems), rules: _rules(exam));
         if (current != null && current.answerKeyId == key.id) {
           await (_db.update(_db.examinationResults)..where((t) => t.id.equals(current.id)))
               .write(_resultValues(g, clock.now()));
@@ -296,7 +296,7 @@ class GradingRepository {
     if (result != null) {
       final key = await (_db.select(_db.answerKeys)..where((t) => t.id.equals(result.answerKeyId))).getSingle();
       revision = key.revision;
-      g = grade(key: await _items(key.id), answers: _toMap(answers, exam.itemCount), rules: _rules(exam));
+      g = grade(key: await _items(key.id, exam.scoredItems), answers: _toMap(answers, exam.scoredItems), rules: _rules(exam));
     }
     return PaperDetail(
       exam: exam,
@@ -333,7 +333,7 @@ class GradingRepository {
         .get();
     final sections = await _db.examinationSectionList(examinationId: examId).get();
     final keys = <String, List<GradeKeyItem>>{
-      for (final v in versions) v.id: (await _currentKey(v.id)).$2,
+      for (final v in versions) v.id: (await _currentKey(v.id, exam.scoredItems)).$2,
     };
     final sheets = await (_db.select(_db.answerSheets)
           ..where((t) => t.examinationId.equals(examId) & t.status.equals('finalized')))
@@ -343,7 +343,7 @@ class GradingRepository {
     for (final s in sheets) {
       final result = await _currentResult(s.id);
       if (result == null || s.examinationVersionId == null) continue;
-      final items = await _items(result.answerKeyId);
+      final items = await _items(result.answerKeyId, exam.scoredItems);
       final student = s.studentId == null
           ? null
           : await (_db.select(_db.students)..where((t) => t.id.equals(s.studentId!))).getSingleOrNull();
@@ -357,7 +357,7 @@ class GradingRepository {
         student: student,
         versionId: s.examinationVersionId!,
         sectionIds: memberships,
-        grade: grade(key: items, answers: await _answers(s.id, exam.itemCount), rules: rules),
+        grade: grade(key: items, answers: await _answers(s.id, exam.scoredItems), rules: rules),
       ));
     }
     return ExamAnalytics(exam: exam, versions: versions, sections: sections, papers: papers, keys: keys);
@@ -369,7 +369,7 @@ class GradingRepository {
   /// saving anything; null while that key is not complete.
   Future<GradeResult?> preview(String examId, String versionId, Map<int, int> answers) async {
     final exam = await _exam(examId);
-    final (_, items) = await _currentKey(versionId);
+    final (_, items) = await _currentKey(versionId, exam.scoredItems);
     if (items.any((i) => i.mode == 'normal' && i.correctMask == 0)) return null;
     return grade(key: items, answers: answers, rules: _rules(exam));
   }
@@ -388,16 +388,18 @@ class GradingRepository {
 
   Future<ExaminationRow> _exam(String id) => (_db.select(_db.examinations)..where((t) => t.id.equals(id))).getSingle();
 
-  Future<(AnswerKeyRow, List<GradeKeyItem>)> _currentKey(String versionId) async {
+  /// The current key of a set, limited to the questions used (1..[scored]).
+  Future<(AnswerKeyRow, List<GradeKeyItem>)> _currentKey(String versionId, int scored) async {
     final key = await (_db.select(_db.answerKeys)
           ..where((t) => t.examinationVersionId.equals(versionId) & t.isCurrent.equals(true)))
         .getSingle();
-    return (key, await _items(key.id));
+    return (key, await _items(key.id, scored));
   }
 
-  Future<List<GradeKeyItem>> _items(String keyId) async {
+  /// Key items of questions 1..[scored]; later questions are not used.
+  Future<List<GradeKeyItem>> _items(String keyId, int scored) async {
     final rows = await (_db.select(_db.answerKeyItems)
-          ..where((t) => t.answerKeyId.equals(keyId))
+          ..where((t) => t.answerKeyId.equals(keyId) & t.questionNo.isSmallerOrEqualValue(scored))
           ..orderBy([(t) => OrderingTerm.asc(t.questionNo)]))
         .get();
     return [
@@ -412,16 +414,19 @@ class GradingRepository {
     ];
   }
 
-  Future<Map<int, int>> _answers(String sheetId, int itemCount) async {
+  /// Final answers of a paper. Questions 1..[scored] must all be decided;
+  /// answers after them (a bigger sheet, or questions not used) are ignored.
+  Future<Map<int, int>> _answers(String sheetId, int scored) async {
     final rows = await (_db.select(_db.studentAnswers)..where((t) => t.answerSheetId.equals(sheetId))).get();
-    if (rows.length != itemCount || rows.any((r) => r.finalMask == null)) {
+    final used = rows.where((r) => r.questionNo <= scored).toList();
+    if (used.length != scored || used.any((r) => r.finalMask == null)) {
       throw const DataException('Decide every flagged answer before grading.');
     }
-    return _toMap(rows, itemCount);
+    return _toMap(used, scored);
   }
 
-  static Map<int, int> _toMap(List<StudentAnswerRow> rows, int itemCount) =>
-      {for (final r in rows) r.questionNo: r.finalMask ?? 0};
+  static Map<int, int> _toMap(List<StudentAnswerRow> rows, int scored) =>
+      {for (final r in rows) if (r.questionNo <= scored) r.questionNo: r.finalMask ?? 0};
 
   Future<ExaminationResultRow?> _currentResult(String sheetId) => (_db.select(_db.examinationResults)
         ..where((t) => t.answerSheetId.equals(sheetId) & t.isCurrent.equals(true)))

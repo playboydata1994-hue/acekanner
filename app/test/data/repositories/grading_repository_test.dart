@@ -273,6 +273,54 @@ void main() {
     expect((await current(id)).percentage, 80);
   });
 
+  test('questions used: 90 of a 100-item sheet are graded; later answers are ignored', () async {
+    final id = await exams.create(ExamInput(title: 'Finals', itemCount: 100, sectionIds: [sectionId]));
+    final versionId = (await exams.loadDetail(id))!.versions.single.version.id;
+    final items = (await keys.load(versionId)).items;
+    await keys.save(versionId, [
+      for (final i in items) i.questionNo <= 90 ? i.copyWith(mask: keyMask(i.questionNo)) : i,
+    ]);
+    var exam = (await exams.loadDetail(id))!;
+    expect(exam.exam.status, 'draft', reason: '91–100 have no answer yet');
+    expect((exam.versions.single.completeCount, exam.versions.single.itemTotal), (90, 100));
+
+    await exams.setQuestionsUsed(id, 90);
+    exam = (await exams.loadDetail(id))!;
+    expect(exam.exam.status, 'ready');
+    expect(exam.exam.scoredItems, 90);
+    expect((exam.versions.single.completeCount, exam.versions.single.itemTotal), (90, 90));
+
+    // All 90 right; 91–100 shaded at random are ignored.
+    final masks = [for (var q = 1; q <= 100; q++) q <= 90 ? keyMask(q) : 31];
+    final image = File('${tmp.path}/r90.jpg')..writeAsBytesSync([1]);
+    final sheetId = await scans.save(ReviewedSheet(
+      examId: id,
+      versionId: versionId,
+      reading: reading(masks: masks),
+      finalMasks: {for (var q = 1; q <= 100; q++) q: masks[q - 1]},
+      overridden: const {},
+      rectifiedImage: image,
+      studentId: roster[0].id,
+    ));
+    var r = await current(sheetId);
+    expect((r.percentage, r.possiblePoints, r.multipleCount), (100.0, 90.0, 0));
+    expect((await grading.paperDetail(sheetId))!.grade!.questions, hasLength(90));
+
+    // Fewer questions used: re-scored right away.
+    await exams.setQuestionsUsed(id, 80);
+    r = await current(sheetId);
+    expect((r.percentage, r.possiblePoints), (100.0, 80.0));
+
+    // All 100 again: 91–100 have no key, so the examination waits for the key.
+    await exams.setQuestionsUsed(id, null);
+    expect((await exams.loadDetail(id))!.exam.status, 'draft');
+    expect((await current(sheetId)).possiblePoints, 80, reason: 'kept until the key is finished');
+
+    await expectLater(exams.setQuestionsUsed(id, 0), throwsA(isA<DataException>()));
+    await expectLater(exams.setQuestionsUsed(id, 101), throwsA(isA<DataException>()));
+    expect((await db.select(db.auditLogs).get()).where((l) => l.event == 'examination.questions_used'), hasLength(3));
+  });
+
   test('paper detail and class analytics', () async {
     final (examId, versionId) = await examWithKey();
     final scores = [50, 45, 40, 20];

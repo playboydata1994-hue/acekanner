@@ -178,6 +178,11 @@ class _DetailBody extends StatelessWidget {
             child: Column(
               children: [
                 InfoRow(label: 'Items', value: '${exam.itemCount} (choices A–E)'),
+                if (exam.questionsUsed != null)
+                  InfoRow(
+                    label: 'Questions used',
+                    value: '1–${exam.questionsUsed} (${exam.questionsUsed! + 1}–${exam.itemCount} ignored)',
+                  ),
                 InfoRow(
                   label: 'Sets',
                   value: detail.versions.length == 1 ? 'One set (A)' : setsLabel(detail.versions.length),

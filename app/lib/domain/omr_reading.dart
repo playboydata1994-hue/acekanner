@@ -153,4 +153,21 @@ class OmrSheetReading extends OmrReading {
   final int elapsedMs;
 
   int get flaggedCount => questions.where((q) => q.state == MarkState.uncertain).length;
+
+  /// Flagged answers among questions 1..[used] (later ones are not graded).
+  int flaggedWithin(int used) =>
+      questions.take(used).where((q) => q.state == MarkState.uncertain).length;
+
+  /// Answers with two or more circles shaded among questions 1..[used].
+  int multipleWithin(int used) =>
+      questions.take(used).where((q) => q.state == MarkState.multiple).length;
+
+  /// Final answers as read: questions after [used] (not graded) never wait
+  /// for a decision; their unclear marks count as no answer.
+  Map<int, int?> initialAnswers(int used) => {
+        for (var i = 0; i < questions.length; i++)
+          i + 1: questions[i].state != MarkState.uncertain
+              ? questions[i].mask
+              : (i < used ? null : 0),
+      };
 }

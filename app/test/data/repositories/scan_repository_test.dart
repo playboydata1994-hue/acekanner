@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:acekanner/core/util/clock.dart';
 import 'package:acekanner/data/audit/audit_logger.dart';
@@ -11,6 +12,7 @@ import 'package:acekanner/data/repositories/scan_repository.dart';
 import 'package:acekanner/data/repositories/students_repository.dart';
 import 'package:acekanner/domain/omr_reading.dart';
 import 'package:acekanner/domain/personal_sheet_code.dart';
+import 'package:acekanner/domain/sheet_layout.dart';
 import 'package:acekanner/domain/sheet_qr.dart';
 
 import '../../support/omr_fixtures.dart';
@@ -85,17 +87,73 @@ void main() {
     expect(unclear.detectedNumber, '2021?0123');
   });
 
-  test('a sheet from another examination is detected', () async {
+  test('sheets from another examination or with other settings are accepted with a note', () async {
     final ctx = await scans.context(examId);
     final foreign = const SheetQr(examCode: 'ZZZZZZZZ', itemCount: 50, idDigits: 9, setCount: 2).encode();
-    expect(scans.sheetMismatch(ctx, reading(masks: List.filled(50, 1), qr: foreign)), contains('ZZZZZZZZ'));
+    final r = reading(masks: List.filled(50, 1), qr: foreign);
+    expect(scans.sheetMismatch(ctx, r), isNull, reason: 'any ACEkanner sheet with enough questions is read');
+    expect(scans.sheetNote(ctx, r), contains('ZZZZZZZZ'));
     final mine = SheetQr(examCode: ctx.exam.shortCode, itemCount: 50, idDigits: 9, setCount: 2).encode();
-    expect(scans.sheetMismatch(ctx, reading(masks: List.filled(50, 1), qr: mine)), isNull);
+    expect(scans.sheetNote(ctx, reading(masks: List.filled(50, 1), qr: mine)), isNull);
     final stale = SheetQr(examCode: ctx.exam.shortCode, itemCount: 50, idDigits: 10, setCount: 2).encode();
-    expect(scans.sheetMismatch(ctx, reading(masks: List.filled(50, 1), qr: stale)), contains('Print new sheets'));
+    expect(scans.sheetMismatch(ctx, reading(masks: List.filled(50, 1), qr: stale)), isNull);
     expect(scans.sheetMismatch(ctx, reading(masks: List.filled(50, 1))), isNull);
+    final bigger = reading(masks: List.filled(100, 1), qr: mine);
+    expect(scans.sheetNote(ctx, bigger), '100-item sheet: only questions 1–50 are checked.');
     final oldDesign = 'ACK1|${ctx.exam.shortCode}|50|9|2|G';
     expect(scans.sheetMismatch(ctx, reading(masks: List.filled(50, 1), qr: oldDesign)), contains('older ACEkanner'));
+  });
+
+  group('readSheet', () {
+    late ScanContext ctx;
+    setUp(() async => ctx = await scans.context(examId));
+
+    test('the examination\'s own sheet is read once', () async {
+      final layouts = <SheetLayout>[];
+      final r = await readSheet(ctx, (l) async {
+        layouts.add(l);
+        return reading(masks: List.filled(50, 1));
+      });
+      expect(r, isA<OmrSheetReading>());
+      expect(layouts.map((l) => l.itemCount), [50]);
+    });
+
+    test('a bigger sheet is read again with its own layout', () async {
+      final layouts = <SheetLayout>[];
+      final r = await readSheet(ctx, (l) async {
+        layouts.add(l);
+        return l.itemCount == 50
+            ? const OmrFailure(code: 'wrong_template', message: 'x', detectedItemCount: 100)
+            : reading(masks: List.filled(100, 1));
+      });
+      expect((r as OmrSheetReading).questions, hasLength(100));
+      expect(layouts.map((l) => (l.itemCount, l.idDigits, l.setCount)), [(50, 9, 2), (100, 9, 2)]);
+    });
+
+    test('a sheet with fewer questions than the examination uses is refused', () async {
+      await (db.update(db.examinations)..where((t) => t.id.equals(examId)))
+          .write(const ExaminationsCompanion(itemCount: Value(100), questionsUsed: Value(90)));
+      final big = await scans.context(examId);
+      final r = await readSheet(big, (l) async => const OmrFailure(code: 'wrong_template', message: 'x', detectedItemCount: 75));
+      expect((r as OmrFailure).code, 'too_small_sheet');
+      expect(r.explanation, 'This is a 75-item answer sheet, but this examination uses 90 questions.');
+    });
+
+    test('a sheet printed with other settings is read with them (from its QR code)', () async {
+      final layouts = <SheetLayout>[];
+      final other = const SheetQr(examCode: 'ZZZZZZZZ', itemCount: 50, idDigits: 12, setCount: 3).encode();
+      final r = await readSheet(ctx, (l) async {
+        layouts.add(l);
+        return reading(masks: List.filled(50, 1), qr: other);
+      });
+      expect(r, isA<OmrSheetReading>());
+      expect(layouts.map((l) => (l.idDigits, l.setCount)), [(9, 2), (12, 3)]);
+    });
+
+    test('engine failures other than a different sheet are returned as they are', () async {
+      final r = await readSheet(ctx, (l) async => const OmrFailure(code: 'glare', message: 'Glare.'));
+      expect((r as OmrFailure).code, 'glare');
+    });
   });
 
   test('saving stores answers, image, session counts and an audit entry; a re-scan replaces', () async {

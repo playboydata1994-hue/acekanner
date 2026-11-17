@@ -305,6 +305,9 @@ class ExamsRepository {
               subjectId: Value(input.subjectId),
               examDate: Value(input.examDate),
               itemCount: Value(input.itemCount),
+              questionsUsed: Value(
+                exam.questionsUsed != null && exam.questionsUsed! < input.itemCount ? exam.questionsUsed : null,
+              ),
               passingPercentage: Value(input.passingPercentage),
               multipleMarkPolicy: Value(input.multipleMarkPolicy),
               allowNegativeTotal: Value(input.allowNegativeTotal),
@@ -349,6 +352,38 @@ class ExamsRepository {
           'structureChanged': structureChanged,
         },
       );
+    });
+  }
+
+  /// How many questions of the sheet are used: questions 1..[used] are in the
+  /// answer key and graded; later ones are ignored (e.g. 90 on a 100-item
+  /// sheet). Null or the full item count means all. Graded papers are
+  /// re-scored and waiting papers graded when the key becomes complete.
+  Future<void> setQuestionsUsed(String examId, int? used) async {
+    await _db.transaction(() async {
+      final exam = await _exam(examId);
+      if (exam == null) throw const DataException('This examination no longer exists.');
+      if (used != null && (used < 1 || used > exam.itemCount)) {
+        throw DataException('Choose 1 to ${exam.itemCount} questions.');
+      }
+      final value = used == null || used == exam.itemCount ? null : used;
+      if (value == exam.questionsUsed) return;
+      await (_db.update(_db.examinations)..where((t) => t.id.equals(examId)))
+          .write(ExaminationsCompanion(questionsUsed: Value(value), updatedAt: Value(clock.now())));
+      await _audit.record(
+        event: 'examination.questions_used',
+        entityType: 'examination',
+        entityId: examId,
+        examinationId: examId,
+        details: {'from': exam.scoredItems, 'to': value ?? exam.itemCount},
+      );
+      await refreshStatus(examId);
+      // Re-score only with a complete key; otherwise papers are re-scored when
+      // the key is finished.
+      if ((await _exam(examId))?.status == ExamStatus.ready) {
+        await grading?.regrade(examId, reason: 'examination.questions_used');
+        await grading?.gradePending(examId);
+      }
     });
   }
 

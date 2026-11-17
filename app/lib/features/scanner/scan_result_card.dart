@@ -54,8 +54,11 @@ class _ScanResultCardState extends ConsumerState<ScanResultCard> {
   ScanContext get ctx => widget.scanContext;
   OmrSheetReading get reading => widget.reading;
   String? get _versionId => versionFromReading(ctx, reading);
-  int get _flagged => reading.flaggedCount;
-  int get _multiple => reading.questions.where((q) => q.state == MarkState.multiple).length;
+  /// Questions graded; later questions on the sheet are ignored.
+  int get _used => ctx.exam.scoredItems;
+  int get _flagged => reading.flaggedWithin(_used);
+  int get _multiple => reading.multipleWithin(_used);
+  Map<int, int> get _finalAnswers => reading.initialAnswers(_used).map((q, m) => MapEntry(q, m ?? 0));
 
   @override
   void initState() {
@@ -71,9 +74,7 @@ class _ScanResultCardState extends ConsumerState<ScanResultCard> {
       GradeResult? g;
       final version = _versionId;
       if (version != null && _flagged == 0) {
-        g = await ref.read(gradingRepositoryProvider).preview(ctx.exam.id, version, {
-          for (var i = 0; i < reading.questions.length; i++) i + 1: reading.questions[i].mask,
-        });
+        g = await ref.read(gradingRepositoryProvider).preview(ctx.exam.id, version, _finalAnswers);
       }
       if (!mounted) return;
       setState(() {
@@ -123,7 +124,7 @@ class _ScanResultCardState extends ConsumerState<ScanResultCard> {
               examId: ctx.exam.id,
               versionId: version,
               reading: reading,
-              finalMasks: {for (var i = 0; i < reading.questions.length; i++) i + 1: reading.questions[i].mask},
+              finalMasks: _finalAnswers,
               overridden: const {},
               rectifiedImage: widget.rectifiedImage,
               studentId: student.id,
@@ -244,6 +245,11 @@ class _ScanResultCardState extends ConsumerState<ScanResultCard> {
                         StatusPill(label: '$_multiple DOUBLE-SHADED', color: colors.incorrect, icon: Icons.error_outline),
                     ],
                   ),
+                  if (ref.read(scanRepositoryProvider).sheetNote(ctx, reading) case final note?)
+                    Padding(
+                      padding: const EdgeInsets.only(top: Space.s),
+                      child: Text(note, style: theme.textTheme.bodySmall?.copyWith(color: colors.uncertain)),
+                    ),
                   if (_existing != null && student != null)
                     Padding(
                       padding: const EdgeInsets.only(top: Space.s),

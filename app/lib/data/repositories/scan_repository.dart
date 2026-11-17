@@ -148,16 +148,20 @@ class ScanRepository {
       return 'This is an older ACEkanner answer sheet design that this version no longer reads. '
           'Print new sheets for this examination.';
     }
-    final qr = SheetQr.tryParse(reading.qr);
-    if (qr == null) return null;
-    if (qr.examCode != ctx.exam.shortCode) {
-      return 'This answer sheet was printed for another examination (code ${qr.examCode}). '
-          'This examination’s code is ${ctx.exam.shortCode}.';
-    }
-    if (qr.idDigits != ctx.exam.studentIdDigits || qr.setCount != ctx.versions.length) {
-      return 'This sheet was printed before the examination’s settings changed. Print new sheets.';
-    }
     return null;
+  }
+
+  /// Information (not a reason to refuse) about a sheet that was not printed
+  /// for this examination: any ACEkanner sheet with enough questions is
+  /// accepted and checked with this examination's answer key.
+  String? sheetNote(ScanContext ctx, OmrSheetReading reading) {
+    final qr = SheetQr.tryParse(reading.qr);
+    final items = reading.questions.length;
+    final notes = [
+      if (qr != null && qr.examCode != ctx.exam.shortCode) 'Printed for another examination (code ${qr.examCode}).',
+      if (items > ctx.exam.scoredItems) '$items-item sheet: only questions 1–${ctx.exam.scoredItems} are checked.',
+    ];
+    return notes.isEmpty ? null : notes.join(' ');
   }
 
   /// Personalized QR first; otherwise the shaded number, matched against the
@@ -383,6 +387,59 @@ class ScanRepository {
               ),
           ],
         );
+  }
+}
+
+/// Reads a photo with the examination's sheet layout and, when the sheet is
+/// a different ACEkanner sheet, again with that sheet's own layout: a sheet
+/// with a different number of questions (as long as it has at least the
+/// questions the examination uses), or one printed with other student-number
+/// or set settings (from its QR code). A sheet with too few questions is
+/// refused. [analyze] runs the engine with a layout.
+Future<OmrReading> readSheet(ScanContext ctx, Future<OmrReading> Function(SheetLayout layout) analyze) async {
+  var layout = ctx.layout;
+  var result = await analyze(layout);
+  if (result is OmrFailure && result.code == 'wrong_template' && result.detectedItemCount != null) {
+    final items = result.detectedItemCount!;
+    final used = ctx.exam.scoredItems;
+    if (items < used) {
+      return OmrFailure(
+        code: 'too_small_sheet',
+        message: 'This is a $items-item answer sheet, but this examination uses $used questions.',
+        detectedItemCount: items,
+      );
+    }
+    layout = SheetLayout(itemCount: items, idDigits: layout.idDigits, setCount: layout.setCount);
+    result = await analyze(layout);
+  }
+  if (result is OmrSheetReading) {
+    final qr = SheetQr.tryParse(result.qr);
+    if (qr != null && (qr.idDigits != layout.idDigits || qr.setCount != layout.setCount)) {
+      try {
+        final own = SheetLayout(itemCount: layout.itemCount, idDigits: qr.idDigits, setCount: qr.setCount);
+        final again = await analyze(own);
+        if (again is OmrSheetReading) result = again;
+      } on ArgumentError {
+        // Not a layout this version can print; keep the first reading.
+      }
+    }
+  }
+  return result;
+}
+
+/// Layout of the sheet that was actually read (it can be bigger than the
+/// examination's own sheet, or printed with other settings).
+SheetLayout layoutOfReading(ScanContext ctx, OmrSheetReading r) {
+  final items = r.questions.length;
+  final digits = r.idColumns.isEmpty ? ctx.layout.idDigits : r.idColumns.length;
+  final sets = r.set?.scores.length ?? 1;
+  if (items == ctx.layout.itemCount && digits == ctx.layout.idDigits && sets == ctx.layout.setCount) {
+    return ctx.layout;
+  }
+  try {
+    return SheetLayout(itemCount: items, idDigits: digits, setCount: sets);
+  } on ArgumentError {
+    return ctx.layout;
   }
 }
 

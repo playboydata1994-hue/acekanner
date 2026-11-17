@@ -315,6 +315,15 @@ Scores are normalized per sheet: 0 is this sheet's empty level, 1 its filled lev
 - **Not read** (engine failure, sheet for another examination, camera error): a
   "NOT SCANNED" panel names the problem, the reason and what to do. Scanning and
   auto-capture pause until the instructor taps **OK, scan again**.
+- **Sheet size**: any ACEkanner sheet with at least the examination's questions used is
+  read. The photo is analysed with the examination's layout; if the engine reports another
+  sheet size (`wrong_template` with a detected item count), it is analysed again with that
+  size, and if the sheet's QR code shows other student-number or set settings, again with
+  those (`readSheet`). Fewer questions than used → "Answer sheet too short". A sheet printed
+  for another examination is accepted with a note on the result card and review page.
+- **Questions used** (`examinations.questions_used`, e.g. 90 of 100): only questions 1..N
+  are in the key's completeness, graded, shown for decision and analysed; flags and marks
+  after N never block saving (unclear ones are stored as no answer).
 - **Read**: a floating result card over the camera shows the student, set, score
   preview (current key, nothing saved) and counts of flagged / double-shaded answers.
   **Confirm** saves the paper as read and scanning continues; it is enabled only when

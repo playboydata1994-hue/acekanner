@@ -191,13 +191,19 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
       photo = File((await camera.takePicture()).path);
       final tmp = await getTemporaryDirectory();
       rectified = File(p.join(tmp.path, 'scan-${newId()}.jpg'));
-      final reading = await ref.read(omrEngineChannelProvider).analyzeSheet(
-            imagePath: photo.path,
-            layout: ctx.layout,
-            rectifiedPath: rectified.path,
-            preset: ctx.exam.omrPreset,
-            customThresholds: ctx.exam.omrThresholds,
-          );
+      final engine = ref.read(omrEngineChannelProvider);
+      final image = photo.path;
+      final output = rectified.path;
+      final reading = await readSheet(
+        ctx,
+        (layout) => engine.analyzeSheet(
+          imagePath: image,
+          layout: layout,
+          rectifiedPath: output,
+          preset: ctx.exam.omrPreset,
+          customThresholds: ctx.exam.omrThresholds,
+        ),
+      );
       switch (reading) {
         case OmrFailure():
           await repo.recordCapture(_sessionId!, rejected: true);

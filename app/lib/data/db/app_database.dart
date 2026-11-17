@@ -14,7 +14,7 @@ part 'app_database.g.dart';
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
-  static const int currentSchemaVersion = 4;
+  static const int currentSchemaVersion = 5;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -54,6 +54,14 @@ class AppDatabase extends _$AppDatabase {
     from3To4: (m, schema) async {
       await m.alterTable(TableMigration(schema.studentAnswers));
     },
+    // v5: examinations.questions_used ("90 of 100 questions used"). Rebuilds
+    // the table with the new column (NULL = all questions); rows unchanged.
+    from4To5: (m, schema) async {
+      await m.alterTable(TableMigration(
+        schema.examinations,
+        newColumns: [schema.examinations.questionsUsed],
+      ));
+    },
   );
 
   /// SQLCipher version string, or null when the database is not encrypted
@@ -64,4 +72,10 @@ class AppDatabase extends _$AppDatabase {
     final value = rows.first.data.values.first;
     return (value is String && value.isNotEmpty) ? value : null;
   }
+}
+
+extension ExaminationQuestions on ExaminationRow {
+  /// Questions in the key and graded: 1..scoredItems ("questions used", or
+  /// every item on the sheet).
+  int get scoredItems => questionsUsed ?? itemCount;
 }

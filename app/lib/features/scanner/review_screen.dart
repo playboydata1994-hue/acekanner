@@ -55,13 +55,13 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   ScanContext get ctx => widget.context;
   OmrSheetReading get reading => widget.reading;
 
+  /// Questions graded (1.._used); later questions on the sheet are ignored.
+  int get _used => ctx.exam.scoredItems;
+
   @override
   void initState() {
     super.initState();
-    _answers = {
-      for (var i = 0; i < reading.questions.length; i++)
-        i + 1: reading.questions[i].state == MarkState.uncertain ? null : reading.questions[i].mask,
-    };
+    _answers = reading.initialAnswers(_used);
     _versionId = versionFromReading(ctx, reading);
     _identify();
   }
@@ -118,6 +118,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   ({List<int> flagged, List<int> multiple}) get _toMarkWrong {
     final flagged = <int>[], multiple = <int>[];
     for (final e in _answers.entries) {
+      if (e.key > _used) continue;
       final a = e.value;
       if (a == null) {
         flagged.add(e.key);
@@ -214,7 +215,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = context.statusColors;
-    final flagged = reading.flaggedCount;
+    final flagged = reading.flaggedWithin(_used);
+    final note = ref.read(scanRepositoryProvider).sheetNote(ctx, reading);
     final blocker = _blocker;
     final toMark = _toMarkWrong;
     return PopScope(
@@ -251,9 +253,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                         if (_overlay)
                           CustomPaint(
                             painter: _OverlayPainter(
-                              layout: ctx.layout,
+                              layout: layoutOfReading(ctx, reading),
                               answers: _answers,
                               reading: reading,
+                              used: _used,
                               answered: theme.colorScheme.primary,
                               flagged: colors.uncertain,
                               multiple: colors.incorrect,
@@ -271,6 +274,11 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               style: theme.textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
+            if (note != null)
+              Padding(
+                padding: const EdgeInsets.only(top: Space.s),
+                child: Text(note, style: TextStyle(color: colors.uncertain)),
+              ),
             const SectionHeader('Student'),
             Card(
               child: ListTile(
@@ -376,7 +384,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               runSpacing: Space.s,
               children: [
                 for (var q = 1; q <= reading.questions.length; q++)
-                  if (!_onlyFlagged || reading.questions[q - 1].state == MarkState.uncertain)
+                  if (q > _used)
+                    if (!_onlyFlagged) _UnusedTile(question: q) else const SizedBox.shrink()
+                  else if (!_onlyFlagged || reading.questions[q - 1].state == MarkState.uncertain)
                     _AnswerTile(
                       question: q,
                       state: reading.questions[q - 1].state,
@@ -422,6 +432,37 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     );
   }
 
+}
+
+/// A question on the sheet that the examination does not use.
+class _UnusedTile extends StatelessWidget {
+  const _UnusedTile({required this.question});
+
+  final int question;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Semantics(
+      container: true,
+      label: 'Question $question: not in this exam',
+      excludeSemantics: true,
+      child: Container(
+        width: 62,
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(Radii.s),
+          border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        ),
+        child: Column(
+          children: [
+            Text('$question', style: theme.textTheme.labelSmall?.copyWith(color: theme.disabledColor)),
+            Text('not used', style: theme.textTheme.labelSmall?.copyWith(color: theme.disabledColor)),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _AnswerTile extends StatelessWidget {
@@ -643,6 +684,7 @@ class _OverlayPainter extends CustomPainter {
     required this.layout,
     required this.answers,
     required this.reading,
+    required this.used,
     required this.answered,
     required this.flagged,
     required this.multiple,
@@ -651,6 +693,9 @@ class _OverlayPainter extends CustomPainter {
   final SheetLayout layout;
   final Map<int, int?> answers;
   final OmrSheetReading reading;
+
+  /// Questions graded; later rows are not marked.
+  final int used;
   final Color answered;
   final Color flagged;
   final Color multiple;
@@ -661,7 +706,7 @@ class _OverlayPainter extends CustomPainter {
     final sy = size.height / SheetLayout.frameHeight;
     final ringW = (SheetLayout.bubbleRx + 0.9) * 2 * sx;
     final ringH = (SheetLayout.bubbleRy + 0.9) * 2 * sy;
-    for (var q = 0; q < layout.questions.length; q++) {
+    for (var q = 0; q < layout.questions.length && q < used; q++) {
       final row = layout.questions[q];
       final a = answers[q + 1];
       final isFlagged = reading.questions[q].state == MarkState.uncertain;

@@ -5,6 +5,35 @@ and the next step.
 
 ---
 
+## 2026-11-17 · Revision: questions used (e.g. 90 of 100) and bigger sheets (0.7.0)
+
+Owner's choices: set it in the answer key; accept any bigger sheet; ignore answers after the
+last question; print the sheet normally.
+
+- **Questions used** in the answer key ("Questions used: all 100 · Change" → 90 → "1–90 of
+  100 (91–100 ignored)"). Only 1..90 are listed, counted for "answers set" and for the
+  examination becoming ready, graded (scores out of 90) and analysed. Changing it re-scores
+  graded papers (when the key is complete) and grades waiting ones; audited
+  (`examination.questions_used`). Shown in the examination's Details. Schema **v5**
+  (`examinations.questions_used`), migration + `docs/sql/v5_*`.
+- **Scanning**: answers after the questions used are ignored — never flagged, never block
+  Confirm or saving (unclear marks stored as no answer), shown as "not used" tiles on the
+  review page. The floating card and review show "100-item sheet: only questions 1–90 are
+  checked."
+- **Any big-enough ACEkanner sheet** is read: another sheet size (re-read with that size), or
+  a sheet printed with other student-number/set settings (re-read with the settings in its
+  QR code). Sheets printed for another examination are accepted with a note ("Printed for
+  another examination (code …)") instead of being refused. A sheet with fewer questions than
+  used shows "Answer sheet too short" (stays until acknowledged). Older designs are still
+  refused.
+- Verification: grading test (90 of 100: draft → ready, 100 % out of 90 with 91–100 shaded at
+  random, 80 used → re-scored, back to all → waits for the key, invalid values refused,
+  audit), readSheet tests (own sheet once; bigger sheet re-read; too short refused; QR
+  settings re-read; other failures unchanged), note tests, v4→v5 migration test, SQL chain
+  v1→v5, review page test (flags after the questions used ignored, "not used" tiles, saved),
+  app test of the Change dialog and key; 256/256 pass. Reading real bigger sheets needs a
+  phone check.
+
 ## 2026-11-17 · Revision: floating scan result with Confirm / Review (0.6.9)
 
 - After a sheet is read, the scanner no longer jumps to the review page. A **floating result

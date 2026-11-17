@@ -193,6 +193,52 @@ void main() {
     await disposeApp(tester);
   });
 
+  testWidgets('a 100-item sheet with only 90 questions used', (tester) async {
+    await pumpApp(tester, db);
+    await tester.tap(find.text('Create examination'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextFormField, 'Examination title'), 'Finals 90');
+    await tester.tap(find.text('100'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('0 of 100 answers set'), findsOneWidget);
+
+    await tester.tap(find.text('Set A'));
+    await tester.pumpAndSettle();
+    expect(find.text('Questions used: all 100'), findsOneWidget);
+    await tester.tap(find.widgetWithText(TextButton, 'Change'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextFormField, 'Questions used (1–100)'), '101');
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('Enter a number from 1 to 100'), findsOneWidget);
+    await tester.enterText(find.widgetWithText(TextFormField, 'Questions used (1–100)'), '90');
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('Questions used: 1–90 of 100 (91–100 ignored)'), findsOneWidget);
+    expect(find.text('0 of 90 answers set'), findsOneWidget);
+
+    await tester.tap(find.text('Quick entry'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'ABCDE' * 18);
+    await tester.tap(find.text('Fill in'));
+    await tester.pumpAndSettle();
+    expect(find.text('90 of 90 answers set'), findsOneWidget);
+    await tester.tap(find.text('Save key'));
+    await tester.pumpAndSettle();
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.text('90 of 90 answers set'), findsOneWidget);
+    expect(find.text('KEY INCOMPLETE'), findsNothing);
+    await tester.scrollUntilVisible(find.text('Questions used'), 200, scrollable: find.byType(Scrollable).first);
+    expect(find.text('1–90 (91–100 ignored)'), findsOneWidget);
+    final exam = await db.select(db.examinations).getSingle();
+    expect((exam.itemCount, exam.questionsUsed, exam.status), (100, 90, 'ready'));
+    await disposeApp(tester);
+  });
+
   testWidgets('no file: type the students from the examination form', (tester) async {
     await pumpApp(tester, db);
     await tester.tap(find.text('Create examination'));
