@@ -8,7 +8,7 @@
 | Journal | WAL, `synchronous = FULL`: committed data survives app kills and power loss |
 | Schema version | 1 |
 | Source of truth | [`app/lib/data/db/schema/acekanner.drift`](../app/lib/data/db/schema/acekanner.drift) |
-| SQL schema | [`docs/sql/v3_schema.sql`](sql/v3_schema.sql) (generated; a test keeps it identical to the app). Upgrades: [`v2_from_v1.sql`](sql/v2_from_v1.sql), [`v3_from_v2.sql`](sql/v3_from_v2.sql) |
+| SQL schema | [`docs/sql/v4_schema.sql`](sql/v4_schema.sql) (generated; a test keeps it identical to the app). Upgrades: [`v2_from_v1.sql`](sql/v2_from_v1.sql), [`v3_from_v2.sql`](sql/v3_from_v2.sql), [`v4_from_v3.sql`](sql/v4_from_v3.sql) |
 | Schema snapshot | `app/drift_schemas/app_database/drift_schema_v1.json` (for migration tests) |
 
 ## Conventions
@@ -133,7 +133,9 @@ re-scan of the same paper must supersede the old one instead of duplicating it.
 Per question of a sheet: `detected_state` (`answered`, `blank`, `multiple`, `uncertain`),
 `detected_mask`, `bubble_scores` (JSON array of five 0–1 darkness scores), `confidence`,
 and `final_mask` (the answer used for grading). `final_mask` stays NULL while an uncertain
-answer is unresolved. `resolved_by` (`engine`/`instructor`) shows who decided it.
+answer is unresolved; **32** means the instructor counted the answer wrong (for example an
+unclear or double-shaded answer) — graded as a wrong answer, never part of a key, while
+`detected_state`/`detected_mask` keep what was actually read. `resolved_by` (`engine`/`instructor`) shows who decided it.
 
 ### 13. `examination_results`
 Score of one sheet under one answer-key revision: counts (correct, incorrect, blank,
@@ -212,7 +214,7 @@ History of local exports, cloud uploads (opt-in) and restores: `status`, `size_b
 5. Run the generated migration tests. They open a database at every older version and
    verify the upgrade preserves data.
 
-History: **v1** initial schema; **v2** (app 0.6.1) `instructor_profiles.full_name` optional; **v3** (app 0.6.3) exam set E allowed in `examination_versions.label`.
+History: **v1** initial schema; **v2** (app 0.6.1) `instructor_profiles.full_name` optional; **v3** (app 0.6.3) exam set E allowed in `examination_versions.label`; **v4** (app 0.6.5) `student_answers.final_mask` may be 32 (counted wrong by the instructor).
 
 The app refuses to open a database from an unknown older version rather than guess.
 There's no silent data loss.
@@ -230,5 +232,5 @@ There's no silent data loss.
 - Audit log can't be updated or deleted.
 - Deleting an examination removes all of its scan data in one statement.
 - Dashboard queries count correctly.
-- `docs/sql/v3_schema.sql` produces exactly the app's schema, and `v1_schema.sql` + the upgrade scripts reach it without losing rows.
+- `docs/sql/v4_schema.sql` produces exactly the app's schema, and `v1_schema.sql` + the upgrade scripts reach it without losing rows.
 - The app migrations keep every row (`test/drift/app_database/migration_test.dart`: v1→v2 profiles, v2→v3 sets, keys and references).

@@ -24,6 +24,22 @@ abstract final class AnswerMask {
 
   static bool isValid(int mask) => mask >= 0 && mask <= all;
 
+  /// Final answer meaning "counted wrong by the instructor" (an unclear or
+  /// double-shaded answer the instructor rejected). Never part of a key; stored
+  /// only as a student's final answer and always scored as a wrong answer.
+  static const int markedWrong = 32;
+
+  /// A student's final answer: a choice mask (0 = no answer) or [markedWrong].
+  static bool isValidAnswer(int mask) => isValid(mask) || mask == markedWrong;
+
+  /// How a student's final answer is shown: "A", "A/C", "—" (no answer) or
+  /// "✗" (counted wrong).
+  static String describe(int mask) => switch (mask) {
+        0 => '—',
+        markedWrong => '✗',
+        _ => format(mask),
+      };
+
   /// "A", "A/C", or "" for no answer.
   static String format(int mask) => [
         for (var i = 0; i < labels.length; i++)

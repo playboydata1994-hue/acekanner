@@ -147,7 +147,7 @@ List<ItemStat> itemAnalysis(List<GradedPaper> papers, List<GradeKeyItem> key) {
             case ItemOutcome.bonus || ItemOutcome.dropped || ItemOutcome.incorrect:
               break;
           }
-          if (AnswerMask.count(g.answerMask) == 1) {
+          if (AnswerMask.count(g.answerMask) == 1 && g.answerMask != AnswerMask.markedWrong) {
             counts[AnswerMask.labels.indexOf(AnswerMask.format(g.answerMask))]++;
           }
         }

@@ -8023,8 +8023,7 @@ class StudentAnswers extends Table
     true,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
-    $customConstraints:
-        'CHECK (final_mask IS NULL OR final_mask BETWEEN 0 AND 31)',
+    $customConstraints: 'CHECK (final_mask IS NULL OR final_mask BETWEEN 0 AND 31 OR final_mask = 32)',
   );
   static const VerificationMeta _resolvedByMeta = const VerificationMeta(
     'resolvedBy',
@@ -8221,7 +8220,8 @@ class StudentAnswerRow extends DataClass
   final String bubbleScores;
   final double confidence;
 
-  /// Answer used for grading. NULL while an uncertain answer is unresolved.
+  /// Answer used for grading. NULL while an uncertain answer is unresolved;
+  /// 32 = counted wrong by the instructor (v4).
   final int? finalMask;
   final String? resolvedBy;
   final String? reviewNote;

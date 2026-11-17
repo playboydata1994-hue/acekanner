@@ -8,6 +8,7 @@ String engineJson({
   required List<int> masks,
   Set<int> uncertain = const {},
   Set<int> blank = const {},
+  Set<int> multiple = const {},
   String studentNumber = '202100123',
   bool clear = true,
   int? setMask,
@@ -28,7 +29,9 @@ String engineJson({
       for (var i = 0; i < masks.length; i++)
         group(
           masks[i],
-          uncertain.contains(i + 1) ? 'uncertain' : (blank.contains(i + 1) ? 'blank' : 'answered'),
+          uncertain.contains(i + 1)
+              ? 'uncertain'
+              : (blank.contains(i + 1) ? 'blank' : (multiple.contains(i + 1) ? 'multiple' : 'answered')),
         ),
     ],
     'idColumns': const [],
@@ -47,6 +50,7 @@ OmrSheetReading reading({
   required List<int> masks,
   Set<int> uncertain = const {},
   Set<int> blank = const {},
+  Set<int> multiple = const {},
   String studentNumber = '202100123',
   bool clear = true,
   int? setMask,
@@ -56,6 +60,7 @@ OmrSheetReading reading({
       masks: masks,
       uncertain: uncertain,
       blank: blank,
+      multiple: multiple,
       studentNumber: studentNumber,
       clear: clear,
       setMask: setMask,

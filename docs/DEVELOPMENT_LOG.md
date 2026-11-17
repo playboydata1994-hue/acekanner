@@ -5,6 +5,22 @@ and the next step.
 
 ---
 
+## 2026-11-17 · Revision: mark flagged and double-shaded answers wrong (0.6.5)
+
+- **"Mark all as wrong (N)"** on the scan check screen: one tap counts every flagged answer
+  not yet decided, and every answer with 2 or more circles shaded, as wrong. A message
+  offers **Undo**; any answer can still be tapped and changed. Shown only when there is
+  something to mark, with a line saying how many are flagged / double-shaded.
+- **"Wrong"** is also a choice when deciding one answer (scan check) and when correcting a
+  saved paper (paper result).
+- How it is stored: final answer **32** = counted wrong by the instructor (schema **v4**,
+  `student_answers.final_mask`); what the engine read is kept. Grading counts it as a
+  wrong answer (deduction applies); bonus/dropped items unchanged; item analysis does not
+  count it as a chosen letter. Existing phones upgrade automatically (table rebuild).
+- Verification: v3→v4 migration test with saved answers (rows, references, cascade),
+  SQL upgrade chain v1→v4, grading/analytics/answer-mask tests, repository correction test,
+  two widget tests (bulk mark + Undo + save; single "Wrong"); 225/225 pass.
+
 ## 2026-11-17 · Play documents filled in; web pages; sign-in log retention
 
 - Owner decisions: developer name **NYE94**, support email espinosanoli1994@gmail.com,

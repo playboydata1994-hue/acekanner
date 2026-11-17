@@ -270,8 +270,9 @@ CREATE TABLE student_answers (
     -- JSON array with one normalized darkness score (0..1) per choice.
     bubble_scores TEXT NOT NULL,
     confidence REAL NOT NULL CHECK (confidence BETWEEN 0 AND 1),
-    -- Answer used for grading. NULL while an uncertain answer is unresolved.
-    final_mask INTEGER CHECK (final_mask IS NULL OR final_mask BETWEEN 0 AND 31),
+    -- Answer used for grading. NULL while an uncertain answer is unresolved;
+    -- 32 = counted wrong by the instructor (v4).
+    final_mask INTEGER CHECK (final_mask IS NULL OR final_mask BETWEEN 0 AND 31 OR final_mask = 32),
     resolved_by TEXT CHECK (resolved_by IS NULL OR resolved_by IN ('engine', 'instructor')),
     review_note TEXT CHECK (review_note IS NULL OR length(review_note) <= 300),
     PRIMARY KEY (answer_sheet_id, question_no)

@@ -240,7 +240,7 @@ class _QuestionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final (icon, label, color) = outcomeStyle(context, q.outcome);
-    final answer = q.answerMask == 0 ? '—' : AnswerMask.format(q.answerMask);
+    final answer = q.answerMask == AnswerMask.markedWrong ? 'marked wrong' : AnswerMask.describe(q.answerMask);
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -287,7 +287,7 @@ class _CorrectSheet extends StatefulWidget {
 }
 
 class _CorrectSheetState extends State<_CorrectSheet> {
-  late int _mask = widget.current;
+  late int _mask = widget.current == AnswerMask.markedWrong ? 0 : widget.current;
 
   @override
   Widget build(BuildContext context) {
@@ -302,7 +302,7 @@ class _CorrectSheetState extends State<_CorrectSheet> {
           children: [
             Text('Correct question ${widget.question}', style: theme.textTheme.titleLarge),
             const SizedBox(height: Space.xs),
-            const Text('Set what the student actually shaded. The score updates and the change is recorded.'),
+            const Text('Set what the student actually shaded, or mark the answer wrong. The score updates and the change is recorded.'),
             const SizedBox(height: Space.l),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -345,12 +345,22 @@ class _CorrectSheetState extends State<_CorrectSheet> {
                 ),
                 const SizedBox(width: Space.m),
                 Expanded(
-                  child: FilledButton(
-                    onPressed: _mask == 0 ? null : () => Navigator.of(context).pop(_mask),
-                    child: const Text('Save'),
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context).pop(AnswerMask.markedWrong),
+                    style: OutlinedButton.styleFrom(foregroundColor: context.statusColors.incorrect),
+                    icon: const Icon(Icons.close, size: 18),
+                    label: const Text('Wrong'),
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: Space.s),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _mask == 0 ? null : () => Navigator.of(context).pop(_mask),
+                child: const Text('Save'),
+              ),
             ),
           ],
         ),

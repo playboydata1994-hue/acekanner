@@ -114,4 +114,45 @@ void main() {
     expect(await db.customSelect('SELECT id FROM examination_versions').get(), isEmpty);
     await db.close();
   });
+
+  test('v3 -> v4 keeps saved answers and allows "counted wrong" (32)', () async {
+    final schema = await verifier.schemaAt(3);
+    final raw = schema.rawDatabase;
+    raw.execute(
+      "INSERT INTO examinations (id, short_code, title, item_count, created_at, updated_at) "
+      "VALUES ('e1', 'K7M2Q9XA', 'Finals', 50, 1, 1)",
+    );
+    raw.execute(
+      "INSERT INTO answer_sheets (id, examination_id, status, captured_at, updated_at) "
+      "VALUES ('s1', 'e1', 'needs_review', 1, 1)",
+    );
+    raw.execute(
+      "INSERT INTO student_answers (answer_sheet_id, question_no, detected_state, detected_mask, bubble_scores, confidence, final_mask, resolved_by) "
+      "VALUES ('s1', 1, 'multiple', 5, '[0.9,0,0.9,0,0]', 0.9, 5, 'engine'), "
+      "('s1', 2, 'uncertain', 2, '[0,0.4,0,0,0]', 0.5, NULL, NULL)",
+    );
+    expect(
+      () => raw.execute("UPDATE student_answers SET final_mask = 32 WHERE question_no = 2"),
+      throwsA(anything),
+      reason: 'v3 allows only 0-31',
+    );
+
+    final db = AppDatabase(schema.newConnection());
+    await verifier.migrateAndValidate(db, 4);
+
+    final rows = await db.customSelect('SELECT question_no, final_mask, resolved_by FROM student_answers ORDER BY question_no').get();
+    expect(rows.map((r) => (r.read<int>('question_no'), r.readNullable<int>('final_mask'), r.readNullable<String>('resolved_by'))),
+        [(1, 5, 'engine'), (2, null, null)]);
+    expect(await db.customSelect('PRAGMA foreign_key_check').get(), isEmpty, reason: 'references intact');
+
+    await db.customStatement("UPDATE student_answers SET final_mask = 32 WHERE question_no = 2");
+    await expectLater(
+      db.customStatement("UPDATE student_answers SET final_mask = 33 WHERE question_no = 2"),
+      throwsA(anything),
+    );
+    // Deleting the paper still cascades to its answers after the rebuild.
+    await db.customStatement("DELETE FROM answer_sheets WHERE id = 's1'");
+    expect(await db.customSelect('SELECT 1 FROM student_answers').get(), isEmpty);
+    await db.close();
+  });
 }

@@ -14,7 +14,7 @@ part 'app_database.g.dart';
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
-  static const int currentSchemaVersion = 3;
+  static const int currentSchemaVersion = 4;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -48,6 +48,11 @@ class AppDatabase extends _$AppDatabase {
     // the wider CHECK; rows and the tables that reference it are unchanged.
     from2To3: (m, schema) async {
       await m.alterTable(TableMigration(schema.examinationVersions));
+    },
+    // v4: a final answer may be 32 ("counted wrong by the instructor").
+    // Rebuilds student_answers with the wider CHECK; rows are unchanged.
+    from3To4: (m, schema) async {
+      await m.alterTable(TableMigration(schema.studentAnswers));
     },
   );
 

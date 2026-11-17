@@ -107,6 +107,8 @@ class GradeResult {
 /// - Dropped items are excluded from earned and possible points.
 /// - Bonus items award their points to everyone.
 /// - Blank: 0 points, no deduction.
+/// - Counted wrong by the instructor ([AnswerMask.markedWrong]): a wrong answer
+///   (the item's deduction applies).
 /// - Two or more marks: per [GradingRules.multipleMarkPolicy] — counted as a
 ///   wrong answer (deduction applies) or as zero.
 /// - One mark: correct when it is one of the accepted answers; otherwise wrong
@@ -135,6 +137,10 @@ GradeResult grade({
       outcome = ItemOutcome.bonus;
       points = item.points;
       correct++;
+    } else if (answer == AnswerMask.markedWrong) {
+      outcome = ItemOutcome.incorrect;
+      points = -item.negativePoints;
+      incorrect++;
     } else if (answer == 0) {
       outcome = ItemOutcome.blank;
       blank++;

@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 
 import '../../core/util/clock.dart';
 import '../../core/util/ids.dart';
+import '../../domain/answer_mask.dart';
 import '../../domain/omr_reading.dart';
 import '../../domain/personal_sheet_code.dart';
 import '../../domain/sheet_layout.dart';
@@ -229,6 +230,9 @@ class ScanRepository {
     final reading = s.reading;
     if (s.finalMasks.length != reading.questions.length) {
       throw const DataException('Every question needs a final answer before saving.');
+    }
+    if (s.finalMasks.values.any((m) => !AnswerMask.isValidAnswer(m))) {
+      throw const DataException('Invalid answer.');
     }
     final sheetId = newId();
     final dir = Directory(p.join((await scansDirectory()).path, s.examId));

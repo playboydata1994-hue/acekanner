@@ -14,6 +14,7 @@ import 'package:acekanner/data/repositories/classes_repository.dart';
 import 'package:acekanner/data/repositories/exams_repository.dart';
 import 'package:acekanner/data/repositories/scan_repository.dart';
 import 'package:acekanner/data/repositories/students_repository.dart';
+import 'package:acekanner/domain/answer_mask.dart';
 import 'package:acekanner/features/scanner/review_screen.dart';
 
 import '../../support/omr_fixtures.dart';
@@ -56,10 +57,20 @@ void main() {
 
   tearDown(() => tmp.deleteSync(recursive: true));
 
-  Future<bool?> pumpReview(WidgetTester tester, {required Set<int> uncertain, String number = '202100123'}) async {
+  Future<bool?> pumpReview(
+    WidgetTester tester, {
+    required Set<int> uncertain,
+    Set<int> multiple = const {},
+    String number = '202100123',
+  }) async {
     final ctx = (await tester.runAsync(() => scans.context(examId)))!;
     final image = File('${tmp.path}/rect.png')..writeAsBytesSync(_png);
-    final r = reading(masks: List.generate(50, (i) => 1 << (i % 5)), uncertain: uncertain, studentNumber: number);
+    final r = reading(
+      masks: List.generate(50, (i) => multiple.contains(i + 1) ? 5 : 1 << (i % 5)),
+      uncertain: uncertain,
+      multiple: multiple,
+      studentNumber: number,
+    );
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.6;
     addTearDown(tester.view.reset);
@@ -144,6 +155,72 @@ void main() {
     expect(answers.firstWhere((a) => a.questionNo == 3).resolvedBy, 'instructor');
     expect(answers.firstWhere((a) => a.questionNo == 7).finalMask, 0);
     expect(answers.firstWhere((a) => a.questionNo == 1).resolvedBy, 'engine');
+    semantics.dispose();
+  });
+
+  testWidgets('one button marks flagged and double-shaded answers wrong; Undo restores them', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpReview(tester, uncertain: {3, 7}, multiple: {10});
+
+    final bulk = find.text('Mark all as wrong (3)');
+    await tester.scrollUntilVisible(bulk, 200, scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    expect(bulk, findsOneWidget);
+    expect(find.text('2 flagged · 1 with 2 or more circles shaded'), findsOneWidget);
+    expect(find.bySemanticsLabel('Question 10: A/C'), findsOneWidget);
+
+    await tester.ensureVisible(bulk);
+    await tester.tap(bulk);
+    await tester.pump();
+    expect(find.text('3 answers marked wrong. Tap an answer to change it.'), findsOneWidget);
+    for (final q in [3, 7, 10]) {
+      expect(find.bySemanticsLabel('Question $q: marked wrong'), findsOneWidget);
+    }
+    expect(find.text('ALL READ'), findsOneWidget);
+    expect(bulk, findsNothing, reason: 'nothing left to mark');
+
+    // Undo puts everything back as it was.
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Question 3: needs your decision'), findsOneWidget);
+    expect(find.bySemanticsLabel('Question 7: needs your decision'), findsOneWidget);
+    expect(find.text('Decide 2 flagged answers'), findsOneWidget);
+    expect(find.bySemanticsLabel('Question 10: A/C'), findsOneWidget);
+
+    // Mark again and save: the paper keeps the readings, the answers are wrong.
+    await tester.ensureVisible(bulk);
+    await tester.tap(bulk);
+    await tester.pumpAndSettle();
+    final save = find.widgetWithText(FilledButton, 'Save paper');
+    expect(tester.widget<FilledButton>(save).onPressed, isNotNull);
+    await tester.runAsync(() async {
+      await tester.tap(save);
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    });
+    await tester.pumpAndSettle();
+    final answers = (await tester.runAsync(() => db.select(db.studentAnswers).get()))!;
+    for (final q in [3, 7, 10]) {
+      final row = answers.firstWhere((a) => a.questionNo == q);
+      expect(row.finalMask, AnswerMask.markedWrong);
+      expect(row.resolvedBy, 'instructor');
+    }
+    expect(answers.firstWhere((a) => a.questionNo == 10).detectedMask, 5, reason: 'what was read is kept');
+    semantics.dispose();
+  });
+
+  testWidgets('a single flagged answer can be marked wrong from its picker', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpReview(tester, uncertain: {4});
+    await tapLabel(tester, 'Question 4: needs your decision');
+    await tester.tap(find.text('Wrong'));
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Question 4: marked wrong'), findsOneWidget);
+    expect(find.text('ALL READ'), findsOneWidget);
+
+    // Opening it again starts from no letters, not from the "wrong" value.
+    await tapLabel(tester, 'Question 4: marked wrong');
+    expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Use this answer')).onPressed, isNull);
     semantics.dispose();
   });
 

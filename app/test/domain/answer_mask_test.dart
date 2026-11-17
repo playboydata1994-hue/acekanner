@@ -52,4 +52,13 @@ void main() {
       expect(AnswerMask.parseSequence('   ', itemCount: 50), isEmpty);
     });
   });
+
+  test('"counted wrong" is a valid student answer but never a key', () {
+    expect(AnswerMask.isValidAnswer(AnswerMask.markedWrong), isTrue);
+    expect(AnswerMask.isValid(AnswerMask.markedWrong), isFalse);
+    expect(AnswerMask.isValidAnswer(33), isFalse);
+    expect(AnswerMask.describe(AnswerMask.markedWrong), '✗');
+    expect(AnswerMask.describe(0), '—');
+    expect(AnswerMask.describe(5), 'A/C');
+  });
 }

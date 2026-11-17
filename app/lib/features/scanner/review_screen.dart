@@ -125,6 +125,54 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     });
   }
 
+  /// Undecided flagged answers and answers with two or more circles shaded.
+  ({List<int> flagged, List<int> multiple}) get _toMarkWrong {
+    final flagged = <int>[], multiple = <int>[];
+    for (final e in _answers.entries) {
+      final a = e.value;
+      if (a == null) {
+        flagged.add(e.key);
+      } else if (a != AnswerMask.markedWrong && AnswerMask.count(a) > 1) {
+        multiple.add(e.key);
+      }
+    }
+    return (flagged: flagged, multiple: multiple);
+  }
+
+  /// Counts every undecided flagged answer and every answer with two or more
+  /// circles shaded as wrong, in one step (with Undo).
+  void _markAllWrong() {
+    final t = _toMarkWrong;
+    final questions = [...t.flagged, ...t.multiple]..sort();
+    if (questions.isEmpty) return;
+    final before = {for (final q in questions) q: _answers[q]};
+    final wasEdited = {for (final q in questions) q: _overridden.contains(q)};
+    setState(() {
+      for (final q in questions) {
+        _answers[q] = AnswerMask.markedWrong;
+        _overridden.add(q);
+      }
+    });
+    final n = questions.length;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text('$n ${n == 1 ? 'answer' : 'answers'} marked wrong. Tap an answer to change it.'),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            if (!mounted) return;
+            setState(() {
+              for (final q in questions) {
+                _answers[q] = before[q];
+                if (!wasEdited[q]!) _overridden.remove(q);
+              }
+            });
+          },
+        ),
+      ));
+  }
+
   Future<void> _save() async {
     if (_blocker != null || _saving) return;
     if (_existing != null) {
@@ -179,6 +227,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     final colors = context.statusColors;
     final flagged = reading.flaggedCount;
     final blocker = _blocker;
+    final toMark = _toMarkWrong;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -300,6 +349,29 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 ),
               ],
             ),
+            if (toMark.flagged.isNotEmpty || toMark.multiple.isNotEmpty) ...[
+              const SizedBox(height: Space.s),
+              OutlinedButton.icon(
+                onPressed: _saving ? null : _markAllWrong,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: colors.incorrect,
+                  side: BorderSide(color: colors.incorrect),
+                ),
+                icon: const Icon(Icons.close),
+                label: Text('Mark all as wrong (${toMark.flagged.length + toMark.multiple.length})'),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: Space.xs),
+                child: Text(
+                  [
+                    if (toMark.flagged.isNotEmpty) '${toMark.flagged.length} flagged',
+                    if (toMark.multiple.isNotEmpty) '${toMark.multiple.length} with 2 or more circles shaded',
+                  ].join(' · '),
+                  style: theme.textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
             const SizedBox(height: Space.s),
             Wrap(
               spacing: Space.s,
@@ -380,13 +452,14 @@ class _AnswerTile extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = context.statusColors;
     final unresolved = answer == null;
-    final text = unresolved ? '?' : (answer == 0 ? '—' : AnswerMask.format(answer!));
+    final wrong = answer == AnswerMask.markedWrong;
+    final text = unresolved ? '?' : AnswerMask.describe(answer!);
     final color = unresolved
         ? colors.uncertain
-        : (answer != null && AnswerMask.count(answer!) > 1 ? colors.incorrect : theme.colorScheme.onSurface);
+        : (wrong || AnswerMask.count(answer!) > 1 ? colors.incorrect : theme.colorScheme.onSurface);
     return Semantics(
       button: true,
-      label: 'Question $question: ${unresolved ? 'needs your decision' : (answer == 0 ? 'no answer' : text)}',
+      label: 'Question $question: ${unresolved ? 'needs your decision' : wrong ? 'marked wrong' : (answer == 0 ? 'no answer' : text)}',
       excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
@@ -430,7 +503,11 @@ class _AnswerPicker extends StatefulWidget {
 }
 
 class _AnswerPickerState extends State<_AnswerPicker> {
-  late int _mask = widget.current ?? (widget.reading.state == MarkState.uncertain ? widget.reading.mask : 0);
+  late int _mask = switch (widget.current) {
+    null => widget.reading.state == MarkState.uncertain ? widget.reading.mask : 0,
+    AnswerMask.markedWrong => 0,
+    final int m => m,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -483,12 +560,22 @@ class _AnswerPickerState extends State<_AnswerPicker> {
                 ),
                 const SizedBox(width: Space.m),
                 Expanded(
-                  child: FilledButton(
-                    onPressed: _mask == 0 ? null : () => Navigator.of(context).pop(_mask),
-                    child: const Text('Use this answer'),
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context).pop(AnswerMask.markedWrong),
+                    style: OutlinedButton.styleFrom(foregroundColor: context.statusColors.incorrect),
+                    icon: const Icon(Icons.close, size: 18),
+                    label: const Text('Wrong'),
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: Space.s),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _mask == 0 ? null : () => Navigator.of(context).pop(_mask),
+                child: const Text('Use this answer'),
+              ),
             ),
           ],
         ),
@@ -673,6 +760,17 @@ class _OverlayPainter extends CustomPainter {
             ..color = flagged.withValues(alpha: 0.25)
             ..style = PaintingStyle.fill,
         );
+      }
+      if (a == AnswerMask.markedWrong) {
+        final y = row.first.y * sy;
+        canvas.drawLine(
+          Offset((row.first.x - SheetLayout.bubbleRx - 1) * sx, y),
+          Offset((row.last.x + SheetLayout.bubbleRx + 1) * sx, y),
+          Paint()
+            ..color = multiple
+            ..strokeWidth = 2.5,
+        );
+        continue;
       }
       if (a == null || a == 0) continue;
       final paint = Paint()

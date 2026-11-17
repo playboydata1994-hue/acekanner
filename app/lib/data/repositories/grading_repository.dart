@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import '../../core/util/clock.dart';
 import '../../core/util/ids.dart';
 import '../../domain/analytics.dart';
+import '../../domain/answer_mask.dart';
 import '../../domain/grading.dart';
 import '../audit/audit_logger.dart';
 import '../db/app_database.dart';
@@ -240,7 +241,7 @@ class GradingRepository {
     return _db.transaction(() async {
       final sheet = await _sheet(sheetId);
       for (final e in changes.entries) {
-        if (e.value < 0 || e.value > 31) throw const DataException('Invalid answer.');
+        if (!AnswerMask.isValidAnswer(e.value)) throw const DataException('Invalid answer.');
         await (_db.update(_db.studentAnswers)
               ..where((t) => t.answerSheetId.equals(sheetId) & t.questionNo.equals(e.key)))
             .write(StudentAnswersCompanion(finalMask: Value(e.value), resolvedBy: const Value('instructor')));

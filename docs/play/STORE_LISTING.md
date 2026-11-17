@@ -14,7 +14,7 @@ features (for example report exports) are released.
 
 Other app name, if you prefer it: `ACEkanner - OMR Exam Checker` (28 / 30).
 
-### Full description (2377 / 4000)
+### Full description (2475 / 4000)
 
 ```text
 Check your students' shaded answer sheets with your phone camera. ACEkanner reads each paper in seconds, scores it with your answer key, and shows which questions your class missed most. Made for teachers and instructors in the Philippines.
@@ -31,6 +31,7 @@ SCAN AND CHECK
 • Point the camera at the sheet. ACEkanner finds the page, reads the shaded circles and checks them right away
 • Blank, unclear and double-shaded answers are flagged for you to review
 • Correct a reading yourself; the score updates and the change is recorded
+• Mark all flagged and double-shaded answers wrong in one tap
 • Re-scanning a paper you already saved does not use another scan
 
 ANSWER KEYS AND SCORING

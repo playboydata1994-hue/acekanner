@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:acekanner/core/util/clock.dart';
 import 'package:acekanner/data/audit/audit_logger.dart';
 import 'package:acekanner/data/db/app_database.dart';
+import 'package:acekanner/domain/answer_mask.dart';
 import 'package:acekanner/data/errors.dart';
 import 'package:acekanner/data/repositories/answer_key_repository.dart';
 import 'package:acekanner/data/repositories/classes_repository.dart';
@@ -165,6 +166,15 @@ void main() {
         .getSingle();
     expect(answer.resolvedBy, 'instructor');
     expect((await db.select(db.auditLogs).get()).map((l) => l.event), contains('answer.corrected'));
+  });
+
+  test('a saved answer can be marked wrong; invalid values are refused', () async {
+    final (examId, versionId) = await examWithKey();
+    final sheetId = await scan(examId, versionId, roster[0], 50);
+    await grading.correctAnswers(sheetId, {1: AnswerMask.markedWrong});
+    expect((await current(sheetId)).percentage, 98);
+    await expectLater(grading.correctAnswers(sheetId, {2: 33}), throwsA(isA<DataException>()));
+    await expectLater(grading.correctAnswers(sheetId, {2: -1}), throwsA(isA<DataException>()));
   });
 
   test('re-scanning a student replaces the earlier graded paper (one submission)', () async {

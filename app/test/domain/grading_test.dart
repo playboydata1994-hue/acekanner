@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:acekanner/domain/analytics.dart';
+import 'package:acekanner/domain/answer_mask.dart';
 import 'package:acekanner/domain/grading.dart';
 
 const a = 1, b = 2, c = 4, d = 8, e = 16;
@@ -39,6 +40,21 @@ void main() {
       expect(asWrong.earned, 0.75);
       final asZero = grade(key: key, answers: answers, rules: const GradingRules(multipleMarkPolicy: 'zero'));
       expect(asZero.earned, 1);
+    });
+
+    test('an answer marked wrong by the instructor is wrong, with the deduction', () {
+      final key = [
+        ...keyOf([a, b], negative: 0.25),
+        const GradeKeyItem(questionNo: 3, correctMask: 4, mode: 'bonus'),
+      ];
+      final r = grade(
+        key: key,
+        answers: {1: AnswerMask.markedWrong, 2: b, 3: AnswerMask.markedWrong},
+        rules: const GradingRules(allowNegativeTotal: true),
+      );
+      expect(r.questions.map((q) => q.outcome), [ItemOutcome.incorrect, ItemOutcome.correct, ItemOutcome.bonus]);
+      expect(r.incorrect, 1);
+      expect(r.earned, 1.75); // -0.25 + 1 + 1 (bonus counts for everyone)
     });
 
     test('accepted alternatives, weighted items and negative marking', () {
@@ -140,6 +156,20 @@ void main() {
       expect(stats[1].blank, 2);
       expect(stats[1].topDistractor, isNull);
       expect(stats[1].difficultyLabel, 'Easy');
+    });
+
+    test('answers marked wrong are not counted as a chosen letter', () {
+      final key = keyOf([a]);
+      final papers = [
+        for (final m in [a, c, AnswerMask.markedWrong])
+          GradedPaper(
+            percentage: m == a ? 100 : 0,
+            questions: grade(key: key, answers: {1: m}, rules: const GradingRules()).questions,
+          ),
+      ];
+      final s = itemAnalysis(papers, key).single;
+      expect(s.choiceCounts, [1, 0, 1, 0, 0]);
+      expect(s.difficulty, closeTo(1 / 3, 1e-9));
     });
 
     test('discrimination needs at least 10 papers', () {
