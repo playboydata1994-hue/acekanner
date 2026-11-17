@@ -48,6 +48,11 @@ the phone; keep the current circle design readable for good; mixed piles allowed
   them).
 - **Printed sheets stay readable**: a compatibility test freezes sheet design 3 (fingerprints
   of all 135 printable layouts and the QR format).
+- **Simpler Home** (owner's request): greeting and date, profile reminder, plan card, round
+  Scan button, "Print blank answer sheets", "Works offline" line, ACEkanner logo. Removed: the
+  Examinations / Papers scanned counters, "Create examination" (Exams tab › New examination)
+  and Recent examinations (the Exams tab lists them). Unused dashboard providers and StatCard
+  deleted.
 - **App footnote** (owner's request; replaces an earlier "Developed by NYE94" credit, now
   removed from the app): small ACEkanner logo and name at the end of Home (`AppFootnote`).
   About and the start-up screen already show the logo and name, so nothing was added there.

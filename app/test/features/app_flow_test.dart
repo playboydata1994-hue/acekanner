@@ -27,33 +27,30 @@ void main() {
 
     expect(find.textContaining('of 100 free scans left'), findsOneWidget);
     expect(find.text('Add your name and school'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('No examinations yet'), 200, scrollable: find.byType(Scrollable).first);
-    expect(find.text('No examinations yet'), findsOneWidget);
+    expect(find.bySemanticsLabel('Scan an answer sheet'), findsOneWidget);
     expect(await SettingsRepository(db).getBool(SettingKeys.onboardingCompleted), isTrue);
     await disposeApp(tester);
   });
 
-  testWidgets('dashboard shows live totals and recent examinations', (tester) async {
+  testWidgets('Home: plan, Scan, blank sheets, offline note and logo only', (tester) async {
     final semantics = tester.ensureSemantics();
-    await pumpApp(tester, db);
-    await tester.scrollUntilVisible(find.text('No examinations yet'), 200, scrollable: find.byType(Scrollable).first);
-    expect(find.text('No examinations yet'), findsOneWidget);
-    await tester.scrollUntilVisible(find.byType(AppFootnote), 200, scrollable: find.byType(Scrollable).first);
-    expect(find.byType(AppFootnote), findsOneWidget);
-    expect(find.textContaining('NYE94'), findsNothing);
-
     await insertExam(db, id: 'e1', title: 'Prelim Examination', itemCount: 75);
     await insertSheet(db, id: 's1', examId: 'e1');
     await insertLedger(db, id: 'L1', submissionKey: hex64(9));
-    await tester.pumpAndSettle();
+    await pumpApp(tester, db);
 
-    expect(find.text('Prelim Examination'), findsOneWidget);
-    expect(find.text('75 items · 1 paper'), findsOneWidget);
-    await tester.scrollUntilVisible(find.textContaining('free scans left'), -200, scrollable: find.byType(Scrollable).first);
     // The plan card is one merged accessibility node (read as a unit).
     expect(find.bySemanticsLabel(RegExp('99 of 100 free scans left')), findsOneWidget);
-    expect(find.bySemanticsLabel('Examinations: 1'), findsOneWidget);
-    expect(find.bySemanticsLabel('Papers scanned: 1'), findsOneWidget);
+    final list = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(find.byType(AppFootnote), 200, scrollable: list);
+    expect(find.text('Print blank answer sheets'), findsOneWidget);
+    expect(find.textContaining('Works offline'), findsOneWidget);
+    expect(find.byType(AppFootnote), findsOneWidget);
+    // Removed from Home: counters, Create examination, Recent examinations.
+    for (final gone in ['Examinations', 'Papers scanned', 'Create examination', 'Recent examinations', 'Prelim Examination']) {
+      expect(find.text(gone), findsNothing, reason: gone);
+    }
+    expect(find.textContaining('NYE94'), findsNothing);
     await disposeApp(tester);
     semantics.dispose();
   });

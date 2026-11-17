@@ -11,21 +11,15 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/spacing.dart';
 import '../../core/widgets/acekanner_logo.dart';
 import '../../core/widgets/app_footnote.dart';
-import '../../core/widgets/empty_state.dart';
-import '../../core/widgets/section_header.dart';
-import '../../core/widgets/stat_card.dart';
-import '../../data/db/app_database.dart';
 import '../plan/plan_widgets.dart';
-import 'dashboard_providers.dart';
 
-/// Home dashboard: plan status, totals and recent examinations.
+/// Home: greeting, plan status, the round Scan button (quick check) and
+/// blank answer sheets. Examinations are created and listed in the Exams tab.
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final stats = ref.watch(dashboardStatsProvider);
-    final recent = ref.watch(recentExaminationsProvider);
     final now = ref.watch(clockProvider).now();
     final profile = ref.watch(profileProvider);
 
@@ -56,36 +50,15 @@ class DashboardScreen extends ConsumerWidget {
               const _ProfilePrompt(),
               const SizedBox(height: Space.m),
             ],
-            switch (stats) {
-              AsyncData(:final value) => _DashboardBody(stats: value),
-              AsyncError() => const _LoadError(),
-              _ => const _LoadingBlock(height: 260),
-            },
+            const _PlanCard(),
             const SizedBox(height: Space.xl),
             const _QuickCheckButton(),
-            const SizedBox(height: Space.s),
-            OutlinedButton.icon(
-              onPressed: () => context.push(Routes.newExam),
-              icon: const Icon(Icons.add),
-              label: const Text('Create examination'),
-            ),
-            const SizedBox(height: Space.s),
+            const SizedBox(height: Space.l),
             OutlinedButton.icon(
               onPressed: () => context.push(Routes.blankSheets),
               icon: const Icon(Icons.print_outlined),
               label: const Text('Print blank answer sheets'),
             ),
-            const SectionHeader('Recent examinations'),
-            switch (recent) {
-              AsyncData(:final value) when value.isEmpty => const EmptyState(
-                  icon: Icons.assignment_outlined,
-                  title: 'No examinations yet',
-                  message: 'Examinations you create will appear here.',
-                ),
-              AsyncData(:final value) => _RecentList(items: value),
-              AsyncError() => const _LoadError(),
-              _ => const _LoadingBlock(height: 120),
-            },
             const SizedBox(height: Space.xl),
             const _OfflineNote(),
             const SizedBox(height: Space.l),
@@ -131,42 +104,6 @@ class _Greeting extends StatelessWidget {
   }
 }
 
-class _DashboardBody extends StatelessWidget {
-  const _DashboardBody({required this.stats});
-
-  final DashboardStats stats;
-
-  @override
-  Widget build(BuildContext context) {
-    final number = NumberFormat.decimalPattern();
-    return Column(
-      children: [
-        const _PlanCard(),
-        const SizedBox(height: Space.m),
-        Row(
-          children: [
-            Expanded(
-              child: StatCard(
-                icon: Icons.assignment_outlined,
-                value: number.format(stats.examCount),
-                label: 'Examinations',
-              ),
-            ),
-            const SizedBox(width: Space.m),
-            Expanded(
-              child: StatCard(
-                icon: Icons.fact_check_outlined,
-                value: number.format(stats.papersScanned),
-                label: 'Papers scanned',
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
 class _PlanCard extends ConsumerWidget {
   const _PlanCard();
 
@@ -200,51 +137,6 @@ class _PlanCard extends ConsumerWidget {
         ),
       ),
     );
-  }
-}
-
-class _RecentList extends StatelessWidget {
-  const _RecentList({required this.items});
-
-  final List<RecentExaminationsResult> items;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          for (var i = 0; i < items.length; i++) ...[
-            if (i > 0) const Divider(indent: Space.l, endIndent: Space.l),
-            ListTile(
-              leading: CircleAvatar(
-                backgroundColor: theme.colorScheme.primaryContainer,
-                foregroundColor: theme.colorScheme.onPrimaryContainer,
-                child: Text('${items[i].itemCount}'),
-              ),
-              title: Text(
-                items[i].title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: Text(_subtitle(items[i])),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.go(Routes.exam(items[i].id)),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  static String _subtitle(RecentExaminationsResult e) {
-    final parts = <String>[
-      if (e.subjectCode != null) e.subjectCode!,
-      '${e.itemCount} items',
-      '${e.finalizedCount} ${e.finalizedCount == 1 ? 'paper' : 'papers'}',
-    ];
-    return parts.join(' · ');
   }
 }
 
@@ -295,29 +187,6 @@ class _OfflineNote extends StatelessWidget {
       ],
     );
   }
-}
-
-class _LoadingBlock extends StatelessWidget {
-  const _LoadingBlock({required this.height});
-
-  final double height;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-        height: height,
-        child: const Center(child: CircularProgressIndicator()),
-      );
-}
-
-class _LoadError extends StatelessWidget {
-  const _LoadError();
-
-  @override
-  Widget build(BuildContext context) => const EmptyState(
-        icon: Icons.error_outline,
-        title: 'Could not load this section',
-        message: 'Your data is safe. Close and reopen ACEkanner to try again.',
-      );
 }
 
 Future<void> _openProfile(BuildContext context) async {
