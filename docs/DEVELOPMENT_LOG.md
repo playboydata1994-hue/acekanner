@@ -5,6 +5,27 @@ and the next step.
 
 ---
 
+## 2026-11-17 · Google Play documents (0.6.4)
+
+- **Play documents** in `docs/play/`: privacy policy, terms of use, account-deletion page,
+  Data safety answers, App content answers (incl. reviewer access and content rating),
+  store listing (name 30/30, short 78/80, full description within 4000), subscription
+  text, screenshot list, and a step-by-step publishing checklist. Placeholders remain for
+  the developer name, support email, page addresses and the sign-in log retention, which
+  the owner decides.
+- **Feature graphic** `store/feature_graphic_1024x500.png` (`tools/brand/feature_graphic.py`).
+- **Fix found while checking the privacy policy:** deleting an examination permanently
+  left its corrected sheet images on the phone. `ExamsRepository.deletePermanently` now
+  removes `<app support>/scans/<exam id>/` too (test: only that exam's folder goes).
+- **In-app policy links:** "Privacy policy" and "Terms of use" on Privacy and your data and
+  on Plan and account. Shown only when the release is built with the page addresses
+  (`ACEK_PRIVACY_POLICY_URL`, `ACEK_TERMS_URL`, `ACEK_ACCOUNT_DELETION_URL`).
+- **Accurate privacy wording:** removed "unless you turn on cloud backup" (there is no cloud
+  backup feature); the server keeps Google name as well as email, now stated.
+- **Permissions:** removed USE_BIOMETRIC and USE_FINGERPRINT, which a storage plugin added
+  but the app never uses. To check on a phone: the app still opens with existing data.
+- Verification: 215/215 app tests, analyzer clean.
+
 ## 2026-11-17 · Revisions round 3 (0.6.3)
 
 - **Exam sets A–E:** a fifth set. Database schema v3 (`examination_versions.label` allows

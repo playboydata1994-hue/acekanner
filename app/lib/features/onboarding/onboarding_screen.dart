@@ -65,7 +65,7 @@ const List<OnboardingPage> onboardingPages = [
     title: 'Works offline. Data stays on your phone.',
     body: 'Scanning, checking, grading and reports work without internet. '
         'Student names, papers and scores are stored encrypted on this phone '
-        'and are never uploaded unless you turn on cloud backup.',
+        'and are never uploaded.',
     points: [
       'Internet is needed only to sign in, buy Premium, and confirm Premium '
           'at least every ${AppConstants.offlineVerificationDays} days.',

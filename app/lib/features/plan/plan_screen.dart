@@ -7,6 +7,7 @@ import '../../core/constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/spacing.dart';
 import '../../core/widgets/feedback.dart';
+import '../../core/widgets/legal_links.dart';
 import '../../core/widgets/section_header.dart';
 import '../../data/licensing/auth_service.dart';
 import '../../data/licensing/billing.dart';
@@ -123,7 +124,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                                 ),
                                 const SizedBox(height: Space.s),
                                 Text(
-                                  'The ACEkanner server keeps only your Google email, an ID for this phone, '
+                                  'The ACEkanner server keeps only your Google email and name, an ID for this phone, '
                                   'your scan count (as unreadable codes) and your subscription. Student names, '
                                   'numbers, answers and scores never leave this phone.',
                                   style: theme.textTheme.bodySmall,
@@ -216,6 +217,8 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                     onManage: _manage,
                   ),
                 ],
+                const SizedBox(height: Space.s),
+                const LegalLinksRow(),
               ],
             ),
     );

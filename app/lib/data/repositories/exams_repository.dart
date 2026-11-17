@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart';
+import 'package:path/path.dart' as p;
 
 import '../../core/constants.dart';
 import '../../core/util/clock.dart';
@@ -138,10 +141,14 @@ class ExamDetail {
 
 /// Examinations, their sets (versions) and section assignments.
 class ExamsRepository {
-  ExamsRepository(this._db, this._audit, {this.grading, this.clock = const Clock()});
+  ExamsRepository(this._db, this._audit, {this.grading, this.scansDirectory, this.clock = const Clock()});
 
   final AppDatabase _db;
   final AuditLogger _audit;
+
+  /// Folder holding the corrected sheet images (`<scans>/<exam id>/`), removed
+  /// when an examination is deleted permanently.
+  final Future<Directory> Function()? scansDirectory;
 
   /// Re-scores papers when scoring rules change.
   final GradingRepository? grading;
@@ -381,8 +388,21 @@ class ExamsRepository {
       });
 
   /// Permanently deletes an examination in the trash, with all its sheets,
-  /// answers and results. Scan charges in the ledger are kept.
-  Future<void> deletePermanently(String id) => _db.transaction(() async {
+  /// answers, results and corrected sheet images. Scan charges in the ledger
+  /// are kept.
+  Future<void> deletePermanently(String id) async {
+    await _purge(id);
+    final base = scansDirectory;
+    if (base == null) return;
+    final dir = Directory(p.join((await base()).path, id));
+    try {
+      if (await dir.exists()) await dir.delete(recursive: true);
+    } on FileSystemException {
+      // The rows are gone; a leftover image is retried on the next purge of this folder.
+    }
+  }
+
+  Future<void> _purge(String id) => _db.transaction(() async {
         final exam = await _exam(id);
         if (exam == null) return;
         if (exam.deletedAt == null) {

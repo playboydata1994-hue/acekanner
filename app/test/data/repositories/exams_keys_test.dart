@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:acekanner/core/util/clock.dart';
@@ -195,6 +197,30 @@ void main() {
       'examination.trashed',
       'examination.purged',
     ]));
+  });
+
+  test('permanent deletion removes the corrected sheet images of that exam only', () async {
+    final base = await Directory.systemTemp.createTemp('acek_scans');
+    addTearDown(() => base.delete(recursive: true));
+    final withImages = ExamsRepository(db, audit, scansDirectory: () async => base, clock: FixedClock(t0));
+    final id = await createExam();
+    final other = await createExam();
+    final imgs = Directory('${base.path}/$id/sheets')..createSync(recursive: true);
+    File('${imgs.path}/a.jpg').writeAsBytesSync([1, 2, 3]);
+    File('${base.path}/$other/b.jpg')
+      ..createSync(recursive: true)
+      ..writeAsBytesSync([4]);
+
+    await withImages.moveToTrash(id);
+    await withImages.deletePermanently(id);
+    expect(Directory('${base.path}/$id').existsSync(), isFalse);
+    expect(File('${base.path}/$other/b.jpg').existsSync(), isTrue);
+
+    // An exam with no image folder deletes cleanly too.
+    await withImages.moveToTrash(other);
+    Directory('${base.path}/$other').deleteSync(recursive: true);
+    await withImages.deletePermanently(other);
+    expect(await exams.watchDeleted().first, isEmpty);
   });
 
   test('watchDetail re-emits when the key changes', () async {

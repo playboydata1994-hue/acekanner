@@ -1,5 +1,31 @@
 import 'dart:convert';
 
+/// Links to the public privacy policy, terms and account-deletion pages, set at
+/// build time (`ACEK_PRIVACY_POLICY_URL`, `ACEK_TERMS_URL`,
+/// `ACEK_ACCOUNT_DELETION_URL`). A link is shown only when its address is set.
+class LegalLinks {
+  const LegalLinks({this.privacyPolicy = '', this.terms = '', this.accountDeletion = ''});
+
+  factory LegalLinks.fromEnvironment() => const LegalLinks(
+        privacyPolicy: String.fromEnvironment('ACEK_PRIVACY_POLICY_URL'),
+        terms: String.fromEnvironment('ACEK_TERMS_URL'),
+        accountDeletion: String.fromEnvironment('ACEK_ACCOUNT_DELETION_URL'),
+      );
+
+  final String privacyPolicy;
+  final String terms;
+  final String accountDeletion;
+
+  Uri? get privacyPolicyUri => _https(privacyPolicy);
+  Uri? get termsUri => _https(terms);
+  Uri? get accountDeletionUri => _https(accountDeletion);
+
+  static Uri? _https(String text) {
+    final uri = Uri.tryParse(text.trim());
+    return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty ? uri : null;
+  }
+}
+
 /// Licensing configuration compiled into the app with `--dart-define-from-file`
 /// (see config/README.md). All values are public: the Supabase URL and
 /// publishable key, the Google Web client ID and the entitlement public keys.

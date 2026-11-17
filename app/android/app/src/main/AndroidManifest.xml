@@ -15,6 +15,10 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+    <!-- Added by flutter_secure_storage for biometric-protected keys, which
+         ACEkanner does not use. Removed so the app asks only for what it uses. -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" tools:node="remove" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" tools:node="remove" />
 
     <!-- Not required, so tablets/Chromebooks without a usable camera can still
          manage exams and reports. The scanner explains when no camera exists. -->

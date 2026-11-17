@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../core/constants.dart';
 import '../../core/theme/spacing.dart';
+import '../../core/widgets/legal_links.dart';
 import '../../core/widgets/section_header.dart';
 
 /// Plain-language explanation of how ACEkanner handles data (RA 10173).
@@ -23,12 +24,10 @@ class PrivacyScreen extends StatelessWidget {
     (
       'What goes online, and when',
       [
-        'Your Google account email and ID, when you sign in.',
+        'Your Google account email, name and ID, when you sign in.',
         'Your Google Play purchase details, to verify Premium.',
         'Scan counts for your free allowance, as anonymous codes — never '
             'student names, answers or scores.',
-        'Cloud backup is off. If you turn it on later, your backup is encrypted '
-            'on this phone before it is uploaded.',
       ],
     ),
     (
@@ -95,6 +94,8 @@ class PrivacyScreen extends StatelessWidget {
                 ),
               ),
             ],
+            const SizedBox(height: Space.s),
+            const LegalLinksRow(),
             const SizedBox(height: Space.xxl),
           ],
         ),

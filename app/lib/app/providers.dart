@@ -27,6 +27,8 @@ final clockProvider = Provider<Clock>((ref) => const Clock());
 /// Licensing settings compiled into this build (empty in tests and early test builds).
 final licensingConfigProvider = Provider<LicensingConfig>((ref) => LicensingConfig.fromEnvironment());
 
+final legalLinksProvider = Provider<LegalLinks>((ref) => LegalLinks.fromEnvironment());
+
 /// Android Keystore-backed secrets (ledger MAC key, install ID, session).
 final secretStoreProvider = Provider<SecretStore>((ref) => KeystoreSecretStore());
 
@@ -124,6 +126,7 @@ final examsRepositoryProvider = Provider<ExamsRepository>(
     ref.watch(databaseProvider),
     ref.watch(auditLoggerProvider),
     grading: ref.watch(gradingRepositoryProvider),
+    scansDirectory: scansDirectoryIn(getApplicationSupportDirectory),
     clock: ref.watch(clockProvider),
   ),
 );
