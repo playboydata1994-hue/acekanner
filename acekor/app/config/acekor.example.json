@@ -1,0 +1,9 @@
+{
+  "ACEKOR_SUPABASE_URL": "https://<project-ref>.supabase.co",
+  "ACEKOR_SUPABASE_KEY": "sb_publishable_\u2026",
+  "ACEKOR_GOOGLE_WEB_CLIENT_ID": "\u2026.apps.googleusercontent.com",
+  "ACEKOR_ENTITLEMENT_KEYS": "k1:<base64 Ed25519 public key>",
+  "ACEKOR_PRIVACY_POLICY_URL": "https://\u2026/privacy/",
+  "ACEKOR_TERMS_URL": "https://\u2026/terms/",
+  "ACEKOR_ACCOUNT_DELETION_URL": "https://\u2026/delete-account/"
+}

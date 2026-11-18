@@ -34,8 +34,9 @@ export interface Signer {
   sign(claims: Record<string, unknown>): Promise<string>;
 }
 
-/** Builds a signer from a base64 32-byte Ed25519 seed (the ENTITLEMENT_SIGNING_KEY secret). */
-export async function signerFromSeed(seedBase64: string, keyId: string): Promise<Signer> {
+/** Builds a signer from a base64 32-byte Ed25519 seed (the ENTITLEMENT_SIGNING_KEY secret).
+ * [typ] distinguishes the apps' tokens (ACEkanner: ACEK-ENT+JWS, ACEKOR: ACEKOR-ENT+JWS). */
+export async function signerFromSeed(seedBase64: string, keyId: string, typ: string = TOKEN_TYPE): Promise<Signer> {
   const seed = base64Decode(seedBase64);
   if (seed.length !== 32) throw new Error("ENTITLEMENT_SIGNING_KEY must be 32 bytes (base64)");
   const der = new Uint8Array(PKCS8_ED25519_PREFIX.length + 32);
@@ -49,7 +50,7 @@ export async function signerFromSeed(seedBase64: string, keyId: string): Promise
     keyId,
     publicKey,
     async sign(claims) {
-      const header = { alg: "EdDSA", typ: TOKEN_TYPE, kid: keyId };
+      const header = { alg: "EdDSA", typ, kid: keyId };
       const input = `${base64UrlEncode(utf8(JSON.stringify(header)))}.${base64UrlEncode(utf8(JSON.stringify(claims)))}`;
       const sig = await crypto.subtle.sign({ name: "Ed25519" }, key, utf8(input));
       return `${input}.${base64UrlEncode(sig)}`;
@@ -61,11 +62,12 @@ export async function signerFromSeed(seedBase64: string, keyId: string): Promise
 export async function verifyToken(
   token: string,
   publicKeys: Record<string, string>,
+  typ: string = TOKEN_TYPE,
 ): Promise<Record<string, unknown>> {
   const parts = token.split(".");
   if (parts.length !== 3) throw new Error("malformed token");
   const header = JSON.parse(new TextDecoder().decode(base64UrlDecode(parts[0])));
-  if (header.alg !== "EdDSA" || header.typ !== TOKEN_TYPE) throw new Error("unexpected token header");
+  if (header.alg !== "EdDSA" || header.typ !== typ) throw new Error("unexpected token header");
   const pub = publicKeys[header.kid];
   if (!pub) throw new Error("unknown key id");
   const key = await crypto.subtle.importKey("raw", base64Decode(pub), { name: "Ed25519" }, false, ["verify"]);
