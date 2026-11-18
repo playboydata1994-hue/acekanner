@@ -1,0 +1,283 @@
+-- ACEKOR Calculator local database - schema version 1.
+--
+-- Single source of truth for the on-device schema (SQLCipher-encrypted).
+-- Drift generates the Dart data classes from it; every table is described in
+-- acekor/docs/DATABASE.md.
+--
+-- Conventions
+--   * Primary keys: UUID v7 text (time-ordered, safe for backup/restore).
+--   * Timestamps: DATETIME = Unix epoch seconds (UTC).
+--   * Calendar dates (activity dates): TEXT 'YYYY-MM-DD'.
+--   * Booleans: INTEGER 0/1.
+--   * Percentages and weights: integer basis points (7500 = 75.00 %).
+--   * Scores: whole points (the keypad has no decimal point).
+--   * Soft delete (deleted_at) for students, subjects and activities, so an
+--     accidental delete can be undone from "Recently deleted".
+--   * Foreign keys are enforced (PRAGMA foreign_keys = ON in beforeOpen).
+
+------------------------------------------------------------------------------
+-- 1. Instructor and school (one row)
+------------------------------------------------------------------------------
+CREATE TABLE instructor_profile (
+    id INTEGER NOT NULL PRIMARY KEY CHECK (id = 1),
+    instructor_name TEXT NOT NULL DEFAULT '' CHECK (length(instructor_name) <= 120),
+    school_name TEXT NOT NULL DEFAULT '' CHECK (length(school_name) <= 160),
+    school_address TEXT NOT NULL DEFAULT '' CHECK (length(school_address) <= 240),
+    department TEXT NOT NULL DEFAULT '' CHECK (length(department) <= 160),
+    updated_at DATETIME NOT NULL
+) AS ProfileRow;
+
+------------------------------------------------------------------------------
+-- 2. Sections (class blocks such as "BSIT 1-A")
+------------------------------------------------------------------------------
+CREATE TABLE sections (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 60),
+    program TEXT NOT NULL DEFAULT '' CHECK (length(program) <= 120),
+    year_level INTEGER CHECK (year_level IS NULL OR year_level BETWEEN 1 AND 6),
+    academic_year TEXT NOT NULL DEFAULT '' CHECK (length(academic_year) <= 20),
+    semester TEXT NOT NULL DEFAULT '' CHECK (length(semester) <= 40),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL
+) AS SectionRow;
+
+CREATE UNIQUE INDEX sections_name_term
+    ON sections (name COLLATE NOCASE, academic_year, semester);
+
+------------------------------------------------------------------------------
+-- 3. Students (the roster)
+------------------------------------------------------------------------------
+CREATE TABLE students (
+    id TEXT NOT NULL PRIMARY KEY,
+    -- Official student ID as the school writes it, e.g. "2021-00123". Optional.
+    student_no TEXT CHECK (student_no IS NULL OR length(trim(student_no)) BETWEEN 1 AND 30),
+    -- Normalized for duplicate detection: upper-case letters and digits only.
+    student_no_key TEXT CHECK (student_no_key IS NULL OR length(student_no_key) BETWEEN 1 AND 30),
+    first_name TEXT NOT NULL CHECK (length(trim(first_name)) BETWEEN 1 AND 80),
+    middle_name TEXT NOT NULL DEFAULT '' CHECK (length(middle_name) <= 80),
+    last_name TEXT NOT NULL CHECK (length(trim(last_name)) BETWEEN 1 AND 80),
+    suffix TEXT NOT NULL DEFAULT '' CHECK (length(suffix) <= 10),
+    program TEXT NOT NULL DEFAULT '' CHECK (length(program) <= 120),
+    year_level INTEGER CHECK (year_level IS NULL OR year_level BETWEEN 1 AND 6),
+    -- Moving a student to another section keeps all scores (they belong to
+    -- the student and the subject's activities, not to the section).
+    section_id TEXT REFERENCES sections (id) ON DELETE SET NULL,
+    academic_year TEXT NOT NULL DEFAULT '' CHECK (length(academic_year) <= 20),
+    semester TEXT NOT NULL DEFAULT '' CHECK (length(semester) <= 40),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    deleted_at DATETIME
+) AS StudentRow;
+
+CREATE UNIQUE INDEX students_no_active ON students (student_no_key)
+    WHERE deleted_at IS NULL AND student_no_key IS NOT NULL;
+CREATE INDEX students_name ON students (last_name COLLATE NOCASE, first_name COLLATE NOCASE);
+CREATE INDEX students_section ON students (section_id);
+
+------------------------------------------------------------------------------
+-- 4. Grade-equivalent scales (default 1.00-5.00, 75 % passing)
+------------------------------------------------------------------------------
+CREATE TABLE grade_scales (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 60),
+    passing_bp INTEGER NOT NULL DEFAULT 7500 CHECK (passing_bp BETWEEN 0 AND 10000),
+    -- Round the final percentage to a whole number (half up) before lookup.
+    round_before_lookup BOOLEAN NOT NULL DEFAULT 1,
+    built_in BOOLEAN NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL
+) AS GradeScaleRow;
+
+CREATE TABLE grade_scale_rows (
+    scale_id TEXT NOT NULL REFERENCES grade_scales (id) ON DELETE CASCADE,
+    -- Lowest percentage (inclusive) that earns this grade, in basis points.
+    min_bp INTEGER NOT NULL CHECK (min_bp BETWEEN 0 AND 10000),
+    grade TEXT NOT NULL CHECK (length(trim(grade)) BETWEEN 1 AND 10),
+    remark TEXT NOT NULL DEFAULT '' CHECK (length(remark) <= 40),
+    PRIMARY KEY (scale_id, min_bp)
+) AS GradeScaleItemRow;
+
+------------------------------------------------------------------------------
+-- 5. Subjects and enrolment
+------------------------------------------------------------------------------
+CREATE TABLE subjects (
+    id TEXT NOT NULL PRIMARY KEY,
+    code TEXT NOT NULL CHECK (length(trim(code)) BETWEEN 1 AND 30),
+    title TEXT NOT NULL DEFAULT '' CHECK (length(title) <= 160),
+    academic_year TEXT NOT NULL DEFAULT '' CHECK (length(academic_year) <= 20),
+    semester TEXT NOT NULL DEFAULT '' CHECK (length(semester) <= 40),
+    -- How several activities of one category combine:
+    -- total_points = sum(scores) / sum(maximum points); average_percent = mean of percentages.
+    combine_method TEXT NOT NULL DEFAULT 'total_points'
+        CHECK (combine_method IN ('total_points', 'average_percent')),
+    grade_scale_id TEXT REFERENCES grade_scales (id) ON DELETE SET NULL,
+    -- Set only when the weights total exactly 100 %.
+    grading_active BOOLEAN NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    deleted_at DATETIME
+) AS SubjectRow;
+
+CREATE UNIQUE INDEX subjects_code_term ON subjects (code COLLATE NOCASE, academic_year, semester)
+    WHERE deleted_at IS NULL;
+
+CREATE TABLE subject_students (
+    subject_id TEXT NOT NULL REFERENCES subjects (id) ON DELETE CASCADE,
+    student_id TEXT NOT NULL REFERENCES students (id) ON DELETE CASCADE,
+    enrolled_at DATETIME NOT NULL,
+    PRIMARY KEY (subject_id, student_id)
+) AS EnrolmentRow;
+
+CREATE INDEX subject_students_student ON subject_students (student_id);
+
+------------------------------------------------------------------------------
+-- 6. Assessment categories and grading weights
+------------------------------------------------------------------------------
+-- Built-in: quiz, recitation (PRO); prelim, midterm, final, written,
+-- practical, laboratory, skills, performance, other (MAX). Instructors may add
+-- custom examination categories (kind = 'exam', MAX).
+CREATE TABLE categories (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 40),
+    kind TEXT NOT NULL CHECK (kind IN ('quiz', 'recitation', 'exam')),
+    default_max_points INTEGER NOT NULL CHECK (default_max_points BETWEEN 1 AND 1000),
+    built_in BOOLEAN NOT NULL DEFAULT 0,
+    sort_order INTEGER NOT NULL DEFAULT 100,
+    created_at DATETIME NOT NULL,
+    deleted_at DATETIME
+) AS CategoryRow;
+
+CREATE UNIQUE INDEX categories_name_active ON categories (name COLLATE NOCASE)
+    WHERE deleted_at IS NULL;
+
+CREATE TABLE subject_weights (
+    subject_id TEXT NOT NULL REFERENCES subjects (id) ON DELETE CASCADE,
+    category_id TEXT NOT NULL REFERENCES categories (id) ON DELETE CASCADE,
+    weight_bp INTEGER NOT NULL CHECK (weight_bp BETWEEN 0 AND 10000),
+    PRIMARY KEY (subject_id, category_id)
+) AS WeightRow;
+
+------------------------------------------------------------------------------
+-- 7. Activities (Quiz 1, Recitation 2, Midterm Examination, ...)
+------------------------------------------------------------------------------
+CREATE TABLE activities (
+    id TEXT NOT NULL PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES subjects (id) ON DELETE CASCADE,
+    category_id TEXT NOT NULL REFERENCES categories (id),
+    number INTEGER CHECK (number IS NULL OR number BETWEEN 1 AND 999),
+    title TEXT NOT NULL DEFAULT '' CHECK (length(title) <= 80),
+    max_points INTEGER NOT NULL CHECK (max_points BETWEEN 1 AND 1000),
+    activity_date TEXT CHECK (activity_date IS NULL OR activity_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
+    -- Optional grading-period tag, used for filters and reports only.
+    period TEXT NOT NULL DEFAULT ''
+        CHECK (period IN ('', 'prelim', 'midterm', 'prefinal', 'final')),
+    remarks TEXT NOT NULL DEFAULT '' CHECK (length(remarks) <= 500),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    deleted_at DATETIME
+) AS ActivityRow;
+
+CREATE INDEX activities_subject ON activities (subject_id, category_id);
+CREATE UNIQUE INDEX activities_number_active ON activities (subject_id, category_id, number)
+    WHERE deleted_at IS NULL AND number IS NOT NULL;
+
+-- A total can never drop below a score that is already recorded.
+CREATE TRIGGER activities_max_points_guard BEFORE UPDATE OF max_points ON activities
+WHEN NEW.max_points < (SELECT ifnull(max(points), 0) FROM scores WHERE activity_id = NEW.id)
+BEGIN
+    SELECT RAISE(ABORT, 'ACEKOR: maximum points below a recorded score');
+END;
+
+------------------------------------------------------------------------------
+-- 8. Scores and their change history
+------------------------------------------------------------------------------
+CREATE TABLE scores (
+    id TEXT NOT NULL PRIMARY KEY,
+    activity_id TEXT NOT NULL REFERENCES activities (id) ON DELETE CASCADE,
+    student_id TEXT NOT NULL REFERENCES students (id) ON DELETE CASCADE,
+    points INTEGER NOT NULL CHECK (points >= 0),
+    remarks TEXT NOT NULL DEFAULT '' CHECK (length(remarks) <= 500),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL
+) AS ScoreRow;
+
+CREATE UNIQUE INDEX scores_activity_student ON scores (activity_id, student_id);
+CREATE INDEX scores_student ON scores (student_id);
+
+-- The database itself refuses a score above the activity's maximum points,
+-- whatever screen or import wrote it.
+CREATE TRIGGER scores_max_insert BEFORE INSERT ON scores
+WHEN NEW.points > (SELECT max_points FROM activities WHERE id = NEW.activity_id)
+BEGIN
+    SELECT RAISE(ABORT, 'ACEKOR: score above maximum points');
+END;
+
+CREATE TRIGGER scores_max_update BEFORE UPDATE OF points ON scores
+WHEN NEW.points > (SELECT max_points FROM activities WHERE id = NEW.activity_id)
+BEGIN
+    SELECT RAISE(ABORT, 'ACEKOR: score above maximum points');
+END;
+
+-- Audit trail. Written by triggers so every change is recorded, whichever
+-- screen made it. Kept when the score, activity or student is deleted.
+CREATE TABLE score_history (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    score_id TEXT NOT NULL,
+    activity_id TEXT NOT NULL,
+    student_id TEXT NOT NULL,
+    change TEXT NOT NULL CHECK (change IN ('create', 'update', 'delete')),
+    old_points INTEGER,
+    new_points INTEGER,
+    max_points INTEGER,
+    at DATETIME NOT NULL
+) AS ScoreHistoryRow;
+
+CREATE INDEX score_history_activity ON score_history (activity_id, at);
+CREATE INDEX score_history_student ON score_history (student_id, at);
+
+CREATE TRIGGER scores_history_insert AFTER INSERT ON scores
+BEGIN
+    INSERT INTO score_history (score_id, activity_id, student_id, change, old_points, new_points, max_points, at)
+    VALUES (NEW.id, NEW.activity_id, NEW.student_id, 'create', NULL, NEW.points,
+            (SELECT max_points FROM activities WHERE id = NEW.activity_id), NEW.updated_at);
+END;
+
+CREATE TRIGGER scores_history_update AFTER UPDATE OF points ON scores
+WHEN NEW.points <> OLD.points
+BEGIN
+    INSERT INTO score_history (score_id, activity_id, student_id, change, old_points, new_points, max_points, at)
+    VALUES (NEW.id, NEW.activity_id, NEW.student_id, 'update', OLD.points, NEW.points,
+            (SELECT max_points FROM activities WHERE id = NEW.activity_id), NEW.updated_at);
+END;
+
+CREATE TRIGGER scores_history_delete AFTER DELETE ON scores
+BEGIN
+    INSERT INTO score_history (score_id, activity_id, student_id, change, old_points, new_points, max_points, at)
+    VALUES (OLD.id, OLD.activity_id, OLD.student_id, 'delete', OLD.points, NULL,
+            (SELECT max_points FROM activities WHERE id = OLD.activity_id),
+            CAST(strftime('%s', 'now') AS INTEGER));
+END;
+
+------------------------------------------------------------------------------
+-- 9. Mini-calculator history, settings, plan cache
+------------------------------------------------------------------------------
+CREATE TABLE calc_history (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    expression TEXT NOT NULL CHECK (length(expression) <= 400),
+    result TEXT NOT NULL CHECK (length(result) <= 80),
+    at DATETIME NOT NULL
+) AS CalcHistoryRow;
+
+CREATE TABLE app_settings (
+    setting_key TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at DATETIME NOT NULL
+) AS SettingRow;
+
+-- The last plan grant from the licensing server (Ed25519-signed; verified
+-- again every time it is read, so editing this row unlocks nothing).
+CREATE TABLE license_cache (
+    id INTEGER NOT NULL PRIMARY KEY CHECK (id = 1),
+    token TEXT NOT NULL,
+    stored_at DATETIME NOT NULL
+) AS LicenseCacheRow;

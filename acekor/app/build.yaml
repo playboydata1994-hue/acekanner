@@ -1,0 +1,18 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          sql:
+            dialect: sqlite
+            options:
+              # Host tests use the OS SQLite (Ubuntu 24.04: 3.45); Android uses
+              # SQLCipher 4.20 (SQLite 3.50+). Target the older one.
+              version: "3.45"
+          store_date_time_values_as_text: false
+          named_parameters: true
+          generate_manager: false
+          databases:
+            app_database: lib/data/db/app_database.dart
+          schema_dir: drift_schemas/
+          test_dir: test/drift/
