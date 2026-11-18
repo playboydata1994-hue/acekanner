@@ -85,9 +85,19 @@ Owner's answers (2026-11-18):
 0. ✅ **Trader status** (EU Digital Services Act; required): declared **Trader** by the owner (2026-11-18)
    because the app sells subscriptions. Google verifies the contact details and shows them to EU
    users on the Play listing.
-1. **Payments profile:** Play Console → **Settings → Payments profile** → create it: legal name,
-   address, and later the bank account that receives subscription income. Paid products cannot be
-   created without it.
+1. **Payments profile and payouts** (available once Google approves the owner's identity):
+   - Play Console → **Settings → Payments profile → Create**: Individual, Philippines, legal name
+     and address as on the ID. Paid products cannot be created without it.
+   - **Bank account:** payments settings (payments.google.com) → **Payment methods → Add bank
+     account**. The account name must match the payments profile exactly. Google sends a small
+     test deposit to confirm.
+   - **Tax info:** the US tax form (W-8BEN for non-US individuals) in the payments profile, to
+     reduce US withholding on US sales.
+   - **How money flows:** Google Play charges the buyer, keeps a 15% service fee on
+     subscriptions, and pays out monthly (around the 15th, for the previous month). PRO ₱399 →
+     about ₱303 if 12% VAT is included in the price, about ₱339 if not; MAX ₱499 → about ₱379 /
+     ₱424. Play Console shows the exact split when prices are set.
+   - The owner's own income tax (BIR) is separate; an accountant should advise.
 2. **Create app:**
    - **Home → Create app:** "ACEkor Grading Sheet"; default language English; **App**; **Free**.
    - Tick the declarations.
