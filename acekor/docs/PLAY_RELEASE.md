@@ -152,8 +152,8 @@ Production.
    - Government app: no. Financial features: no. Health: no.
 3. **Testers** (group set-up and invitation messages: `acekor/store/tester_invitation.md`):
    - **Closed testing → Create track** (or use "Alpha").
-   - Testers: a Google Group, or an email list of 12+ colleagues. Invite 15 or more in case someone
-     drops out.
+   - Testers: the Google Group **`acekor-testers@googlegroups.com`** (created 2026-11-18). Invite
+     15 or more colleagues in case someone drops out.
    - Roll out the same build, then send them the invitation with the opt-in link.
 4. **Testers' access:** every trial started from 2026-11-18 lasts until **January 31, 2027**
    (server table `acekor_trial_floor`, migration `20261120000000_acekor_tester_trial.sql`, live

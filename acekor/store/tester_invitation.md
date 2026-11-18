@@ -18,8 +18,8 @@ nobody's email has to be typed into Play Console.
    - Who can post: **Group managers**.
    - Who can view members: **Group managers** (testers don't see each other's emails).
 4. Skip adding members → **Create group**.
-5. Copy the group's link, e.g. `https://groups.google.com/g/acekor-testers`, and put it in
-   message 1 below.
+5. ✅ Created 2026-11-18: **`acekor-testers@googlegroups.com`**
+   (`https://groups.google.com/g/acekor-testers`), already filled in message 1 below.
 
 ## 2. Message 1: send now (join the group)
 
@@ -35,7 +35,7 @@ nobody's email has to be typed into Play Console.
 > Play Store.
 >
 > **Step 1 (now):** open this link with that Gmail account and tap **Join group**:
-> GROUP_LINK
+> https://groups.google.com/g/acekor-testers
 >
 > In a few days I'll send you the Play Store link to install it. Thank you!
 
