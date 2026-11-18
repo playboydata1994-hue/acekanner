@@ -196,23 +196,27 @@ class StudentProfileScreen extends ConsumerWidget {
                   ),
                   trailing: g.percent == null
                       ? null
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              formatPercent(g.percent!),
-                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-                            ),
-                            if (g.equivalent != null)
+                      : FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
                               Text(
-                                g.equivalent!.grade,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: g.passed == false ? AppColors.red : AppColors.teal,
-                                ),
+                                formatPercent(g.percent!),
+                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                               ),
-                          ],
+                              if (g.equivalent != null)
+                                Text(
+                                  g.equivalent!.grade,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: g.passed == false ? AppColors.red : AppColors.teal,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                   onTap: () => context.push(Routes.gradebook(book.subject.id)),
                 ),

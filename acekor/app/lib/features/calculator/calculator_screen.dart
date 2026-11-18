@@ -471,6 +471,8 @@ class _ScoreDisplay extends StatelessWidget {
   /// covers the score or the keypad.
   final Widget? note;
 
+  /// Height of the message slot at normal text size; it grows with the
+  /// text-size setting so a three-line message always fits.
   static const double noteSlot = 76;
 
   @override
@@ -482,7 +484,9 @@ class _ScoreDisplay extends StatelessWidget {
     final percent = empty ? '' : scorePercentText(value, max);
     return LayoutBuilder(
       builder: (context, c) {
-        final big = ((c.maxHeight - noteSlot) * 0.56).clamp(36.0, 112.0);
+        final textScale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6);
+        final slot = noteSlot * textScale;
+        final big = ((c.maxHeight - slot) * 0.56).clamp(30.0, 112.0);
         final mid = (big * 0.55).clamp(28.0, 64.0);
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -496,6 +500,7 @@ class _ScoreDisplay extends StatelessWidget {
                   child: Text(
                     '${empty ? 0 : value}/$max',
                     key: const ValueKey('score-display'),
+                    textScaler: TextScaler.noScaling,
                     style: TextStyle(
                       fontSize: big,
                       fontWeight: FontWeight.w400,
@@ -526,6 +531,7 @@ class _ScoreDisplay extends StatelessWidget {
                       : Text(
                           showPercent ? percent : '',
                           key: const ValueKey('percent-display'),
+                          textScaler: TextScaler.noScaling,
                           style: TextStyle(
                             fontSize: mid,
                             fontWeight: FontWeight.w500,
@@ -536,7 +542,7 @@ class _ScoreDisplay extends StatelessWidget {
                 ),
               ),
               SizedBox(
-                height: noteSlot,
+                height: slot,
                 child: Center(
                   child:
                       note ??

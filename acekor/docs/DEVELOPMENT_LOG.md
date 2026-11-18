@@ -4,6 +4,31 @@ Newest entries first.
 
 ---
 
+## 2026-11-18 · Layout fixes from the owner's phone (1.0.0+4)
+
+The owner's screenshot showed Calculator settings › General settings with "Default subject and
+class" printed one letter per line.
+
+- **Cause:** the class chip (a `Center`) was the row's trailing widget, so it took the row's full
+  width and left the title a few pixels wide.
+- **Fix:** the row now shows the current class as its subtitle ("SAMPLE 101", or "Not chosen yet —
+  tap to choose") with a chevron. Tapping it opens the class picker, as before.
+  `classLabelProvider` is shared with the calculator's chip.
+- **New regression test** (`test/features/screens_layout_test.dart`):
+  - opens all 35 screens and the calculator's pop-up panels on a small phone (360 × 780) with the
+    real Roboto metrics, at Normal and at Extra large text;
+  - scrolls each page and fails on any overflow, or on text squeezed into a narrow column.
+- **Problems the test found and fixed** (all at Extra large text):
+  - Calculator: the message slot now grows with the text size. The score and percentage are not
+    enlarged again, since they already fill their space.
+  - Menu: the grid tiles became full-width list tiles that grow with their text.
+  - Class records and a student's grades: the percent and grade pair on the right now shrinks to
+    fit its row.
+- **Verification:** 61/61 Flutter tests pass; analyzer clean; signed APK and bundle built as
+  1.0.0+4.
+
+---
+
 ## 2026-11-17 · New name and logo: ACEkor Grading Sheet (1.0.0+3)
 
 Owner's choices: logo C (clipboard class record); name "ACEkor Grading Sheet" (written ACEkor, with

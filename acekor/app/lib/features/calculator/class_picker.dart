@@ -8,20 +8,25 @@ import '../../core/theme/app_colors.dart';
 import '../../data/repositories/roster_repository.dart';
 import 'calculator_controller.dart';
 
+/// "IT 101 · BSIT 1-A" — the calculator's class, or null when none is chosen.
+final classLabelProvider = Provider<String?>((ref) {
+  final calc = ref.watch(calculatorProvider);
+  final subjects = ref.watch(subjectsProvider).value ?? const [];
+  final subject = subjects.where((s) => s.id == calc.subjectId).firstOrNull;
+  if (subject == null) return null;
+  final sections = ref.watch(sectionsProvider).value ?? const [];
+  final section = sections.where((s) => s.id == calc.sectionId).firstOrNull;
+  return '${subject.subject.code}${section == null ? '' : ' · ${section.name}'}';
+});
+
 /// "IT 101 · BSIT 1-A ▾" at the top of the calculator.
 class ClassChip extends ConsumerWidget {
   const ClassChip({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final calc = ref.watch(calculatorProvider);
-    final subjects = ref.watch(subjectsProvider).value ?? const [];
-    final subject = subjects.where((s) => s.id == calc.subjectId).firstOrNull;
-    final sections = ref.watch(sectionsProvider).value ?? const [];
-    final section = sections.where((s) => s.id == calc.sectionId).firstOrNull;
-    final label = subject == null
-        ? 'Choose class'
-        : '${subject.subject.code}${section == null ? '' : ' · ${section.name}'}';
+    final chosen = ref.watch(classLabelProvider);
+    final label = chosen ?? 'Choose class';
     return Center(
       child: InkWell(
         key: const ValueKey('class-chip'),
@@ -44,7 +49,7 @@ class ClassChip extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
-                    color: subject == null ? AppColors.teal : AppColors.white,
+                    color: chosen == null ? AppColors.teal : AppColors.white,
                   ),
                 ),
               ),

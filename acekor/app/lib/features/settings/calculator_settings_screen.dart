@@ -121,9 +121,10 @@ class CalculatorSettingsScreen extends ConsumerWidget {
           ),
           const SectionTitle('General settings'),
           ListTile(
+            key: const ValueKey('default-class'),
             title: const Text('Default subject and class'),
-            subtitle: const Text('Used by the calculator'),
-            trailing: const ClassChip(),
+            subtitle: Text(ref.watch(classLabelProvider) ?? 'Not chosen yet — tap to choose'),
+            trailing: const Icon(Icons.chevron_right),
             onTap: () => showClassPicker(context),
           ),
           ListTile(

@@ -3,6 +3,8 @@
 // PNGs are written to tool/screenshots/out/ (not part of the normal test run).
 import 'dart:io';
 
+import 'package:acekor/app/router.dart';
+import 'package:acekor/app/routes.dart';
 import 'package:acekor/data/repositories/activities_repository.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -94,6 +96,11 @@ void main() {
     await tester.tap(find.textContaining('SAMPLE 101'));
     await AppHarness.settle(tester, 15);
     await shot(tester, '07_records');
+    h.container.read(routerProvider).go(Routes.calculatorSettings);
+    await AppHarness.settle(tester, 10);
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -2400));
+    await AppHarness.settle(tester, 6);
+    await shot(tester, '08_calculator_settings_general');
     await h.dispose(tester);
   });
 }

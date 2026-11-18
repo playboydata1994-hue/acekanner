@@ -147,17 +147,21 @@ class _StudentGradeTile extends StatelessWidget {
       ),
       trailing: g.percent == null
           ? null
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(formatPercent(g.percent!), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-                if (g.equivalent != null)
-                  Text(
-                    g.equivalent!.grade,
-                    style: TextStyle(fontSize: 16, color: g.passed == false ? AppColors.red : AppColors.teal),
-                  ),
-              ],
+          : FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(formatPercent(g.percent!), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                  if (g.equivalent != null)
+                    Text(
+                      g.equivalent!.grade,
+                      style: TextStyle(fontSize: 16, color: g.passed == false ? AppColors.red : AppColors.teal),
+                    ),
+                ],
+              ),
             ),
       children: [
         for (final c in g.categories.where((c) => c.hasActivities || c.counts))

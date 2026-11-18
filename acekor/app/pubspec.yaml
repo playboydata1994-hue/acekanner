@@ -3,7 +3,7 @@ description: "ACEkor Grading Sheet - offline academic score calculator and stude
 publish_to: 'none'
 
 # versionName+versionCode. Bump the build number (after +) for every Play upload.
-version: 1.0.0+3
+version: 1.0.0+4
 
 environment:
   sdk: ^3.14.0
