@@ -155,13 +155,19 @@ Production.
    - Testers: a Google Group, or an email list of 12+ colleagues. Invite 15 or more in case someone
      drops out.
    - Roll out the same build, then send them the invitation with the opt-in link.
-4. Keep at least 12 testers opted in for **14 days in a row**. Collect their feedback; fixes go out
+4. **Testers' access:** every trial started from 2026-11-18 lasts until **January 31, 2027**
+   (server table `acekor_trial_floor`, migration `20261120000000_acekor_tester_trial.sql`, live
+   since 2026-11-18). Testers need no purchase.
+5. Keep at least 12 testers opted in for **14 days in a row**. Collect their feedback; fixes go out
    as new builds on the same track.
-5. **Apply for production:** Dashboard → **Apply for production**, and answer Google's questions
+6. **Apply for production:** Dashboard → **Apply for production**, and answer Google's questions
    about the test. Review usually takes up to 7 days.
 
 ### Phase D: production
 
+- **Before the rollout, end the tester trial** (owner tells Claude, or runs it in the Supabase SQL
+  editor): `delete from public.acekor_trial_floor;`. New trials are 7 days again; testers keep
+  their January 31, 2027 end date.
 - Promote the tested release to **Production**, choose the countries, and roll out.
 - Before or at the same time: publish the Google consent screen (§2 step 4).
 

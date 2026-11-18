@@ -9,6 +9,9 @@ insert into auth.users (id, email) select a1, 'prof@example.com' from t_k;
 insert into auth.users (id, email) select a2, 'other@example.com' from t_k;
 insert into auth.users (id, email) select a3, 'prof-again@example.com' from t_k;
 grant select on t_k to service_role;
+-- The tester-trial floor (migration 20261120) is tested in 21_acekor_tester_trial_test.sql;
+-- these tests check the normal 7-day trial.
+delete from acekor_trial_floor;
 set role service_role;
 
 create or replace function pg_temp.check(ok boolean, what text) returns void language plpgsql as $$

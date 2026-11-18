@@ -4,6 +4,38 @@ Newest entries first.
 
 ---
 
+## 2026-11-18 · Play preparation: store screenshots, testers, tester trial
+
+Owner's answers:
+- Same personal Play developer account as ACEkanner (ACEkanner is not on Play yet).
+- Trader status declared; the developer website is verified in Search Console
+  (`docs/google19503deee5362079.html`, must stay).
+- 12+ colleagues will be the closed testers.
+- Testers keep full access for the whole test.
+
+- **Store screenshots:**
+  - The old ones (1082 × 2342, with transparency) broke Play's 2:1 limit.
+  - They are now rendered at 405 × 720 dp × 8/3 = **1080 × 1920** (9:16).
+  - Plain RGB copies are in `acekor/store/screenshots/`.
+- **Testers:** `acekor/store/tester_invitation.md` has the Google Group set-up and two messages
+  (join now; install when the closed test is live).
+- **Tester trial (server):**
+  - Migration `20261120000000_acekor_tester_trial.sql`, applied live (`acekor_tester_trial`).
+  - While the single row of `acekor_trial_floor` exists, trials started on or after 2026-11-18
+    last until 2027-01-31 23:59 (Philippine time), never less than 7 days.
+  - Running trials are lengthened at check-in.
+  - Clients can neither read the table nor call `acekor_trial_end`.
+  - Delete the row before the public launch (PLAY_RELEASE.md, Phase D).
+- **App (next build):** the trial reminder says "Your free trial ends tomorrow" instead of "Your
+  7-day free trial…", so testers are not told "7-day".
+- **Verification:**
+  - SQL suites on PostgreSQL 16: ACEkanner 34, ACEkor 21, tester trial 8 checks pass.
+  - Live: the migration is recorded, the floor row is present, and `authenticated` has no access
+    to the table or the helper.
+  - Flutter: analyzer clean, 61/61 tests pass.
+
+---
+
 ## 2026-11-18 · Google sign-in turned on (1.0.0+5)
 
 The owner set up the Google Cloud side (`GOOGLE_SIGNIN_SETUP.md` §A–C) and sent the Web client ID.

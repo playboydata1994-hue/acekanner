@@ -28,7 +28,8 @@ nobody's email has to be typed into Play Console.
 > class record. It also does weighted grades, PDF/Excel reports, and works offline.
 >
 > Before it goes on the Play Store, Google requires at least 12 people to test it for 14 days.
-> Could you help? It's free, and you can use it for your real classes.
+> Could you help? It's free for testers until January 31, 2027, and you can use it for your real
+> classes.
 >
 > **What you need:** an Android phone (Android 7 or newer) and the Gmail account you use in the
 > Play Store.
@@ -46,7 +47,8 @@ nobody's email has to be typed into Play Console.
 >    OPT_IN_LINK
 > 2. Tap **Download it on Google Play** and install **ACEkor Grading Sheet**.
 > 3. Open it and tap **Try with a sample class**, or add your own class. Tap **Start free
->    trial** and sign in with Google once. Everything is unlocked during the test.
+>    trial** and sign in with Google once. Everything is unlocked for free until January 31,
+>    2027.
 > 4. **Please keep the app installed and stay in the test for at least 14 days**, and open it every
 >    few days. Google counts this.
 >

@@ -61,3 +61,4 @@ These hold no student data.
 | `acekor_devices` | Random install IDs and app version |
 | `acekor_subscriptions` | Play purchase tokens, product, state, expiry, auto-renew, replaced/refunded flag |
 | `acekor_tombstones` | One-way identity hash and trial start of deleted accounts (no second trial) |
+| `acekor_trial_floor` | At most one row: trials started on or after `applies_from` last until `until` (closed test: until January 31, 2027). Deleted before the public launch |

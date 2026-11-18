@@ -65,7 +65,7 @@ abstract final class ReminderSchedule {
             at: at,
             title: title,
             body:
-                'Your 7-day free trial ends tomorrow ($date). Choose PRO or MAX to keep saving scores. Your records stay on your phone either way.',
+                'Your free trial ends tomorrow ($date). Choose PRO or MAX to keep saving scores. Your records stay on your phone either way.',
           ),
         );
       }
