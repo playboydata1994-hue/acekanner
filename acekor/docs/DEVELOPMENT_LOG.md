@@ -26,6 +26,13 @@ Owner's answers:
   - Running trials are lengthened at check-in.
   - Clients can neither read the table nor call `acekor_trial_end`.
   - Delete the row before the public launch (PLAY_RELEASE.md, Phase D).
+- **Purchase checks:**
+  - Service account `play-billing@ace-apps-515103.iam.gserviceaccount.com` created by the owner.
+  - Its JSON key is in the Supabase secret `GOOGLE_PLAY_SERVICE_ACCOUNT`; Claude saw only the name.
+  - `acekor-license` was redeployed (version 3, same code) to start with the secret. It answers
+    401 `not_signed_in` without a session, so the key parsed; ACEkanner's `license` also answers.
+  - Whether Google accepts the key is checked by the first test purchase, after the Play Console
+    invitation.
 - **App (next build):** the trial reminder says "Your free trial ends tomorrow" instead of "Your
   7-day free trial…", so testers are not told "7-day".
 - **Verification:**
