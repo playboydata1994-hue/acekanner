@@ -145,8 +145,8 @@ Production.
    - Government app: no. Financial features: no. Health: no.
 3. **Testers:**
    - **Closed testing → Create track** (or use "Alpha").
-   - Testers: a Google Group, or an email list of 12+ colleagues (more is safer: anyone who leaves
-     the test resets nothing, but the count must stay at 12 or more).
+   - Testers: a Google Group, or an email list of 12+ colleagues. Invite 15 or more in case someone
+     drops out.
    - Roll out the same build, then send them the invitation with the opt-in link.
 4. Keep at least 12 testers opted in for **14 days in a row**. Collect their feedback; fixes go out
    as new builds on the same track.
