@@ -113,8 +113,9 @@ Owner's answers (2026-11-18):
    **`play-billing@ace-apps-515103.iam.gserviceaccount.com`** (Google Cloud project `ace-apps-515103`).
    ✅ API enabled, JSON key created and saved by the owner as the Supabase secret
    `GOOGLE_PLAY_SERVICE_ACCOUNT` (2026-11-18). `acekor-license` was redeployed (version 3) and
-   starts with it, so the key parses. **Left:** the Play Console invitation below, once the
-   account is approved.
+   starts with it, so the key parses. ✅ Invited in Play Console (2026-11-18) with **account-level**
+   permissions, so it covers ACEkor and later ACEkanner: View app information (read-only), View
+   financial data, Manage orders and subscriptions.
    - Google Cloud project "ACE apps":
      - **APIs & Services → Library → Google Play Android Developer API → Enable.**
      - **IAM & Admin → Service accounts → Create:** name `play-billing`, no roles. Then
