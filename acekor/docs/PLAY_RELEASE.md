@@ -25,7 +25,7 @@ Click-by-click steps for both apps and their current status are in
 1. ~~Consent screen and Web client~~: done. The Web client ID is in both apps' config files.
 2. ~~Supabase Google provider~~: done (no client secret needed; both apps sign in natively).
 3. Create an **Android** OAuth client with package `com.acekor.calculator` and the SHA-1 of:
-   - the upload key (`keytool -list -v -keystore acekor-upload.jks`), and
+   - ~~the upload key~~: done, and
    - after the first upload, the **Play app signing** key (Play Console → Test and release → App integrity).
 
    Use one Android client per SHA-1.
@@ -99,7 +99,7 @@ Before each upload, bump `version:` in `pubspec.yaml` (`1.0.0+1` → `1.0.1+2`).
 | Install | First start shows Welcome; sample class works; app icon and name are right |
 | Calculator | Search "JUAN"; type 42 → "42/50" and "84%"; ⌫; 51 refused; ✓ saves; next student comes up; UNDO |
 | Offline | Airplane mode, restart the phone: open, search, record, PDF, Excel, backup — everything works |
-| Trial | Start trial (Google sign-in) → MAX features; the trial date shows on the Plan screen |
+| Trial | ✅ 2026-11-18, build 5: Google sign-in → trial started on the server; Plan screen shows "Free trial · 7 days left", November 18 – 25, 2026 |
 | Billing | Licence-tester account: buy PRO, exams locked; upgrade to MAX (prorated); cancel in Play → "Expires on" |
 | Reminders | Set the phone date to 5 days before expiry at 08:55 → notification at 09:00 with the right date; 1-day reminder |
 | Restart | Reminders survive a phone restart |

@@ -22,6 +22,10 @@ The owner set up the Google Cloud side (`GOOGLE_SIGNIN_SETUP.md` §A–C) and se
 - **Guide:** the redirect URI, App domain and Authorized domains are left empty; no logo
   (it would require Google's verification).
 - **Android clients for both apps' upload keys:** created by the owner (§E).
+- **Real-phone test (build 5), passed:** Google sign-in on the owner's phone started the trial on the
+  server. The Plan screen shows "Free trial · 7 days left", November 18 – 25, 2026, and the server
+  has one account (trial 05:00 UTC → +7 days, no paid plan), one device (app 1.0.0) and one Google
+  identity.
 - **Still for the owner:**
   - the Play app-signing clients after the first upload;
   - **Publish app** on the consent screen before the public release.
