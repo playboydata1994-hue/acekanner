@@ -4,6 +4,31 @@ Newest entries first.
 
 ---
 
+## 2026-11-18 · Google sign-in turned on (1.0.0+5)
+
+The owner set up the Google Cloud side (`GOOGLE_SIGNIN_SETUP.md` §A–C) and sent the Web client ID.
+
+- **Supabase:** Google provider enabled through the Management API with the Web client ID; nonce
+  check on; no client secret stored (both apps sign in natively with `signInWithIdToken`, so no
+  browser redirect or secret is needed).
+  - Checked live: a token exchange with a dummy token went from `provider_disabled` to
+    `Bad ID token`.
+- **Apps:** the Web client ID is in `acekor/app/config/acekor.json` and ACEkanner's
+  `app/config/acekanner.json`.
+  - ACEkor builds are now configured builds: the trial starts on the server after a Google
+    sign-in (once per Google account), and the PRO/MAX buttons are active.
+  - The phone-only trial of earlier test builds does not carry over.
+  - ACEkanner gets sign-in with its next build.
+- **Guide:** the redirect URI, App domain and Authorized domains are left empty; no logo
+  (it would require Google's verification).
+- **Still for the owner:**
+  - Android clients for the upload keys (§E);
+  - the Play app-signing clients after the first upload;
+  - **Publish app** on the consent screen before the public release.
+  - Until it is published, only the listed test users can sign in.
+
+---
+
 ## 2026-11-18 · Layout fixes from the owner's phone (1.0.0+4)
 
 The owner's screenshot showed Calculator settings › General settings with "Default subject and
@@ -182,8 +207,7 @@ Highlights:
 ### Open items
 
 - ~~Server deployment~~: done (see the entry above).
-- **Google sign-in:** `ACEKOR_GOOGLE_WEB_CLIENT_ID` is still empty (ACEkanner's is too). Until it is
-  set, builds are test builds: phone-only trial, purchases off.
+- ~~Google sign-in~~: done on 2026-11-18 (see the entry above).
 - **Owner Play Console steps:** upload key, Play Console app, subscriptions, service-account access.
   See `PLAY_RELEASE.md`.
 - **Real-phone checklist** (`PLAY_RELEASE.md` §6): billing, notifications at the real time, reboot,

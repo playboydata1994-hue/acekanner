@@ -1,54 +1,72 @@
 # Google sign-in setup (ACEkor Grading Sheet and ACEkanner)
 
 The free trial and the subscriptions use a one-time Google sign-in. One Google Cloud project and
-one Supabase project serve both apps. Doing these steps once turns on sign-in for ACEkanner too.
-
-Use a computer. Takes about 20 minutes.
+one Supabase project serve both apps, so these steps turn on sign-in for ACEkanner too.
 
 **Never send in chat:** the client **secret**, passwords, or any downloaded JSON file.
-**Send me only:** the **Web client ID** (it ends in `.apps.googleusercontent.com`; it is public).
+The **Web client ID** is public (it is compiled into the apps).
+
+## Status (2026-11-18)
+
+| Step | State |
+|---|---|
+| A. Google Cloud project | Done |
+| B. Consent screen "ACE apps by NYE94", External, Testing | Done |
+| C. Web client `Supabase (ACE apps)` | Done: `424055951654-36ljq6g443009ivu3f0ave1fpi96jm2g.apps.googleusercontent.com` |
+| D. Supabase Google provider | Done through the Management API: enabled, Client ID set, nonce check on, no secret |
+| Web client ID in both apps' build settings | Done (`acekor/app/config/acekor.json`, `app/config/acekanner.json`) |
+| E. Android clients for the upload keys | Owner |
+| E. Android clients for Play's app-signing keys | After each app's first Play upload |
+| Publish the consent screen | Before the public release |
 
 ## A. Google Cloud project
 
-1. Open **console.cloud.google.com** and sign in with your developer Google account.
-2. In the project picker (top left), choose the **ACEkanner** project if it exists; otherwise click
-   **New project**, name it `ACE apps`, and create it. Make sure it is selected at the top.
+1. Open **console.cloud.google.com** and sign in with the developer Google account.
+2. In the project picker (top left), choose the ACEkanner project if it exists; otherwise create
+   one named `ACE apps`, and make sure it is selected.
 
 ## B. Consent screen (what instructors see when they sign in)
 
-1. Go to **APIs & Services → OAuth consent screen** (it may be called **Google Auth Platform**) and
-   click **Get started**.
-2. Fill in:
-   - **App name:** `ACE apps by NYE94` (shown for both apps).
-   - **User support email:** your email.
-   - **Audience:** **External**.
-   - **Contact email:** your email.
-   Then click **Create**.
-3. Go to **Audience → Test users → Add users** and add the Gmail accounts you will test with.
-   While the app is in "Testing", only these accounts can sign in. You can **Publish app** later.
+1. Open **Google Auth Platform** (formerly "OAuth consent screen") and click **Get started**.
+2. **App name:** `ACE apps by NYE94`; **User support email** and **Contact email:** the developer
+   email; **Audience:** **External**. Click **Create**.
+   - If Google answers "Create failed because the brand was created while you were editing",
+     refresh the page: the settings were saved. Check **Branding** and fix anything missing.
+3. **Branding → App domain** and **Authorized domains:** leave empty. They are only needed if
+   Google reviews the app, and basic name-and-email sign-in needs no review.
+   Do not upload a logo: a logo makes Google verify the app first.
+4. **Audience → Test users → Add users:** add the Gmail accounts used for testing. While the
+   status is "Testing", only these accounts can sign in.
+5. Before the public release: **Audience → Publish app**.
 
-## C. Web client (used by the server)
+## C. Web client (its ID is what both apps send to Google)
 
-1. Go to **Clients → Create client → Web application**.
-2. Name it `Supabase (ACE apps)`.
-3. Under **Authorized redirect URIs**, add:
-   `https://ajmdnsdhrpktkvkxnmuo.supabase.co/auth/v1/callback`
-4. Click **Create**. A box shows the **Client ID** and the **Client secret**.
-   - **Send me the Client ID.**
-   - Keep the box open for step D (the secret goes only into Supabase).
+1. **Clients → Create client → Web application**, named `Supabase (ACE apps)`.
+2. Leave **Authorized JavaScript origins** and **Authorized redirect URIs** empty. Both apps sign
+   in natively (`google_sign_in` → `signInWithIdToken`); no browser redirect is used.
+3. **Create**, then copy the **Client ID**. The secret is not needed by either app or by Supabase.
 
 ## D. Supabase
 
-1. Go to **supabase.com → project `acekanner` → Authentication → Sign In / Providers → Google**.
-2. Turn **Sign in with Google** on.
-3. **Client IDs:** paste the Web Client ID.
-4. **Client Secret:** paste the Web client secret.
-5. Leave **Skip nonce checks** off, then click **Save**.
+Done through the Management API (`PATCH /v1/projects/ajmdnsdhrpktkvkxnmuo/config/auth`):
+
+- `external_google_enabled = true`
+- `external_google_client_id = <Web client ID>`. Supabase accepts ID tokens whose audience is
+  this ID.
+- `external_google_skip_nonce_check = false`. The apps send no nonce, so the check passes.
+- No secret is stored. It is only needed for browser sign-in, which neither app uses.
+
+Check: a token exchange with a dummy token now answers `Bad ID token` (before: `provider_disabled`).
+
+To do it by hand instead: **supabase.com → project `acekanner` → Authentication → Sign In /
+Providers → Google** → on; **Client IDs:** the Web client ID; leave **Skip nonce checks** off; Save.
 
 ## E. Android clients (one per app and per signing key)
 
 Google checks that sign-in comes from the real app. For each signing key below, go to
-**Clients → Create client → Android**, enter the package name and the key's SHA-1, and click **Create**.
+**Clients → Create client → Android**, enter the package name and the key's SHA-1, and click
+**Create**. Without the matching client, sign-in fails with "Google sign-in is not set up correctly
+for this app version".
 
 | Client name | Package | SHA-1 |
 |---|---|---|
@@ -57,7 +75,5 @@ Google checks that sign-in comes from the real app. For each signing key below, 
 | ACEkanner upload key | `com.acekanner.app` | `65:75:4A:42:B5:46:71:98:9B:BB:30:2E:D7:52:B6:32:22:4D:3E:01` |
 | ACEkanner Play builds | `com.acekanner.app` | From ACEkanner's App signing page |
 
-## What happens next
-
-Once you send the Web client ID, I put it into both apps' build settings and build signed app
-bundles. ACEkor's trial then starts from the real server, with no reset by reinstalling.
+The upload-key clients cover APKs installed directly (sideloaded test builds). The Play clients cover
+copies installed from Google Play, which Google re-signs with its own key.

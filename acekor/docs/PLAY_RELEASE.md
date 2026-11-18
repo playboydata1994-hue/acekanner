@@ -17,21 +17,20 @@ The steps below are kept for reference and re-deployments.
 3. Optional secret `ACEKOR_PLAY_PACKAGE_NAME` (default `com.acekor.calculator`). It reuses the
    existing secrets `ENTITLEMENT_SIGNING_KEY`, `ENTITLEMENT_KEY_ID` and `GOOGLE_PLAY_SERVICE_ACCOUNT`.
 
-## 2. Google sign-in (owner, about 20 minutes)
+## 2. Google sign-in
 
-Click-by-click steps for both apps are in [`GOOGLE_SIGNIN_SETUP.md`](GOOGLE_SIGNIN_SETUP.md).
-Summary:
+Click-by-click steps for both apps and their current status are in
+[`GOOGLE_SIGNIN_SETUP.md`](GOOGLE_SIGNIN_SETUP.md).
 
-1. In Google Cloud Console, use the same project as ACEkanner: **APIs & Services → Credentials**.
-2. If ACEkanner has no **Web** OAuth client yet, create one and put its ID in **both**
-   `app/config/acekanner.json` and `acekor/app/config/acekor.json` (`ACEKOR_GOOGLE_WEB_CLIENT_ID`).
-   Its client secret goes into Supabase → Authentication → Providers → Google (never in chat).
+1. ~~Consent screen and Web client~~: done. The Web client ID is in both apps' config files.
+2. ~~Supabase Google provider~~: done (no client secret needed; both apps sign in natively).
 3. Create an **Android** OAuth client with package `com.acekor.calculator` and the SHA-1 of:
    - the upload key (`keytool -list -v -keystore acekor-upload.jks`), and
    - after the first upload, the **Play app signing** key (Play Console → Test and release → App integrity).
 
    Use one Android client per SHA-1.
-4. On the OAuth consent screen, add the app name "ACEkor Grading Sheet".
+4. Before the public release, publish the consent screen (**Google Auth Platform → Audience →
+   Publish app**). Until then only the listed test users can sign in.
 
 ## 3. Upload key ✅ created 2026-11-17
 
