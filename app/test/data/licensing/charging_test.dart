@@ -134,6 +134,45 @@ void main() {
     expect(again, isNotEmpty);
   });
 
+  test('quick checks are counted once per student per examination, shared with saved papers', () async {
+    final r = repo();
+    await grant(r);
+    expect(await r.chargeQuickCheck(examId: examId, studentId: students[0]), 'free');
+    expect(await r.chargeQuickCheck(examId: examId, studentId: students[0]), isNull, reason: 'checked again: free');
+    await save(r, student: students[0]);
+    expect(await ledger.countFree(), 1, reason: 'saving the quick-checked student is free');
+    await save(r, student: students[1]);
+    expect(await r.chargeQuickCheck(examId: examId, studentId: students[1]), isNull, reason: 'already saved: free');
+    expect(await ledger.countFree(), 2);
+    expect(await ledger.verifyChain(), isTrue);
+  });
+
+  test('a quick check without an identified student is counted each time', () async {
+    final r = repo();
+    await grant(r);
+    await r.chargeQuickCheck(examId: examId, studentId: null);
+    await r.chargeQuickCheck(examId: examId, studentId: null);
+    expect(await ledger.countFree(), 2);
+    expect((await db.select(db.scanLedger).get()).every((x) => x.answerSheetId == null), isTrue);
+  });
+
+  test('a quick check is refused when the free scans are used up, except for a counted student', () async {
+    final r = repo();
+    await grant(r, used: 99);
+    await r.chargeQuickCheck(examId: examId, studentId: students[0]);
+    await expectLater(r.chargeQuickCheck(examId: examId, studentId: students[1]),
+        throwsA(isA<ScanLimitException>().having((e) => e.block, 'block', ScanBlock.freeUsedUp)));
+    await expectLater(r.chargeQuickCheck(examId: examId, studentId: null), throwsA(isA<ScanLimitException>()));
+    expect(await r.chargeQuickCheck(examId: examId, studentId: students[0]), isNull, reason: 'already counted');
+    expect(await ledger.countFree(), 1);
+  });
+
+  test('Premium quick checks are recorded as premium', () async {
+    final r = repo();
+    await grant(r, used: 100, lease: 0, premiumUntil: t0.add(const Duration(days: 365)));
+    expect(await r.chargeQuickCheck(examId: examId, studentId: students[2]), 'premium');
+  });
+
   test('signed out (configured build): scanning needs sign-in', () async {
     await expectLater(save(repo(), student: students[0]),
         throwsA(isA<ScanLimitException>().having((e) => e.block, 'block', ScanBlock.signInRequired)));

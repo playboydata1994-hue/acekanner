@@ -63,7 +63,7 @@ WORKS OFFLINE, KEEPS DATA ON YOUR PHONE
 FREE AND PREMIUM
 • Free: 100 scans in total, with all features
 • ACEkanner Premium: unlimited scans with a yearly subscription through Google Play. Cancel any time in Google Play
-• A scan is counted only when a student's result is saved
+• A scan is counted once per student per examination, when the result is saved or quick-checked
 • Sign in with Google once to keep your scan count and Premium when you change phones. Internet is needed to sign in, to buy Premium, and to confirm your plan at least once every 30 days
 
 TIPS FOR BEST RESULTS

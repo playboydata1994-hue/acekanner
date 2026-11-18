@@ -80,7 +80,7 @@ void main() {
           theme: AppTheme.light(),
           home: Scaffold(
             body: SingleChildScrollView(
-              child: QuickCheckCard(scanContext: ctx, reading: r, onNext: () => next++),
+              child: QuickCheckCard(scanContext: ctx, reading: r, onNext: () => next++, freeScanUsed: true),
             ),
           ),
         ),
@@ -99,6 +99,7 @@ void main() {
     expect(find.text('44 CORRECT'), findsOneWidget);
     expect(find.text('5 WRONG'), findsOneWidget);
     expect(find.text('1 UNCLEAR'), findsOneWidget);
+    expect(find.text('Counted as 1 free scan.'), findsOneWidget);
 
     await tester.tap(find.text('Show answers'));
     await tester.pumpAndSettle();

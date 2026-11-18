@@ -331,7 +331,11 @@ Scores are normalized per sheet: 0 is this sheet's empty level, 1 its filled lev
   the size found (`readAnySheet`); the QR code names the examination (`examForSheet`: any on
   this phone, closed ones too). It is then read with that examination's layout and shown on a
   quick-check card (score with its key, unclear answers counted as no answer, answers list).
-  **Nothing is saved and no scan is counted**; mixed piles of examinations are fine. Problems:
+  **Nothing is saved, but each check is counted as a scan** (0.7.3,
+  `LicenseRepository.chargeQuickCheck`): the same submission key as a saved paper, so once
+  per student per examination and a later save of that student is free; a paper whose student
+  is not identified is counted each time (a fresh key per check). When the plan refuses, the
+  plan dialog is shown, no result is shown and scanning resumes. Mixed piles of examinations are fine. Problems:
   QR unreadable, examination not on this phone, examination deleted, older design.
 - **Blank sheets** (Home or Exams › "Print blank answer sheets", `/blank-sheets`): pre-exams
   and mock exams. The QR code carries the reserved code `ANYEXAM0` (`SheetQr.blankExamCode`;

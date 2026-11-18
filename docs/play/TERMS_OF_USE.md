@@ -1,6 +1,6 @@
 # ACEkanner Terms of Use
 
-**Effective date:** 17 November 2026  
+**Effective date:** 18 November 2026  
 **Developer:** NYE94, Philippines · **Contact:** <espinosanoli1994@gmail.com>
 
 These terms apply when you use the ACEkanner Android app ("ACEkanner", "the app"). By
@@ -28,8 +28,11 @@ or see <https://playboydata1994-hue.github.io/acekanner/delete-account/>).
 ## 4. Free plan
 
 - Each account gets **100 free scans in total** (not per month).
-- A scan is counted only when a student's result is saved. Blurry, rejected or repeated
-  scans of the same paper are not counted.
+- A scan is counted when a student's result is saved, or when a paper is checked with
+  Scan on the Home screen (quick check). Each student's paper is counted once per
+  examination: scanning, checking or saving it again is not counted. Blurry or rejected
+  scans are not counted. A quick check of a paper whose student is not identified is
+  counted each time.
 - Free scans are used on one phone at a time.
 - Deleting and re-creating an account does not give new free scans.
 

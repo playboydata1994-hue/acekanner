@@ -132,16 +132,35 @@ class LicenseRepository implements ScanCharger {
     final key = studentId != null
         ? GradingRepository.submissionKey(examId, studentId)
         : ScanLedgerStore.unidentifiedKey(examId, sheetId);
-    if (await _ledger.isCharged(key)) return;
+    await _chargeKey(key, answerSheetId: sheetId);
+  }
+
+  /// Counts a quick check (Home › Scan) like a saved paper: once per student
+  /// per examination, so a later save of that student's paper is free, and
+  /// so is checking it again. A paper whose student is not identified is
+  /// counted each time it is checked. Returns the plan tier charged
+  /// ('free' or 'premium'), or null when the student's paper was already
+  /// counted. Throws [ScanLimitException] when the plan does not allow it.
+  Future<String?> chargeQuickCheck({required String examId, required String? studentId}) => _db.transaction(
+        () => _chargeKey(
+          studentId != null
+              ? GradingRepository.submissionKey(examId, studentId)
+              : ScanLedgerStore.quickCheckKey(examId, newId()),
+        ),
+      );
+
+  Future<String?> _chargeKey(String key, {String? answerSheetId}) async {
+    if (await _ledger.isCharged(key)) return null;
     final s = await status();
     final tier = s.chargeTier;
     if (tier == null) throw ScanLimitException(s.block!);
     await _ledger.append(
       submissionKey: key,
       tier: tier,
-      answerSheetId: sheetId,
+      answerSheetId: answerSheetId,
       accountId: s.entitlement?.accountId,
       tokenId: s.entitlement?.tokenId,
     );
+    return tier;
   }
 }

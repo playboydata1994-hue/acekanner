@@ -199,7 +199,8 @@ Future<void> _openProfile(BuildContext context) async {
 }
 
 /// Round brand-blue "Scan" button with the ACEkanner mark: opens the
-/// scanner for any ACEkanner answer sheet (quick check, nothing saved).
+/// scanner for any ACEkanner answer sheet (quick check: nothing saved, each
+/// check counted as a scan).
 class _QuickCheckButton extends ConsumerWidget {
   const _QuickCheckButton();
 

@@ -5,6 +5,26 @@ and the next step.
 
 ---
 
+## 2026-11-18 · Revision: quick checks use scans (0.7.3)
+
+Owner's choices: count each quick check; once per student per examination; when the free
+scans are used up, stop and show Premium.
+
+- **Counting**: a quick check (Home › Scan) is charged when its result is ready, with the same
+  key as a saved paper (`submissionKey(exam, student)`): checking the same student again, or
+  saving that student's paper later in the examination, is free. A paper whose student is not
+  identified is counted each time (`ScanLedgerStore.quickCheckKey`, one per check). Premium
+  checks are recorded as premium. Ledger hash chain unchanged.
+- **Used up**: Home › Scan already stops at the plan dialog; if the allowance runs out while
+  scanning, the dialog shows instead of the result and the scanner waits until the dialog (and
+  the plan screen, if opened) is closed.
+- **Card**: "Counted as 1 free scan." when the check used a free scan.
+- **Texts**: onboarding, Plan screen, Terms of Use §4 (effective 18 November 2026) and the
+  store listing now say quick checks are counted.
+- Verification: charging tests (once per student, shared with saves; unidentified each time;
+  refused when used up except an already counted student; premium tier); card note;
+  Flutter 273/273, analyzer clean.
+
 ## 2026-11-18 · Revision: X corrections on the answer sheet (0.7.2)
 
 Owner's choices: the app takes the uncrossed circle; the same rule for every examination;

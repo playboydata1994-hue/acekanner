@@ -35,6 +35,11 @@ class ScanLedgerStore {
   static String unidentifiedKey(String examId, String sheetId) =>
       sha256.convert(utf8.encode('acekanner-submission|v1|$examId|sheet:$sheetId')).toString();
 
+  /// Submission key for one quick check of a paper whose student is not
+  /// known (each such check is counted).
+  static String quickCheckKey(String examId, String checkId) =>
+      sha256.convert(utf8.encode('acekanner-submission|v1|$examId|quick:$checkId')).toString();
+
   Future<List<int>> _key() async {
     if (_macKey != null) return _macKey!;
     final stored = await _secrets.read(macKeyName);

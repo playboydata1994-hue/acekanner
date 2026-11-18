@@ -16,7 +16,8 @@ import '../results/result_widgets.dart';
 
 /// Quick check result over the camera: which examination the sheet belongs
 /// to, the student, the score with that examination's answer key and the
-/// answers. Nothing is saved and no scan is counted.
+/// answers. Nothing is saved; the check was counted as a scan before this
+/// card is shown (see `LicenseRepository.chargeQuickCheck`).
 class QuickCheckCard extends ConsumerStatefulWidget {
   const QuickCheckCard({
     super.key,
@@ -24,6 +25,7 @@ class QuickCheckCard extends ConsumerStatefulWidget {
     required this.reading,
     required this.onNext,
     this.onChangeExam,
+    this.freeScanUsed = false,
   });
 
   final ScanContext scanContext;
@@ -33,6 +35,10 @@ class QuickCheckCard extends ConsumerStatefulWidget {
   /// Set for a blank sheet (printed without an examination): checks the next
   /// sheets with another examination.
   final VoidCallback? onChangeExam;
+
+  /// This check used one of the free scans (not shown for Premium or when
+  /// the student's paper was already counted).
+  final bool freeScanUsed;
 
   @override
   ConsumerState<QuickCheckCard> createState() => _QuickCheckCardState();
@@ -199,6 +205,12 @@ class _QuickCheckCardState extends ConsumerState<QuickCheckCard> {
                     label: const Text('Next sheet'),
                   ),
                   const SizedBox(height: Space.xs),
+                  if (widget.freeScanUsed)
+                    Text(
+                      'Counted as 1 free scan.',
+                      style: theme.textTheme.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
                   Text(
                     'To save papers and results, open the examination and scan from there.',
                     style: theme.textTheme.bodySmall,

@@ -14,10 +14,12 @@ import '../../core/theme/spacing.dart';
 import '../../core/util/ids.dart';
 import '../../data/db/app_database.dart';
 import '../../data/repositories/scan_repository.dart';
+import '../../domain/licensing/license_status.dart';
 import '../../domain/omr_reading.dart';
 import '../../domain/sheet_layout.dart';
 import 'capture_guide.dart';
 import '../../domain/scan_problem.dart';
+import '../plan/plan_widgets.dart';
 import 'exam_picker.dart';
 import 'quick_check_card.dart';
 import 'scan_result_card.dart';
@@ -33,7 +35,8 @@ const String autoCaptureSetting = 'scanner.auto_capture';
 /// Without [examId] it is the **quick check** scanner (Home): any ACEkanner
 /// sheet, of any examination on this phone, is read, its examination found
 /// from the sheet's QR code and the paper checked with that examination's
-/// answer key. Nothing is saved and no scan is counted.
+/// answer key. Nothing is saved; each check is counted as a scan like a saved
+/// paper (once per student per examination).
 class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({super.key, required this.examId});
 
@@ -62,7 +65,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
   ({OmrSheetReading reading, File image})? _pending;
 
   /// Quick check result on screen (quick check mode only).
-  ({ScanContext ctx, OmrSheetReading reading, bool blank})? _quick;
+  ({ScanContext ctx, OmrSheetReading reading, bool blank, bool freeScanUsed})? _quick;
   int _checked = 0;
 
   /// Examination chosen for blank sheets (printed without an examination)
@@ -314,7 +317,21 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
       case OmrFailure():
         _report(ScanProblem.fromFailure(reading));
       case OmrSheetReading():
-        if (mounted) setState(() => _quick = (ctx: ctx, reading: reading, blank: blank));
+        // Counted like a saved paper: once per student per examination.
+        final match = await ref.read(scanRepositoryProvider).identify(ctx, reading);
+        final String? tier;
+        try {
+          tier = await ref
+              .read(licenseRepositoryProvider)
+              .chargeQuickCheck(examId: ctx.exam.id, studentId: match.student?.id);
+        } on ScanLimitException catch (e) {
+          // Not shown and not counted; scanning resumes after the dialog.
+          if (mounted) await showScanBlocked(context, e.block);
+          return;
+        }
+        if (mounted) {
+          setState(() => _quick = (ctx: ctx, reading: reading, blank: blank, freeScanUsed: tier == 'free'));
+        }
     }
   }
 
@@ -538,6 +555,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> with WidgetsBindingObse
                           reading: quick.reading,
                           onNext: _nextQuick,
                           onChangeExam: quick.blank ? _changeBlankExam : null,
+                          freeScanUsed: quick.freeScanUsed,
                         ),
                       ),
                     ),

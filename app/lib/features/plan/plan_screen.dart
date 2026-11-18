@@ -198,8 +198,10 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                         ],
                         const SizedBox(height: Space.s),
                         Text(
-                          'A scan is counted when a student’s paper is saved. Re-scanning a paper that '
-                          'was already saved is free.',
+                          'A scan is counted when a student’s paper is saved or checked with Scan on Home, '
+                          'once per student per examination: scanning or checking that student’s paper '
+                          'again is free. A quick check of a paper whose student is not identified is '
+                          'counted each time.',
                           style: theme.textTheme.bodySmall,
                         ),
                       ],

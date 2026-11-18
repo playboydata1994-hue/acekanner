@@ -52,8 +52,8 @@ const List<OnboardingPage> onboardingPages = [
   OnboardingPage(
     icon: Icons.workspace_premium_outlined,
     title: 'Free and Premium',
-    body: 'A scan is counted only when you save a student’s result. Blurry, '
-        'rejected or repeated scans of the same paper are not counted.',
+    body: 'A scan is counted when you save a student’s result or check a paper with Scan on Home: '
+        'once per student per examination. Blurry or rejected scans are not counted.',
     points: [
       'Free: ${AppConstants.freeScanLimit} lifetime scans, all features included.',
       'Premium: PHP ${AppConstants.premiumPricePhp} per year for unlimited scans.',

@@ -91,9 +91,10 @@ class PlanSummary extends StatelessWidget {
   }
 }
 
-/// Explains why scanning is blocked and offers the way forward.
-Future<void> showScanBlocked(BuildContext context, ScanBlock block) {
-  return showDialog<void>(
+/// Explains why scanning is blocked and offers the way forward. Completes
+/// when the dialog, and the plan screen if it was opened, are closed.
+Future<void> showScanBlocked(BuildContext context, ScanBlock block) async {
+  final openPlan = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
       title: Text(switch (block) {
@@ -104,15 +105,13 @@ Future<void> showScanBlocked(BuildContext context, ScanBlock block) {
       }),
       content: Text(scanBlockMessage(block)),
       actions: [
-        TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Not now')),
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Not now')),
         FilledButton(
-          onPressed: () {
-            Navigator.of(dialogContext).pop();
-            context.push(Routes.plan);
-          },
+          onPressed: () => Navigator.of(dialogContext).pop(true),
           child: Text(block == ScanBlock.freeUsedUp ? 'See Premium' : 'Plan and account'),
         ),
       ],
     ),
   );
+  if (openPlan == true && context.mounted) await context.push(Routes.plan);
 }
