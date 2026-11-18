@@ -79,6 +79,9 @@ Owner's answers (2026-11-18):
 
 ### Phase A: set up and upload to Internal testing
 
+0. ✅ **Developer website** (2026-11-18): `https://playboydata1994-hue.github.io/acekanner/` is verified
+   in Google Search Console with the HTML-file method. **Keep `docs/google19503deee5362079.html`**;
+   deleting it removes the verification.
 1. **Payments profile:** Play Console → **Settings → Payments profile** → create it: legal name,
    address, and later the bank account that receives subscription income. Paid products cannot be
    created without it.
