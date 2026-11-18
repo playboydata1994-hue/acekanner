@@ -116,3 +116,58 @@ Send any time after people join; it also works after they install.
 > on the app's Play Store page.
 >
 > Thank you!
+
+## 6. Message 3 in Taglish
+
+> **ACEkor Grading Sheet: gabay para sa testers**
+>
+> Salamat sa pagtulong i-test ang ACEkor! Grading sheet ito sa phone n'yo: i-search ang student,
+> i-type ang score, i-save. Gumagana kahit walang internet, at libre lahat para sa testers hanggang
+> January 31, 2027.
+>
+> **Pag-install** (kapag na-send ko na ang Play Store link)
+> 1. Buksan ang link gamit ang Gmail account na gamit n'yo sa Play Store, tapos i-tap ang
+>    **Become a tester**.
+> 2. I-install ang **ACEkor Grading Sheet** mula sa Google Play.
+> 3. Buksan ito, i-tap ang **Start free trial**, at mag-sign in sa Google, isang beses lang. Para
+>    lang ito ma-check ang libreng access n'yo. Ang mga pangalan at scores ng students n'yo ay
+>    hindi lumalabas sa phone n'yo.
+>
+> **Subukan in 5 minutes**
+> 1. I-tap ang **Try with a sample class**.
+> 2. Sa search box, i-type ang **JUAN**, tapos i-tap si **Juan Dela Cruz**.
+> 3. I-type ang **42**. Makikita n'yo ang **42/50** at **84%**.
+> 4. I-tap ang green na **✓** para i-save. Lalabas agad ang susunod na student. Nagkamali?
+>    I-tap ang **UNDO**.
+>
+> **I-set up ang totoong class n'yo**
+> 1. **Menu → Students → Import class list** para gamitin ang Excel/CSV list n'yo (i-tap ang
+>    **Get an empty template** para makita ang format), o **Add student** isa-isa.
+> 2. **Menu → Subjects → New subject**, tapos **Add students** (buong section, sabay-sabay).
+> 3. Pagbalik sa calculator, piliin ang class n'yo sa itaas. I-tap ang activity line (hal.
+>    **QUIZ 1**) para gumawa ng **New quiz** o **New recitation** na may sarili n'yong total points.
+> 4. Pareho lang ang pag-enter ng scores: search, type, ✓.
+>
+> **Subukan din**
+> - **Grading** (nasa subject n'yo): i-set ang weights, hal. Quiz 30%, Recitation 20%, Midterm
+>   20%, Final 20%, Practical 10%. 1.00–5.00 ang grading scale.
+> - **Examinations:** prelim, midterm, final, practical, at sarili n'yong klase ng exam.
+> - **Menu → Records:** grades, class averages, at bawat pagbabago sa score.
+> - **Menu → Reports:** PDF class records at Excel workbooks na pwedeng i-print o i-share.
+> - **Menu → Calculator:** ordinaryong calculator (+ − × ÷ %).
+> - **Settings:** pangalan at school n'yo para sa reports, **Text size**, **App lock** (PIN o
+>   fingerprint), at **Backup and restore**.
+>
+> **Importante**
+> - Pakiusap, **huwag i-uninstall ang app at manatili sa test nang 14 days**, at buksan ito kada
+>   ilang araw. Binibilang ito ng Google bago ma-publish ang app.
+> - Sa phone n'yo lang naka-save ang records. Mag-backup paminsan-minsan (**Settings → Backup and
+>   restore → Create backup**). Kapag na-uninstall ang app, mabubura ang records na hindi
+>   naka-backup.
+>
+> **Sabihin n'yo lang sa akin**
+> Kung may nakakalito, maling numero, putol na text, biglang nagsasara ang app, o feature na gusto
+> n'yong idagdag. Malaking tulong ang screenshot at model ng phone n'yo. I-message n'yo lang ako, o
+> gamitin ang **Send feedback** sa Play Store page ng app.
+>
+> Maraming salamat!
