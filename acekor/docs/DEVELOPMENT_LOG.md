@@ -32,6 +32,8 @@ Owner's answers:
   - SQL suites on PostgreSQL 16: ACEkanner 34, ACEkor 21, tester trial 8 checks pass.
   - Live: the migration is recorded, the floor row is present, and `authenticated` has no access
     to the table or the helper.
+  - On the owner's phone (build 5): **Plan → Check plan now** changed the trial from November 25,
+    2026 to **January 31, 2027 (75 days left)**.
   - Flutter: analyzer clean, 61/61 tests pass.
 
 ---
