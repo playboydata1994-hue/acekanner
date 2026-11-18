@@ -33,6 +33,8 @@ Owner's answers:
     401 `not_signed_in` without a session, so the key parsed; ACEkanner's `license` also answers.
   - Whether Google accepts the key is checked by the first test purchase, after the Play Console
     invitation.
+- **Owner checks:** the phone test of build 5 and the store page review (text, screenshots, icon,
+  banner) are done, with no problems reported.
 - **App (next build):** the trial reminder says "Your free trial ends tomorrow" instead of "Your
   7-day free trial…", so testers are not told "7-day".
 - **Verification:**
