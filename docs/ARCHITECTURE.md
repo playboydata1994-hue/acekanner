@@ -309,6 +309,17 @@ Scores are normalized per sheet: 0 is this sheet's empty level, 1 its filled lev
 - Anything ambiguous (light, partial, check mark, strong second mark):
   **uncertain**. The instructor must decide on the review screen before the paper
   can be saved. The engine's suggestion is shown but never applied silently.
+- **X corrections** (engine 3.1.0): the sheet tells students "To change: big X across the
+  old, shade the new." When a group reads as two or more filled, each filled circle is
+  checked for an X: dark strokes running out past the circle along at least three of the
+  four diagonals (1.2–1.6 radii, compared with the group's other circles), with little ink
+  straight above, below or beside it (thin ring at 1.15–1.25 radii), so sloppy overfilled
+  shading is not taken for an X. One uncrossed circle left: **answered** with that letter
+  (confidence 0.6; the crossed circle is reported in `crossed`). None left: **uncertain**.
+  Two or more left: still **multiple**. An X that stays inside the circle cannot be told
+  from shading, so the question stays "more than one answer" (wrong unless changed in
+  Review). Review and the quick-check answers say e.g. "Read as C (B crossed out with an X)".
+  Same rule for every examination; double-shaded questions do not block Confirm.
 
 ### 5.3a Scanner flow (0.6.9)
 

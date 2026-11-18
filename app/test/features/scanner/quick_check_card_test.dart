@@ -63,6 +63,7 @@ void main() {
     final r = reading(
       masks: [for (var q = 1; q <= 50; q++) q <= 45 ? keyMask(q) : (keyMask(q) << 1) % 31],
       uncertain: {3},
+      crossed: {2: 1},
     );
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.6;
@@ -102,6 +103,7 @@ void main() {
     await tester.tap(find.text('Show answers'));
     await tester.pumpAndSettle();
     expect(find.bySemanticsLabel('Question 1: read A, key A'), findsOneWidget);
+    expect(find.bySemanticsLabel('Question 2: read B (A crossed out), key B'), findsOneWidget);
     expect(find.bySemanticsLabel('Question 3: read ?, key C'), findsOneWidget);
     expect(find.bySemanticsLabel('Question 46: read B, key A'), findsOneWidget);
 

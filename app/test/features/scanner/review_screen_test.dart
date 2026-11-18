@@ -62,6 +62,7 @@ void main() {
     required Set<int> uncertain,
     Set<int> multiple = const {},
     String number = '202100123',
+    Map<int, int> crossed = const {},
   }) async {
     final ctx = (await tester.runAsync(() => scans.context(examId)))!;
     final image = File('${tmp.path}/rect.png')..writeAsBytesSync(_png);
@@ -70,6 +71,7 @@ void main() {
       uncertain: uncertain,
       multiple: multiple,
       studentNumber: number,
+      crossed: crossed,
     );
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.6;
@@ -221,6 +223,15 @@ void main() {
     // Opening it again starts from no letters, not from the "wrong" value.
     await tapLabel(tester, 'Question 4: marked wrong');
     expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Use this answer')).onPressed, isNull);
+    semantics.dispose();
+  });
+
+  testWidgets('an answer changed with an X says which circle was crossed out', (tester) async {
+    final semantics = tester.ensureSemantics();
+    // Question 3 reads C; B was shaded first and crossed out.
+    await pumpReview(tester, uncertain: {}, crossed: {3: 2});
+    await tapLabel(tester, 'Question 3: C');
+    expect(find.text('Read as C (B crossed out with an X)'), findsOneWidget);
     semantics.dispose();
   });
 

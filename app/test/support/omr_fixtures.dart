@@ -13,13 +13,15 @@ String engineJson({
   bool clear = true,
   int? setMask,
   String? qr,
+  Map<int, int> crossed = const {},
 }) {
-  Map<String, Object?> group(int mask, String state) => {
+  Map<String, Object?> group(int mask, String state, [int crossedMask = 0]) => {
         'state': state,
         'mask': mask,
         'scores': [for (var i = 0; i < 5; i++) (mask >> i) & 1 == 1 ? 0.95 : 0.01],
         'confidence': state == 'uncertain' ? 0.2 : 0.97,
         'erasure': false,
+        'crossed': crossedMask,
       };
   return jsonEncode({
     'ok': true,
@@ -32,6 +34,7 @@ String engineJson({
           uncertain.contains(i + 1)
               ? 'uncertain'
               : (blank.contains(i + 1) ? 'blank' : (multiple.contains(i + 1) ? 'multiple' : 'answered')),
+          crossed[i + 1] ?? 0,
         ),
     ],
     'idColumns': const [],
@@ -55,6 +58,7 @@ OmrSheetReading reading({
   bool clear = true,
   int? setMask,
   String? qr,
+  Map<int, int> crossed = const {},
 }) =>
     OmrReading.parse(engineJson(
       masks: masks,
@@ -65,4 +69,5 @@ OmrSheetReading reading({
       clear: clear,
       setMask: setMask,
       qr: qr,
+      crossed: crossed,
     )) as OmrSheetReading;

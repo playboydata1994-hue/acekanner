@@ -5,6 +5,28 @@ and the next step.
 
 ---
 
+## 2026-11-18 · Revision: X corrections on the answer sheet (0.7.2)
+
+Owner's choices: the app takes the uncrossed circle; the same rule for every examination;
+the sheet says how to correct; double-shaded questions still allow Confirm.
+
+- **Engine 3.1.0**: a question with two or more shaded circles is checked for a big X over
+  one of them (strokes reaching past the circle on at least three diagonals, little ink
+  straight out from it). One uncrossed circle left → read as that answer; the crossed-out
+  circle is reported (`crossed` in the result). All crossed → unclear (instructor decides).
+  An X drawn inside the circle only cannot be seen; the question stays "more than one
+  answer".
+- **Sheet text**: "Erase changes cleanly. Do not use check marks." became "To change: big X
+  across the old, shade the new."; the WRONG example "cross" is now "X only". Layouts and the
+  QR format are unchanged (design-3 fingerprints still match), so sheets printed before keep
+  scanning.
+- **App**: Review's answer picker says "Read as C (B crossed out with an X)"; quick-check
+  answers say "Read C (B crossed out)".
+- Verification: synthetic sheets with 15 % X-corrected answers: 899 of 900 read as the new
+  answer, 1 left as "more than one answer", 0 wrong readings; sloppy overfilled pairs are
+  never taken for an X; all engine suites pass; Flutter 269/269, analyzer clean.
+- Open: check on real paper with a phone (pencil and ballpen X, small and large).
+
 ## 2026-11-17 · Revision: blank answer sheets for pre-exams and mock exams (0.7.1)
 
 Owner's choices: check later with any examination; choose questions, sets, title line,

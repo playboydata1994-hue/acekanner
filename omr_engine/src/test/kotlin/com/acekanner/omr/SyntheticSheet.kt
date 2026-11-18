@@ -47,6 +47,9 @@ enum class MarkStyle {
 
     /** Shaded well beyond the circle. */
     OVERFILL,
+
+    /** Shaded, then crossed out with a big X whose arms reach outside the circle. */
+    CROSSED,
 }
 
 data class BubbleMark(val question: Int, val choice: Int, val style: MarkStyle)
@@ -170,6 +173,7 @@ class SheetRenderer(private val pxPerMm: Double = 12.0, private val marginMm: Do
             MarkStyle.ERASED -> 212.0 to 10.0
             MarkStyle.CHECK -> 60.0 to 10.0
             MarkStyle.OVERFILL -> 80.0 to 20.0
+            MarkStyle.CROSSED -> 70.0 to 20.0
         }
         when (style) {
             MarkStyle.PARTIAL -> {
@@ -184,6 +188,18 @@ class SheetRenderer(private val pxPerMm: Double = 12.0, private val marginMm: Do
             }
             MarkStyle.OVERFILL -> Imgproc.ellipse(layer, center, Size(rx * 1.25, ry * 1.45), 0.0, 0.0, 360.0, Scalar(255.0), -1, Imgproc.LINE_AA)
             MarkStyle.ERASED -> Imgproc.ellipse(layer, center, oval(rnd.nextDouble(0.8, 1.05)), 0.0, 0.0, 360.0, Scalar(255.0), -1, Imgproc.LINE_AA)
+            MarkStyle.CROSSED -> {
+                Imgproc.ellipse(layer, center, oval(rnd.nextDouble(0.85, 1.02)), 0.0, 0.0, 360.0, Scalar(255.0), -1, Imgproc.LINE_AA)
+                // Two hand-drawn strokes, roughly diagonal, reaching 1.7-2.1 radii out.
+                val stroke = max(2, (0.4 * pxPerMm).roundToInt())
+                for (base in listOf(45.0, 135.0)) {
+                    val a = Math.toRadians(base + rnd.nextDouble(-8.0, 8.0))
+                    val reach = rnd.nextDouble(1.7, 2.1)
+                    val dx = kotlin.math.cos(a) * rx * reach
+                    val dy = kotlin.math.sin(a) * ry * reach
+                    Imgproc.line(layer, Point(center.x - dx, center.y - dy), Point(center.x + dx, center.y + dy), Scalar(255.0), stroke, Imgproc.LINE_AA)
+                }
+            }
             else -> Imgproc.ellipse(layer, center, oval(rnd.nextDouble(0.85, 1.02)), 0.0, 0.0, 360.0, Scalar(255.0), -1, Imgproc.LINE_AA)
         }
         // Ink with texture, only darkening the page where the mask is set.

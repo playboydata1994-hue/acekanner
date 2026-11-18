@@ -20,6 +20,7 @@ class GroupReading {
     required this.scores,
     required this.confidence,
     this.erasure = false,
+    this.crossed = 0,
   });
 
   factory GroupReading.fromJson(Map<String, dynamic> j) => GroupReading(
@@ -28,6 +29,7 @@ class GroupReading {
         scores: [for (final s in j['scores'] as List) (s as num).toDouble()],
         confidence: (j['confidence'] as num).toDouble(),
         erasure: j['erasure'] as bool? ?? false,
+        crossed: j['crossed'] as int? ?? 0,
       );
 
   final MarkState state;
@@ -39,6 +41,9 @@ class GroupReading {
 
   /// A clear answer accepted despite a fainter, probably erased, mark.
   final bool erasure;
+
+  /// Bit i = choice i was shaded, then crossed out with a big X (not counted).
+  final int crossed;
 }
 
 class OmrQualityInfo {

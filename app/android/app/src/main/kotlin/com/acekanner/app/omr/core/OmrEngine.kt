@@ -51,10 +51,13 @@ class DetectedMarker(val id: Int, val corners: Array<Point>) {
  */
 class OmrEngine(private val thresholds: OmrThresholds = OmrThresholds.STANDARD) {
     companion object {
-        const val VERSION = "3.0.0"
+        const val VERSION = "3.1.0"
 
         /** Marker detection runs on images no larger than this (long side, px). */
         private const val DETECT_MAX_SIDE = 2000.0
+
+        /** How much darker than the same spot around the group's other circles an X arm must be. */
+        internal const val CROSS_STROKE = 0.30
 
         /**
          * When markers are missing: denoised Laplacian variance below which a
@@ -261,7 +264,15 @@ class OmrEngine(private val thresholds: OmrThresholds = OmrThresholds.STANDARD) 
                 val span = filledLevel - emptyLevel
                 fun norm(d: Double, e: Double) = (d - e) / span
 
-                val questions = raw.map { d -> classify(DoubleArray(d.size) { norm(d[it], emptyLevel) }) }
+                val questions = raw.mapIndexed { qi, d ->
+                    val (dx, dy) = alignment.questionOffset(qi)
+                    resolveCrossOuts(
+                        classify(DoubleArray(d.size) { norm(d[it], emptyLevel) }),
+                        sampler,
+                        layout.questions[qi].map { PointMm(it.x + dx, it.y + dy) },
+                        rx,
+                    )
+                }
 
                 val (idDx, idDy) = alignment.headerOffset
                 val idRaw = layout.idColumns.map { c ->
@@ -270,7 +281,14 @@ class OmrEngine(private val thresholds: OmrThresholds = OmrThresholds.STANDARD) 
                     }
                 }
                 val idEmpty = percentile(idRaw.flatMap { it.asList() }.sorted(), 0.40)
-                val idColumns = idRaw.map { d -> classify(DoubleArray(10) { norm(d[it], idEmpty) }) }
+                val idColumns = idRaw.mapIndexed { ci, d ->
+                    resolveCrossOuts(
+                        classify(DoubleArray(10) { norm(d[it], idEmpty) }),
+                        sampler,
+                        layout.idColumns[ci].map { PointMm(it.x + idDx, it.y + idDy) },
+                        layout.idBubbleRxMm,
+                    )
+                }
                 val (number, clear) = studentNumber(idColumns)
 
                 val set = if (layout.setBubbles.isEmpty()) {
@@ -279,7 +297,12 @@ class OmrEngine(private val thresholds: OmrThresholds = OmrThresholds.STANDARD) 
                     val d = DoubleArray(layout.setBubbles.size) {
                         sampler.darkness(PointMm(layout.setBubbles[it].x + idDx, layout.setBubbles[it].y + idDy), rx, ry)
                     }
-                    classify(DoubleArray(d.size) { norm(d[it], emptyLevel) })
+                    resolveCrossOuts(
+                        classify(DoubleArray(d.size) { norm(d[it], emptyLevel) }),
+                        sampler,
+                        layout.setBubbles.map { PointMm(it.x + idDx, it.y + idDy) },
+                        rx,
+                    )
                 }
 
                 // ---- 8. QR code ----------------------------------------------
@@ -339,6 +362,65 @@ class OmrEngine(private val thresholds: OmrThresholds = OmrThresholds.STANDARD) 
             filled.isNotEmpty() -> GroupReading(MarkState.UNCERTAIN, maskOf(filled), s, 0.25)
             else -> GroupReading(MarkState.UNCERTAIN, if (ambiguous.size == 1) maskOf(ambiguous) else 0, s, 0.2)
         }
+    }
+
+    /**
+     * A student who changes an answer draws a big X across the old, shaded
+     * circle and shades the new one. When two or more circles of a group are
+     * filled, a filled circle whose X arms show outside it is not counted:
+     * one circle left = that answer; none left = flagged; two or more left =
+     * still multiple. An X that cannot be seen leaves the group as it was.
+     */
+    internal fun resolveCrossOuts(reading: GroupReading, sampler: Sampler, centers: List<PointMm>, rMm: Double): GroupReading {
+        if (reading.state != MarkState.MULTIPLE) return reading
+        val crossed = crossedOut(sampler, centers, rMm)
+        val filled = centers.indices.filter { reading.mask and (1 shl it) != 0 }
+        val struck = filled.filter { crossed[it] }
+        if (struck.isEmpty()) return reading
+        val left = filled - struck.toSet()
+        fun maskOf(ix: List<Int>) = ix.fold(0) { m, i -> m or (1 shl i) }
+        return when (left.size) {
+            1 -> GroupReading(MarkState.ANSWERED, maskOf(left), reading.scores, 0.6, crossed = maskOf(struck))
+            0 -> GroupReading(MarkState.UNCERTAIN, 0, reading.scores, 0.3, crossed = maskOf(struck))
+            else -> GroupReading(MarkState.MULTIPLE, maskOf(left), reading.scores, reading.confidence, crossed = maskOf(struck))
+        }
+    }
+
+    /**
+     * Which circles of a group carry a big X: dark strokes 1.2–1.6 radii out
+     * on at least three of the four diagonals (compared with the same spots
+     * around the group's other circles, so printed lines and numbers do not
+     * count), while the circle's own sides, just outside it (1.15–1.25 radii,
+     * closer than any neighbour's ink reaches), stay clean on at least three
+     * sides. Shading that spills over the circle darkens the sides too and is
+     * never taken for an X.
+     */
+    internal fun crossedOut(sampler: Sampler, centers: List<PointMm>, rMm: Double): BooleanArray {
+        val diagonals = centers.map { c -> DoubleArray(4) { d -> sectorDarkness(sampler, c, rMm, 45 + 90 * d, 15, 1.2, 1.6) } }
+        val sides = centers.map { c -> DoubleArray(4) { d -> sectorDarkness(sampler, c, rMm, 90 * d, 10, 1.15, 1.25) } }
+        val median = DoubleArray(4) { d -> diagonals.map { it[d] }.sorted().let { it[it.size / 2] } }
+        return BooleanArray(centers.size) { i ->
+            val arms = (0 until 4).count { diagonals[i][it] - median[it] >= CROSS_STROKE }
+            val spill = (0 until 4).count { sides[i][it] >= CROSS_STROKE }
+            arms >= 3 && spill <= 1
+        }
+    }
+
+    /** Second-darkest small spot in the sector [deg] ± [spread]°, [from]–[to] radii out (the darkest alone may be noise). */
+    private fun sectorDarkness(sampler: Sampler, c: PointMm, rMm: Double, deg: Int, spread: Int, from: Double, to: Double): Double {
+        val spots = ArrayList<Double>()
+        val spotMm = 0.2 / Sampler.INNER_FRACTION
+        for (a in (deg - spread)..(deg + spread) step 5) {
+            val rad = Math.toRadians(a.toDouble())
+            var r = from
+            while (r <= to + 1e-9) {
+                val d = rMm * r
+                spots += sampler.darkness(PointMm(c.x + d * kotlin.math.cos(rad), c.y + d * kotlin.math.sin(rad)), spotMm, spotMm)
+                r += 0.05
+            }
+        }
+        spots.sortDescending()
+        return spots[1]
     }
 
     // ------------------------------------------------------------------ helpers

@@ -232,7 +232,8 @@ class _Answers extends StatelessWidget {
             final q = i + 1;
             final r = reading.questions[i];
             final g = graded[q];
-            final read = r.state == MarkState.uncertain ? '?' : AnswerMask.describe(r.mask);
+            final read = (r.state == MarkState.uncertain ? '?' : AnswerMask.describe(r.mask)) +
+                (r.crossed == 0 ? '' : ' (${AnswerMask.format(r.crossed)} crossed out)');
             final (icon, color) = switch (g?.outcome) {
               ItemOutcome.correct || ItemOutcome.bonus => (Icons.check, colors.correct),
               ItemOutcome.incorrect || ItemOutcome.multiple => (Icons.close, colors.incorrect),

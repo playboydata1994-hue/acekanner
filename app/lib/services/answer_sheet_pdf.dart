@@ -322,7 +322,7 @@ abstract final class AnswerSheetPdf {
                 'HOW TO MARK',
                 'Use a dark No. 2 pencil or a black pen.',
                 'Shade ONE circle completely for each item.',
-                'Erase changes cleanly. Do not use check marks.',
+                'To change: big X across the old, shade the new.',
                 if (student == null)
                   'Shade your student number, starting at the left.'
                 else
@@ -380,7 +380,7 @@ abstract final class AnswerSheetPdf {
                 ..drawEllipse(x(wx[3]), y(wy), 0.6 * mm, 0.6 * mm) // dot
                 ..fillPath();
               text('check', wx[0], wy + 4, 4.5, regular, _muted, center: true);
-              text('cross', wx[1], wy + 4, 4.5, regular, _muted, center: true);
+              text('X only', wx[1], wy + 4, 4.5, regular, _muted, center: true);
               text('half', wx[2], wy + 4, 4.5, regular, _muted, center: true);
               text('dot', wx[3], wy + 4, 4.5, regular, _muted, center: true);
               final footer = [

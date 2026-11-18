@@ -27,6 +27,8 @@ class GroupReading(
     val confidence: Double,
     /** A filled answer was accepted despite a fainter (erased) second mark. */
     val erasure: Boolean = false,
+    /** Bit i set = bubble i was shaded and then crossed out with a big X (not counted). */
+    val crossed: Int = 0,
 ) {
     fun toJson(): JSONObject = JSONObject()
         .put("state", state.code)
@@ -34,6 +36,7 @@ class GroupReading(
         .put("scores", JSONArray(scores.map { round3(it) }))
         .put("confidence", round3(confidence))
         .put("erasure", erasure)
+        .put("crossed", crossed)
 }
 
 enum class OmrError(val code: String, val message: String) {

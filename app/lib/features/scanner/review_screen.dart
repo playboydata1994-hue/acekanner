@@ -546,12 +546,14 @@ class _AnswerPickerState extends State<_AnswerPicker> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final r = widget.reading;
+    final crossedOut = r.crossed == 0 ? '' : ' (${AnswerMask.format(r.crossed)} crossed out with an X)';
     final read = switch (r.state) {
-      MarkState.answered => 'Read as ${AnswerMask.format(r.mask)}${r.erasure ? ' (a lighter mark was ignored)' : ''}',
+      MarkState.answered =>
+        'Read as ${AnswerMask.format(r.mask)}${r.erasure ? ' (a lighter mark was ignored)' : ''}$crossedOut',
       MarkState.blank => 'Read as no answer',
-      MarkState.multiple => 'Read as more than one answer (${AnswerMask.format(r.mask)})',
+      MarkState.multiple => 'Read as more than one answer (${AnswerMask.format(r.mask)})$crossedOut',
       MarkState.uncertain => r.mask == 0
-          ? 'Unclear marks: look at the paper and decide'
+          ? 'Unclear marks: look at the paper and decide$crossedOut'
           : 'Unclear: ${AnswerMask.format(r.mask)} looks most likely. Check the paper.',
     };
     return SafeArea(

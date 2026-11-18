@@ -19,6 +19,10 @@ private sealed class Truth {
 
     /** Light/partial/check marks: either read as [choice] or flagged; never anything else. */
     data class OneOrFlag(val choice: Int) : Truth()
+
+    /** [crossedOut] shaded then crossed out with a big X, [choice] shaded: read as [choice]; if the X
+     * is not seen, two shaded answers (never a wrong single answer). */
+    data class Crossed(val choice: Int, val crossedOut: Int) : Truth()
 }
 
 /** Tally of outcomes over many questions. */
@@ -27,15 +31,18 @@ private class Tally {
     var correct = 0
     var flagged = 0
     var silentErrors = 0
+
+    /** Crossed-out answers whose X was not seen: read as two shaded answers (safe, counted wrong). */
+    var crossMissed = 0
     val errors = mutableListOf<String>()
 
     fun add(other: Tally) {
         questions += other.questions; correct += other.correct; flagged += other.flagged
-        silentErrors += other.silentErrors; errors += other.errors
+        silentErrors += other.silentErrors; errors += other.errors; crossMissed += other.crossMissed
     }
 
     override fun toString() =
-        "questions=$questions correct=$correct flagged=$flagged (${"%.2f".format(100.0 * flagged / questions.coerceAtLeast(1))}%) silentErrors=$silentErrors"
+        "questions=$questions correct=$correct flagged=$flagged (${"%.2f".format(100.0 * flagged / questions.coerceAtLeast(1))}%) silentErrors=$silentErrors crossMissed=$crossMissed"
 }
 
 class EngineAccuracyTest {
@@ -68,6 +75,12 @@ class EngineAccuracyTest {
                     marks += BubbleMark(q, other, MarkStyle.ERASED)
                     marks += BubbleMark(q, choice, MarkStyle.PENCIL)
                     truth += Truth.OneOrFlag(choice)
+                }
+                special == MarkStyle.CROSSED -> {
+                    val other = (choice + 1 + rnd.nextInt(4)) % 5
+                    marks += BubbleMark(q, other, MarkStyle.CROSSED)
+                    marks += BubbleMark(q, choice, MarkStyle.PENCIL)
+                    truth += Truth.Crossed(choice, other)
                 }
                 special == MarkStyle.PEN -> {
                     // Two clear answers.
@@ -103,6 +116,14 @@ class EngineAccuracyTest {
                 Truth.Blank -> r.state == MarkState.BLANK
                 is Truth.Multiple -> r.state == MarkState.MULTIPLE && r.mask == expected.mask
                 is Truth.OneOrFlag -> r.state == MarkState.ANSWERED && r.mask == 1 shl expected.choice
+                is Truth.Crossed -> r.state == MarkState.ANSWERED && r.mask == 1 shl expected.choice &&
+                    r.crossed == 1 shl expected.crossedOut
+            }
+            if (!ok && expected is Truth.Crossed && r.state == MarkState.MULTIPLE &&
+                r.mask == (1 shl expected.choice) or (1 shl expected.crossedOut)
+            ) {
+                t.crossMissed++
+                continue
             }
             when {
                 ok -> t.correct++
@@ -247,6 +268,48 @@ class EngineAccuracyTest {
         })
         assertEquals(0, t.silentErrors, t.errors.joinToString("\n"))
     }
+
+    @Test
+    fun `answers changed with a big X are read as the new answer`() {
+        val t = runScenario("crossed", sheets = 12, seed = 11, specials = mapOf(MarkStyle.CROSSED to 0.15, MarkStyle.PEN to 0.05), photo = { r ->
+            PhotoParams(
+                rotationDeg = r.nextDouble(-8.0, 8.0),
+                tilt = r.nextDouble(0.0, 0.03),
+                blurSigma = r.nextDouble(0.5, 1.2),
+                noiseSigma = 3.0,
+                lightLow = r.nextDouble(0.7, 1.0),
+            )
+        })
+        assertEquals(0, t.silentErrors, t.errors.joinToString("\n"))
+        val crossed = t.correct + t.crossMissed
+        assert(t.crossMissed * 10 <= crossed) { "too many X corrections missed: $t" }
+    }
+
+
+    @Test
+    fun `two sloppy overfilled answers are never taken for an X correction`() {
+        val engine = OmrEngine()
+        val layout = loadLayout("ack3-50-d10-s1")
+        repeat(3) { n ->
+            val rnd = Random(500 + n)
+            val marks = (0 until 50).flatMap { q ->
+                val a = rnd.nextInt(5)
+                val b = (a + 1 + rnd.nextInt(4)) % 5
+                listOf(BubbleMark(q, a, MarkStyle.OVERFILL), BubbleMark(q, b, MarkStyle.OVERFILL))
+            }
+            val spec = SheetSpec(layout, marks, studentNumber = "2021000123", qrText = "ACK3|K7M2Q9XA|50|10|1|G")
+            val page = renderer.render(spec, rnd)
+            val photo = PhotoSimulator.photograph(page, PhotoParams(rotationDeg = rnd.nextDouble(-5.0, 5.0), blurSigma = 0.8, noiseSigma = 3.0), rnd)
+            val outcome = engine.analyze(photo, layout) as OmrOutcome.Success
+            page.release(); photo.release()
+            outcome.questions.forEachIndexed { q, r ->
+                assert(r.state == MarkState.MULTIPLE || r.state == MarkState.UNCERTAIN) {
+                    "sheet $n q${q + 1}: two overfilled answers read as ${r.state} mask=${r.mask} crossed=${r.crossed}"
+                }
+            }
+        }
+    }
+
 }
 
 fun loadOpenCv() {
