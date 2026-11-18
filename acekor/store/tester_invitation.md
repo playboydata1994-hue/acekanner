@@ -64,3 +64,55 @@ nobody's email has to be typed into Play Console.
   copied into message 2.
 - Day 1 is the day 12 testers have opted in. Keep a note of the date; day 15 is the earliest day
   to **Apply for production**.
+
+## 5. Message 3: tester guide (about the app and what to try)
+
+Send any time after people join; it also works after they install.
+
+> **ACEkor Grading Sheet: tester guide**
+>
+> Thank you for helping test ACEkor! It's a grading sheet on your phone: search a student, type
+> the score, save. It works offline, and everything is free for testers until January 31, 2027.
+>
+> **Installing** (when I send the Play Store link)
+> 1. Open the link with the Gmail account you use in the Play Store, and tap **Become a tester**.
+> 2. Install **ACEkor Grading Sheet** from Google Play.
+> 3. Open it, tap **Start free trial**, and sign in with Google once. This only checks your free
+>    access. Your students' names and scores never leave your phone.
+>
+> **Try it in 5 minutes**
+> 1. Tap **Try with a sample class**.
+> 2. In the search box, type **JUAN**, then tap **Juan Dela Cruz**.
+> 3. Type **42**. You'll see **42/50** and **84%**.
+> 4. Tap the green **✓** to save. The next student comes up by itself. Made a mistake? Tap **UNDO**.
+>
+> **Set up your real class**
+> 1. **Menu → Students → Import class list**, to use your Excel/CSV list (tap **Get an empty
+>    template** to see the format), or **Add student** one by one.
+> 2. **Menu → Subjects → New subject**, then **Add students** (a whole section at once).
+> 3. Back on the calculator, choose your class at the top. Tap the activity line (e.g. **QUIZ 1**)
+>    to make a **New quiz** or **New recitation** with your own total points.
+> 4. Enter scores the same way: search, type, ✓.
+>
+> **Also try**
+> - **Grading** (in your subject): set weights like Quiz 30%, Recitation 20%, Midterm 20%,
+>   Final 20%, Practical 10%. Grades use the 1.00–5.00 scale.
+> - **Examinations:** prelim, midterm, final, practical and your own types.
+> - **Menu → Records:** grades, class averages, every change to a score.
+> - **Menu → Reports:** PDF class records and Excel workbooks you can print or share.
+> - **Menu → Calculator:** a normal calculator (+ − × ÷ %).
+> - **Settings:** your name and school for reports, **Text size**, **App lock** (PIN or
+>   fingerprint), and **Backup and restore**.
+>
+> **Important**
+> - Please **keep the app installed and stay in the test for 14 days**, and open it every few days.
+>   Google counts this before the app can go public.
+> - Your records are saved only on your phone. Make a backup now and then (**Settings → Backup
+>   and restore → Create backup**). Uninstalling the app erases records that are not backed up.
+>
+> **Tell me anything**
+> Something confusing, a wrong number, text cut off, the app closing by itself, or a feature you
+> wish it had. A screenshot and your phone model help a lot. Message me, or use **Send feedback**
+> on the app's Play Store page.
+>
+> Thank you!
