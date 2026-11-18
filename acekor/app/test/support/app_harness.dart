@@ -31,9 +31,9 @@ class AppHarness {
 
   AppDatabase get db => container.read(databaseProvider);
 
-  Future<void> pump(WidgetTester tester, {Size size = const Size(412, 892)}) async {
-    tester.view.physicalSize = size * 2.625;
-    tester.view.devicePixelRatio = 2.625;
+  Future<void> pump(WidgetTester tester, {Size size = const Size(412, 892), double pixelRatio = 2.625}) async {
+    tester.view.physicalSize = size * pixelRatio;
+    tester.view.devicePixelRatio = pixelRatio;
     addTearDown(tester.view.reset);
     driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
     final dir = Directory.systemTemp.createTempSync('acekor_test');

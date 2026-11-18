@@ -36,9 +36,12 @@ void main() {
   testWidgets('screenshots', (tester) async {
     await tester.runAsync(loadFonts);
     final h = AppHarness();
-    await h.pump(tester, size: const Size(412, 892));
+    // 405 × 720 dp at 8/3 → 1080 × 1920 px, the 9:16 size Play recommends.
+    await h.pump(tester, size: const Size(405, 720), pixelRatio: 8 / 3);
     await shot(tester, '01_welcome');
     await tester.scrollUntilVisible(find.text('Try with a sample class'), 200);
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -400));
+    await AppHarness.settle(tester, 4);
     await tester.tap(find.text('Try with a sample class'));
     await AppHarness.settle(tester, 30);
 

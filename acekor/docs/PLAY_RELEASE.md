@@ -139,7 +139,8 @@ Production.
    - text in `acekor/store/listing.md`;
    - icon `acekor/store/play_icon_512.png`;
    - feature graphic `acekor/store/feature_graphic_1024x500.png`;
-   - phone screenshots from `acekor/app/tool/screenshots/out/` (or real ones).
+   - phone screenshots `acekor/store/screenshots/` (8 × 1080 × 1920 PNG, no transparency; made by
+     `acekor/app/tool/screenshots/`), or real ones.
 2. **App content:**
    - Privacy policy: `https://playboydata1994-hue.github.io/acekanner/acekor/privacy/` (live once
      PR #1 is merged).
@@ -149,7 +150,7 @@ Production.
    - **Data safety:** see `acekor/store/listing.md` § Data safety.
    - Content rating: Utility/Productivity, no objectionable content.
    - Government app: no. Financial features: no. Health: no.
-3. **Testers:**
+3. **Testers** (group set-up and invitation messages: `acekor/store/tester_invitation.md`):
    - **Closed testing → Create track** (or use "Alpha").
    - Testers: a Google Group, or an email list of 12+ colleagues. Invite 15 or more in case someone
      drops out.
