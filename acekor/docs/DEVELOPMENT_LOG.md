@@ -21,8 +21,8 @@ The owner set up the Google Cloud side (`GOOGLE_SIGNIN_SETUP.md` §A–C) and se
   - ACEkanner gets sign-in with its next build.
 - **Guide:** the redirect URI, App domain and Authorized domains are left empty; no logo
   (it would require Google's verification).
+- **Android clients for both apps' upload keys:** created by the owner (§E).
 - **Still for the owner:**
-  - Android clients for the upload keys (§E);
   - the Play app-signing clients after the first upload;
   - **Publish app** on the consent screen before the public release.
   - Until it is published, only the listed test users can sign in.
