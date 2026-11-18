@@ -15,7 +15,8 @@ The steps below are kept for reference and re-deployments.
 2. Deploy the Edge Function `acekor-license`:
    `python3 supabase/tool/deploy_function.py <ref> supabase/functions acekor-license`
 3. Optional secret `ACEKOR_PLAY_PACKAGE_NAME` (default `com.acekor.calculator`). It reuses the
-   existing secrets `ENTITLEMENT_SIGNING_KEY`, `ENTITLEMENT_KEY_ID` and `GOOGLE_PLAY_SERVICE_ACCOUNT`.
+   existing secrets `ENTITLEMENT_SIGNING_KEY` and `ENTITLEMENT_KEY_ID`, and needs
+   `GOOGLE_PLAY_SERVICE_ACCOUNT` for purchases (not set yet; see §5 step 6).
 
 ## 2. Google sign-in
 
@@ -70,27 +71,92 @@ Before each upload, bump `version:` in `pubspec.yaml` (`1.0.0+1` → `1.0.1+2`).
 
 ## 5. Play Console (owner)
 
-1. **Create app:** "ACEkor Grading Sheet", free app with in-app purchases, default language English (Philippines or US).
-2. **Subscriptions:** Monetize → Products → Subscriptions:
-   - `acekor_pro_yearly` → base plan `yearly`, auto-renewing, 1 year, ₱399, Philippines (add other countries if wanted).
+Owner's answers (2026-11-18):
+- ACEkor goes in the **same personal developer account** as ACEkanner.
+- ACEkanner is not on Play yet.
+- No payments profile yet.
+- 12+ colleagues will be the closed testers.
+
+### Phase A: set up and upload to Internal testing
+
+1. **Payments profile:** Play Console → **Settings → Payments profile** → create it: legal name,
+   address, and later the bank account that receives subscription income. Paid products cannot be
+   created without it.
+2. **Create app:**
+   - **Home → Create app:** "ACEkor Grading Sheet"; default language English; **App**; **Free**.
+   - Tick the declarations.
+3. **Internal testing:**
+   - **Test and release → Testing → Internal testing → Create new release.**
+   - Accept **Play App Signing** (Google keeps the app-signing key; you keep the upload key).
+   - Upload `ACEkor-1.0.0-build5.aab`, then save and roll out.
+   - **Testers** tab: create a list with your own Gmail; open the opt-in link on the phone and
+     install from Play.
+4. **Play signing SHA-1:**
+   - Copy it from **Test and release → App integrity → App signing key certificate → SHA-1**.
+   - Create the Google Cloud Android client "ACEkor Play builds" with it (see
+     `GOOGLE_SIGNIN_SETUP.md` §E). Without it, sign-in fails in copies installed from Play.
+5. **Subscriptions:** Monetize with Play → Products → Subscriptions. Available once the build with
+   the billing permission is uploaded.
+   - `acekor_pro_yearly` → base plan `yearly`, auto-renewing, 1 year, ₱399, Philippines (add other
+     countries if wanted).
    - `acekor_max_yearly` → base plan `yearly`, auto-renewing, 1 year, ₱499.
-   - Do **not** add a Play free-trial offer: the 7-day trial is given by the app without payment details.
-3. **API access:** under Users and permissions, give the existing Play service account (the one ACEkanner
-   uses) access to ACEkor Grading Sheet with "View financial data" and "Manage orders and subscriptions".
-4. **Store listing:** text in `acekor/store/listing.md`; icon `acekor/store/play_icon_512.png`; feature graphic
-   `acekor/store/feature_graphic_1024x500.png`; phone screenshots from `acekor/app/tool/screenshots/out/`
-   (or real ones).
-5. **App content:**
-   - Privacy policy: `https://playboydata1994-hue.github.io/acekanner/acekor/privacy/`
-   - Account deletion URL: `…/acekor/delete-account/`
+   - Activate both base plans.
+   - Do **not** add a Play free-trial offer: the 7-day trial is given by the app without payment
+     details.
+6. **Purchase checks: service account.** There is none yet; `GOOGLE_PLAY_SERVICE_ACCOUNT` is not set.
+   - Google Cloud project "ACE apps":
+     - **APIs & Services → Library → Google Play Android Developer API → Enable.**
+     - **IAM & Admin → Service accounts → Create:** name `play-billing`, no roles. Then
+       **Keys → Add key → JSON** downloads a key file. Keep it private.
+   - Play Console → **Users and permissions → Invite new users:**
+     - the service account's email;
+     - app access: ACEkor (and ACEkanner later);
+     - permissions: **View financial data** and **Manage orders and subscriptions**.
+   - Supabase → project `acekanner` → **Edge Functions → Secrets → Add:**
+     - name `GOOGLE_PLAY_SERVICE_ACCOUNT`, value the whole JSON file's text;
+     - never in chat;
+     - then delete the downloaded file or store it offline.
+   - Google can take up to 24 hours to accept a new service account.
+7. **License testing:** Play Console → **Settings → License testing**. Add the Gmail accounts that
+   test purchases: test cards, no charge, and a yearly plan renews every 30 minutes.
+
+### Phase B: internal test (owner's phone)
+
+- Install from the Internal testing link.
+- Run the device checklist below, including Billing: buy PRO, upgrade to MAX, cancel.
+
+### Phase C: closed test, at least 12 testers for 14 days in a row
+
+Google requires this for apps of personal developer accounts made after November 2023 before
+Production.
+1. **Store listing:**
+   - text in `acekor/store/listing.md`;
+   - icon `acekor/store/play_icon_512.png`;
+   - feature graphic `acekor/store/feature_graphic_1024x500.png`;
+   - phone screenshots from `acekor/app/tool/screenshots/out/` (or real ones).
+2. **App content:**
+   - Privacy policy: `https://playboydata1994-hue.github.io/acekanner/acekor/privacy/` (live once
+     PR #1 is merged).
+   - Account deletion URL: `…/acekor/delete-account/`.
    - Ads: no.
-   - Target audience: 18+, teachers.
+   - Target audience: 18+.
    - **Data safety:** see `acekor/store/listing.md` § Data safety.
    - Content rating: Utility/Productivity, no objectionable content.
    - Government app: no. Financial features: no. Health: no.
-6. **Testing:** upload the AAB to Internal testing, add tester Gmail accounts, install from the opt-in link,
-   then run the device checklist below. Google requires 12+ testers for 14 days in Closed testing for new
-   personal developer accounts before Production.
+3. **Testers:**
+   - **Closed testing → Create track** (or use "Alpha").
+   - Testers: a Google Group, or an email list of 12+ colleagues (more is safer: anyone who leaves
+     the test resets nothing, but the count must stay at 12 or more).
+   - Roll out the same build, then send them the invitation with the opt-in link.
+4. Keep at least 12 testers opted in for **14 days in a row**. Collect their feedback; fixes go out
+   as new builds on the same track.
+5. **Apply for production:** Dashboard → **Apply for production**, and answer Google's questions
+   about the test. Review usually takes up to 7 days.
+
+### Phase D: production
+
+- Promote the tested release to **Production**, choose the countries, and roll out.
+- Before or at the same time: publish the Google consent screen (§2 step 4).
 
 ## 6. Device checklist (needs a real phone)
 
