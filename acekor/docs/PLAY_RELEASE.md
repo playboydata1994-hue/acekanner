@@ -109,7 +109,9 @@ Owner's answers (2026-11-18):
    - Activate both base plans.
    - Do **not** add a Play free-trial offer: the 7-day trial is given by the app without payment
      details.
-6. **Purchase checks: service account.** There is none yet; `GOOGLE_PLAY_SERVICE_ACCOUNT` is not set.
+6. **Purchase checks: service account.** Created 2026-11-18:
+   **`play-billing@ace-apps-515103.iam.gserviceaccount.com`** (Google Cloud project `ace-apps-515103`).
+   `GOOGLE_PLAY_SERVICE_ACCOUNT` not set yet.
    - Google Cloud project "ACE apps":
      - **APIs & Services → Library → Google Play Android Developer API → Enable.**
      - **IAM & Admin → Service accounts → Create:** name `play-billing`, no roles. Then
