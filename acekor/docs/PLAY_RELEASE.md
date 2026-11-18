@@ -82,7 +82,7 @@ Owner's answers (2026-11-18):
 0. ✅ **Developer website** (2026-11-18): `https://playboydata1994-hue.github.io/acekanner/` is verified
    in Google Search Console with the HTML-file method. **Keep `docs/google19503deee5362079.html`**;
    deleting it removes the verification.
-0. **Trader status** (EU Digital Services Act; required): the owner declares **Trader** (2026-11-18)
+0. ✅ **Trader status** (EU Digital Services Act; required): declared **Trader** by the owner (2026-11-18)
    because the app sells subscriptions. Google verifies the contact details and shows them to EU
    users on the Play listing.
 1. **Payments profile:** Play Console → **Settings → Payments profile** → create it: legal name,
