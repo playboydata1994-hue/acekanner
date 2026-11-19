@@ -90,6 +90,9 @@ answers. Steps marked **(you)** are done in your Google accounts; steps marked
 
 ## Step 8 — Closed test (you) — personal accounts only
 
+> **Plan (19 Nov 2026): tester-swap communities plus people the owner knows.**
+> Step by step: `CLOSED_TEST_PLAN.md`.
+
 New **personal** developer accounts must run a closed test before they can publish to
 everyone:
 
