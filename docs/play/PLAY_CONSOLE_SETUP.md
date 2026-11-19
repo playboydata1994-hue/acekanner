@@ -64,7 +64,7 @@ Until the store listing is filled in and reviewed, testers see the temporary nam
    `STORE_LISTING.md`. Privacy policy:
    `https://playboydata1994-hue.github.io/acekanner/privacy/`.
 
-## 4. Play's signing key → Google sign-in for copies installed from Play ✉
+## 4. Play's signing key → Google sign-in for copies installed from Play ✅ done 19 Nov 2026 (client `ACEkanner Play builds`)
 
 App signing key SHA-1 (19 Nov 2026): `A4:94:10:14:71:94:AA:A0:E4:CF:C5:01:88:F8:8F:06:D2:C8:79:B6`.
 In the current Play Console it is under **Protected with Play → Play Store protection →

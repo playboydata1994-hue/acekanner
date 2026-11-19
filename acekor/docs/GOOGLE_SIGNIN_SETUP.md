@@ -16,7 +16,7 @@ The **Web client ID** is public (it is compiled into the apps).
 | D. Supabase Google provider | Done through the Management API: enabled, Client ID set, nonce check on, no secret |
 | Web client ID in both apps' build settings | Done (`acekor/app/config/acekor.json`, `app/config/acekanner.json`) |
 | E. Android clients for the upload keys (ACEkor and ACEkanner) | Done |
-| E. Android clients for Play's app-signing keys | After each app's first Play upload |
+| E. Android clients for Play's app-signing keys | ACEkanner: done 19 Nov 2026 (`ACEkanner Play builds`); ACEkor: `ACEkor Play builds` created 19 Nov 2026 |
 | Publish the consent screen | Before the public release |
 
 ## A. Google Cloud project
