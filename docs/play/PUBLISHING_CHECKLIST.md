@@ -64,7 +64,7 @@ answers. Steps marked **(you)** are done in your Google accounts; steps marked
 
 - [x] Register at play.google.com/console (one-time USD 25 fee) and complete **identity
       verification** (done; personal account NYE94).
-- [ ] Public **developer name** = `NYE94` (Settings → Developer account → Account details;
+- [x] Public **developer name** = `NYE94` (done 19 Nov 2026) (Settings → Developer account → Account details;
       the account showed "Playboy94" on 19 Nov 2026). It must match the policy pages. An organisation account also needs a **D-U-N-S number** (free, can
       take a few weeks).
 - [x] **Payments profile** and **merchant account** (done 19 Nov 2026) (Settings → Payments profile), needed to
