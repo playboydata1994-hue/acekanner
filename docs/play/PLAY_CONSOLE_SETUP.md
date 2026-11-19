@@ -127,6 +127,9 @@ and the payments profile from step 1 exists.
 
 ## 7. One service account that checks purchases for both apps ✉
 
+Created 19 Nov 2026: **`play-billing@ace-apps-515103.iam.gserviceaccount.com`**
+(Google Cloud project ID `ace-apps-515103`, project name "ACE apps").
+
 The server uses it to ask Google whether a purchase is real. Until it works, a test
 purchase **does not turn Premium on**. That is on purpose: the app never trusts the
 phone's "purchase succeeded" message alone.
@@ -166,8 +169,7 @@ purchase stays "pending verification" on the first day, wait and tap **Restore**
      audience: the same endpoint address → **Create**.
 4. Play Console → ACEkanner → **Monetize with Play → Monetization setup →
    Real-time developer notifications**:
-   - Topic name `projects/<project ID>/topics/play-rtdn` (the project ID is shown on the
-     Google Cloud dashboard of **ACE apps**)
+   - Topic name `projects/ace-apps-515103/topics/play-rtdn`
    - If there is a choice of notification content, keep the one that includes
      **subscriptions and voided purchases** (refunds) → **Save** → **Send test notification**.
 5. ✉ Tell me when it is saved. I then set the server to accept only notifications signed
