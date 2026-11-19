@@ -157,7 +157,10 @@ phone's "purchase succeeded" message alone.
 Google can take **up to 24 hours** before a new service account is accepted. If a test
 purchase stays "pending verification" on the first day, wait and tap **Restore** later.
 
-## 8. Real-time notifications (renewals, cancellations, refunds) ✉
+## 8. Real-time notifications (renewals, cancellations, refunds) ✅ done 19 Nov 2026
+
+Push subscription `play-rtdn-push` (authenticated as `play-billing`) created; Play Console RTDN
+turned on with topic `projects/ace-apps-515103/topics/play-rtdn`; test notification sent.
 
 19 Nov 2026: topic `play-rtdn` created with Play as publisher; Supabase secrets
 `RTDN_AUDIENCE` and `RTDN_SERVICE_ACCOUNT_EMAIL` set. Check from outside: an unsigned POST to

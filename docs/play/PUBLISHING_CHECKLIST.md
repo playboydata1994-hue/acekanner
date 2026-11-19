@@ -82,9 +82,11 @@ answers. Steps marked **(you)** are done in your Google accounts; steps marked
 
 ## Step 7 — Internal testing and the subscription (you, with Claude)
 
-- [ ] Phase 6 setup **Part 3** (testers, license testing) and **Part 4** (first upload,
-      Play signing SHA-1, subscription `acekanner_premium_yearly`).
-- [ ] Phase 6 setup **Part 5** (server checks purchases; real-time notifications).
+- [x] Phase 6 setup **Part 3** (testers, license testing) and **Part 4** (first upload,
+      Play signing SHA-1, subscription `acekanner_premium_yearly`) — done 19 Nov 2026
+      (`PLAY_CONSOLE_SETUP.md` steps 1–6).
+- [x] Phase 6 setup **Part 5** (server checks purchases; real-time notifications) — done
+      19 Nov 2026 (`PLAY_CONSOLE_SETUP.md` steps 7–8).
 - [ ] Test on your phone with a license-tester account: sign in, 100 free scans counter,
       buy Premium (test card, no charge), cancel, restore, delete account.
 
