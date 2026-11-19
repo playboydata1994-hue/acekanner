@@ -95,7 +95,13 @@ Google sign-in in the Play-installed app was checked on the owner's phone on 19 
 Test subscriptions bought by these accounts use test cards; a yearly plan renews every
 30 minutes and ends after 6 renewals.
 
-## 6. The Premium subscription (subscription `acekanner_premium_yearly` created 19 Nov 2026; tax category: Digital app sales · Service)
+## 6. The Premium subscription ✅ done 19 Nov 2026
+
+`acekanner_premium_yearly`: icon = app icon, benefits and description set; base plan `yearly`
+**Active**: auto-renewing, 1 year, PHP 399, Philippines only, grace period 7 days, account
+hold on. Tax category: Digital app sales · Service. On the base plan, first **Manage country /
+region availability** (Philippines only), then **Set prices**; otherwise Play shows "One or
+more countries / regions have an error".
 
 Available once the bundle from step 3 is uploaded (it contains the billing permission)
 and the payments profile from step 1 exists.

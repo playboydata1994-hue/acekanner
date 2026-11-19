@@ -125,7 +125,7 @@ Where: **Monetize with Play → Products → Subscriptions → `acekanner_premiu
 | Benefits (up to 4) | `Unlimited answer-sheet scans` (28)<br>`All features, no ads` (20)<br>`Keep Premium when you change phones` (35) |
 | Base plan ID | `yearly` · Auto-renewing · Billing period 1 year |
 | Price | **Philippines only: PHP 399** (owner's choice, 19 Nov 2026) |
-| Grace period | 7 days |
+| Grace period | 7 days (owner's choice, 19 Nov 2026) |
 | Account hold | On |
 
 ## Release notes for the first release (152 / 500)
