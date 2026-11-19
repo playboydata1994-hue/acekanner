@@ -85,7 +85,10 @@ Owner's answers (2026-11-18):
 0. ✅ **Trader status** (EU Digital Services Act; required): declared **Trader** by the owner (2026-11-18)
    because the app sells subscriptions. Google verifies the contact details and shows them to EU
    users on the Play listing.
-1. **Payments profile and payouts** (available once Google approves the owner's identity):
+1. **Payments profile and payouts.** ✅ Payments profile created 2026-11-19 from Monetize →
+   Subscriptions (the Settings page was not in the new Play Console menu). Individual, Philippines,
+   tax status "Individual conducting business", legal name as on the ID; public merchant name
+   "NYE94 Apps", statement name `NYE94 ACEKOR`. Bank account and US tax form still to add.
    - Play Console → **Settings → Payments profile → Create**: Individual, Philippines, legal name
      and address as on the ID. Paid products cannot be created without it.
    - **Bank account:** payments settings (payments.google.com) → **Payment methods → Add bank
