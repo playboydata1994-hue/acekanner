@@ -98,7 +98,8 @@ Owner's answers (2026-11-18):
      about ₱303 if 12% VAT is included in the price, about ₱339 if not; MAX ₱499 → about ₱379 /
      ₱424. Play Console shows the exact split when prices are set.
    - The owner's own income tax (BIR) is separate; an accountant should advise.
-2. **Create app:**
+2. ✅ **Create app** (2026-11-19; identity verified the same day). Play Console asked for the package
+   name at creation: `com.acekor.calculator`.
    - **Home → Create app:** "ACEkor Grading Sheet"; default language English; **App**; **Free**.
    - Tick the declarations.
 3. **Internal testing:**
