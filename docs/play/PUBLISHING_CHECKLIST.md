@@ -12,7 +12,8 @@ answers. Steps marked **(you)** are done in your Google accounts; steps marked
 | `DATA_SAFETY.md` | Data safety form |
 | `APP_CONTENT.md` | All other App content declarations, including reviewer access |
 | `STORE_LISTING.md` | Name, descriptions, graphics, screenshots, subscription text, release notes |
-| `../PHASE6_SETUP.md` | Google sign-in, Play Console app, subscription and server set-up |
+| `PLAY_CONSOLE_SETUP.md` | **Current** step-by-step: payments profile, create app, first upload, subscription, purchase checks |
+| `../PHASE6_SETUP.md` | Earlier set-up notes (Parts 3–5 replaced by `PLAY_CONSOLE_SETUP.md`) |
 
 ## Step 1 — Decisions ✅ done (17 Nov 2026)
 
@@ -61,11 +62,12 @@ answers. Steps marked **(you)** are done in your Google accounts; steps marked
 
 ## Step 5 — Play Console developer account (you)
 
-- [ ] Register at play.google.com/console (one-time USD 25 fee) and complete **identity
-      verification**. An organisation account also needs a **D-U-N-S number** (free, can
+- [x] Register at play.google.com/console (one-time USD 25 fee) and complete **identity
+      verification** (done; personal account NYE94). An organisation account also needs a **D-U-N-S number** (free, can
       take a few weeks).
-- [ ] **Payments profile** and **merchant account** (Setup → Payments profile), needed to
+- [ ] **Payments profile** and **merchant account** (Settings → Payments profile), needed to
       sell the subscription. Add bank details to receive payouts.
+      Step-by-step for steps 5–7: **`PLAY_CONSOLE_SETUP.md`** (19 Nov 2026).
 
 ## Step 6 — Create the app and fill in App content (you)
 

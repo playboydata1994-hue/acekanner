@@ -70,6 +70,11 @@ The steps below are kept for reference.
 
 ## Part 3 — Google Play Console: create the app (about 15 minutes)
 
+> **Replaced (19 Nov 2026)** by `play/PLAY_CONSOLE_SETUP.md`, which follows the owner's
+> decisions: Philippines only at PHP 399, one service account `play-billing` in the
+> Google Cloud project "ACE apps" for both ACEkanner and ACEkor. Parts 3–5 below are kept
+> for reference only.
+
 1. **play.google.com/console** → **Create app**:
    - App name `ACEkanner`, default language English (United States),
      **App**, **Free** (the subscription is sold inside the app).

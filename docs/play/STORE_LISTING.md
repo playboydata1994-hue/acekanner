@@ -124,7 +124,7 @@ Where: **Monetize with Play → Products → Subscriptions → `acekanner_premiu
 | Description | `Unlimited answer-sheet scans for one year.` |
 | Benefits (up to 4) | `Unlimited answer-sheet scans` (28)<br>`All features, no ads` (20)<br>`Keep Premium when you change phones` (35) |
 | Base plan ID | `yearly` · Auto-renewing · Billing period 1 year |
-| Price | Philippines: PHP 399. Let Play set the other countries, or limit availability to the Philippines |
+| Price | **Philippines only: PHP 399** (owner's choice, 19 Nov 2026) |
 | Grace period | 7 days |
 | Account hold | On |
 

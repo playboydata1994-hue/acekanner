@@ -5,6 +5,20 @@ and the next step.
 
 ---
 
+## 2026-11-19 · Play Console app and subscription: guide and first app bundle
+
+Owner's answers: personal developer account verified, payments profile not yet; Premium
+PHP 399 per year, Philippines only; one service account (`play-billing`, Google Cloud
+project "ACE apps") checks purchases for both ACEkanner and ACEkor; build the first bundle.
+
+- `docs/play/PLAY_CONSOLE_SETUP.md`: payments profile, create app, Internal testing upload,
+  Play signing SHA-1 → Android client, license testers, subscription
+  `acekanner_premium_yearly` / base plan `yearly` (PHP 399, Philippines only), service
+  account + `GOOGLE_PLAY_SERVICE_ACCOUNT` secret, real-time notifications, phone test.
+- App bundle `ACEkanner-0.7.3.aab` (build 21), signed with the upload key.
+- Waiting for the owner: App signing SHA-1, service account email, notifications saved.
+  Then: record the SHA-1, set `RTDN_SERVICE_ACCOUNT_EMAIL` and `RTDN_AUDIENCE` on the server.
+
 ## 2026-11-18 · Revision: quick checks use scans (0.7.3)
 
 Owner's choices: count each quick check; once per student per examination; when the free
