@@ -6,6 +6,7 @@ Owner's decisions (19 Nov 2026):
 - Premium: **PHP 399 per year, Philippines only**.
 - **One service account checks purchases for both apps** (ACEkanner and ACEkor).
 - First upload: **ACEkanner 0.7.3 (build 21)** app bundle, to **Internal testing**.
+- Testers: only the owner's Gmail (the same account as Play Console) for now.
 
 Do the steps in order. Steps marked ✉ end with something to send me. Nothing in this
 guide is a secret except the service-account key file (step 7), which goes **only** into
@@ -29,7 +30,10 @@ Android phone.
 It can take a few minutes to a day before Play Console stops saying "Create a payments
 profile" on the subscription pages.
 
-## 2. Create the app
+## 2. Create the app ✅ done 19 Nov 2026 (package `com.acekanner.app`)
+
+The current Play Console asks for the **package name** on this form: `com.acekanner.app`
+→ Check availability.
 
 1. All apps page → **Create app**.
 2. App name `ACEkanner` · Default language **English (United States) – en-US** ·
