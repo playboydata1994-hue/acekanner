@@ -127,7 +127,8 @@ Owner's answers (2026-11-18):
    - Copy it from **Test and release → App integrity → App signing key certificate → SHA-1**.
    - Create the Google Cloud Android client "ACEkor Play builds" with it (see
      `GOOGLE_SIGNIN_SETUP.md` §E). Without it, sign-in fails in copies installed from Play.
-5. **Subscriptions:** Monetize with Play → Products → Subscriptions. Available once the build with
+5. ✅ **Subscriptions** (created 2026-11-19; IDs match `acekor/app/lib/core/constants.dart` and
+   `supabase/functions/_shared/acekor.ts`): Monetize with Play → Products → Subscriptions. Available once the build with
    the billing permission is uploaded.
    - `acekor_pro_yearly` → base plan `yearly`, auto-renewing, 1 year, ₱399, Philippines (add other
      countries if wanted).
