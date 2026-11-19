@@ -83,7 +83,10 @@ sign-in needs one more Android client.
    - SHA-1: paste it → **Create**.
 3. ✉ Send me that SHA-1 (it is public) so I record it.
 
-## 5. License testers (test purchases are never charged)
+## 5. License testers (test purchases are never charged) ✅ done (list "Owner", RESPOND_NORMALLY)
+
+Direct link: `https://play.google.com/console/u/0/developers/<account ID>/license-testing`.
+Google sign-in in the Play-installed app was checked on the owner's phone on 19 Nov 2026.
 
 1. All apps page → left menu **Settings → License testing**.
 2. Add the same Gmail account(s) as in step 3.
