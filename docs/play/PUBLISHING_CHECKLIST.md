@@ -65,7 +65,7 @@ answers. Steps marked **(you)** are done in your Google accounts; steps marked
 - [x] Register at play.google.com/console (one-time USD 25 fee) and complete **identity
       verification** (done; personal account NYE94). An organisation account also needs a **D-U-N-S number** (free, can
       take a few weeks).
-- [ ] **Payments profile** and **merchant account** (Settings → Payments profile), needed to
+- [x] **Payments profile** and **merchant account** (done 19 Nov 2026) (Settings → Payments profile), needed to
       sell the subscription. Add bank details to receive payouts.
       Step-by-step for steps 5–7: **`PLAY_CONSOLE_SETUP.md`** (19 Nov 2026).
 

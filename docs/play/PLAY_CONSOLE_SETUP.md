@@ -2,7 +2,7 @@
 
 Owner's decisions (19 Nov 2026):
 
-- Personal developer account (NYE94): **registered and verified**; payments profile **not yet**.
+- Personal developer account (NYE94): **registered and verified**; payments profile **done (19 Nov)**.
 - Premium: **PHP 399 per year, Philippines only**.
 - **One service account checks purchases for both apps** (ACEkanner and ACEkor).
 - First upload: **ACEkanner 0.7.3 (build 21)** app bundle, to **Internal testing**.
@@ -16,7 +16,7 @@ Android phone.
 
 ---
 
-## 1. Payments profile (needed before you can sell a subscription)
+## 1. Payments profile (needed before you can sell a subscription) ✅ done 19 Nov 2026
 
 1. Open **play.google.com/console** (developer account).
 2. On the page that lists all your apps: left menu **Settings → Payments profile** →
