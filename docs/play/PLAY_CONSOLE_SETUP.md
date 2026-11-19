@@ -153,6 +153,9 @@ purchase stays "pending verification" on the first day, wait and tap **Restore**
 
 ## 9. Install from Play and test on your phone
 
+0. While the Google sign-in consent screen is in "Testing", only its listed test users can
+   sign in: Google Cloud → **Google Auth Platform → Audience → Test users** → add the
+   tester Gmail if it is not there yet.
 1. Uninstall the ACEkanner APK you installed by hand (Play cannot update it; it is signed
    differently). Your local data on the phone is deleted with it.
 2. Internal testing → **Testers** → **Copy link** under "How testers join your test".
