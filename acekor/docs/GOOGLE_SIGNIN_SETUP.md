@@ -16,7 +16,8 @@ The **Web client ID** is public (it is compiled into the apps).
 | D. Supabase Google provider | Done through the Management API: enabled, Client ID set, nonce check on, no secret |
 | Web client ID in both apps' build settings | Done (`acekor/app/config/acekor.json`, `app/config/acekanner.json`) |
 | E. Android clients for the upload keys (ACEkor and ACEkanner) | Done |
-| E. Android clients for Play's app-signing keys | After each app's first Play upload |
+| E. Android client for ACEkor's Play app-signing key | SHA-1 known (2026-11-19); client to be created by the owner |
+| E. Android client for ACEkanner's Play app-signing key | After ACEkanner's first Play upload |
 | Publish the consent screen | Before the public release |
 
 ## A. Google Cloud project
@@ -71,7 +72,7 @@ for this app version".
 | Client name | Package | SHA-1 |
 |---|---|---|
 | ACEkor upload key | `com.acekor.calculator` | `55:7E:4A:02:F4:0A:50:C3:24:20:09:1A:88:39:E0:52:7F:80:BA:4F` |
-| ACEkor Play builds | `com.acekor.calculator` | Play Console → ACEkor → **Test and release → App integrity → App signing key certificate → SHA-1** (available after the first upload) |
+| ACEkor Play builds | `com.acekor.calculator` | `EB:31:6C:42:90:1C:0E:17:EB:01:6A:09:19:D1:12:B0:34:88:00:28` (Play App Signing, classical key; Play Console → Protected with Play → Play Store protection → Manage Play app signing) |
 | ACEkanner upload key | `com.acekanner.app` | `65:75:4A:42:B5:46:71:98:9B:BB:30:2E:D7:52:B6:32:22:4D:3E:01` |
 | ACEkanner Play builds | `com.acekanner.app` | From ACEkanner's App signing page |
 

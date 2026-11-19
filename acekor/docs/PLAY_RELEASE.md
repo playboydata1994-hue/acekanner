@@ -116,7 +116,8 @@ Owner's answers (2026-11-18):
    - Upload `ACEkor-1.0.0-build5.aab`, then save and roll out.
    - **Testers** tab: create a list with your own Gmail; open the opt-in link on the phone and
      install from Play.
-4. **Play signing SHA-1:**
+4. **Play signing SHA-1** (classical key, 2026-11-19): `EB:31:6C:42:90:1C:0E:17:EB:01:6A:09:19:D1:12:B0:34:88:00:28`. The page moved to
+   **Protected with Play → Play Store protection → Manage Play app signing**.
    - Copy it from **Test and release → App integrity → App signing key certificate → SHA-1**.
    - Create the Google Cloud Android client "ACEkor Play builds" with it (see
      `GOOGLE_SIGNIN_SETUP.md` §E). Without it, sign-in fails in copies installed from Play.
