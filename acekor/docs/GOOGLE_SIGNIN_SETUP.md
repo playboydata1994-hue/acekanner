@@ -73,7 +73,7 @@ for this app version".
 | ACEkor upload key | `com.acekor.calculator` | `55:7E:4A:02:F4:0A:50:C3:24:20:09:1A:88:39:E0:52:7F:80:BA:4F` |
 | ACEkor Play builds | `com.acekor.calculator` | Play Console → ACEkor → **Test and release → App integrity → App signing key certificate → SHA-1** (available after the first upload) |
 | ACEkanner upload key | `com.acekanner.app` | `65:75:4A:42:B5:46:71:98:9B:BB:30:2E:D7:52:B6:32:22:4D:3E:01` |
-| ACEkanner Play builds | `com.acekanner.app` | From ACEkanner's App signing page |
+| ACEkanner Play builds | `com.acekanner.app` | `A4:94:10:14:71:94:AA:A0:E4:CF:C5:01:88:F8:8F:06:D2:C8:79:B6` (Play app signing key, 19 Nov 2026) |
 
 The upload-key clients cover APKs installed directly (sideloaded test builds). The Play clients cover
 copies installed from Google Play, which Google re-signs with its own key.
