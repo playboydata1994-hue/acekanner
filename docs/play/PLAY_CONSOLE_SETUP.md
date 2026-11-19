@@ -7,6 +7,8 @@ Owner's decisions (19 Nov 2026):
 - **One service account checks purchases for both apps** (ACEkanner and ACEkor).
 - First upload: **ACEkanner 0.7.3 (build 21)** app bundle, to **Internal testing**.
 - Testers: only the owner's Gmail (the same account as Play Console) for now.
+- Public developer name: **NYE94** (the account showed "Playboy94"; the owner changes it in
+  Settings → Developer account → Account details → Developer name, 19 Nov 2026).
 
 Do the steps in order. Steps marked ✉ end with something to send me. Nothing in this
 guide is a secret except the service-account key file (step 7), which goes **only** into
