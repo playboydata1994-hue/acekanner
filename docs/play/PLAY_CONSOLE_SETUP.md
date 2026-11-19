@@ -130,7 +130,8 @@ and the payments profile from step 1 exists.
 Created 19 Nov 2026: **`play-billing@ace-apps-515103.iam.gserviceaccount.com`**
 (Google Cloud project ID `ace-apps-515103`, project name "ACE apps").
 JSON key created (kept by the owner). Invited in Play Console → Users and permissions:
-**Active** (19 Nov 2026).
+**Active** (19 Nov 2026), app permissions on **ACEkanner** and **ACEkor Grading Sheet** (4 each).
+Supabase secret `GOOGLE_PLAY_SERVICE_ACCOUNT` set by the owner with this key (19 Nov 2026).
 
 The server uses it to ask Google whether a purchase is real. Until it works, a test
 purchase **does not turn Premium on**. That is on purpose: the app never trusts the
