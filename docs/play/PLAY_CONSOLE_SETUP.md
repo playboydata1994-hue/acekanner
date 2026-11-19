@@ -42,7 +42,10 @@ The current Play Console asks for the **package name** on this form: `com.acekan
 
 "Free" is correct: the app is free to download and Premium is sold inside it.
 
-## 3. Upload the first build to Internal testing
+## 3. Upload the first build to Internal testing ✅ done 19 Nov 2026 (release 21 (0.7.3), available to internal testers)
+
+Until the store listing is filled in and reviewed, testers see the temporary name
+"com.acekanner.app (unreviewed)". That is normal.
 
 1. Left menu **Test and release → Testing → Internal testing**.
 2. Tab **Testers** → **Create email list**: name `ACEkanner testers`, add your own Gmail
