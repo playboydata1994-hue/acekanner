@@ -88,7 +88,9 @@ Owner's answers (2026-11-18):
 1. **Payments profile and payouts.** ✅ Payments profile created 2026-11-19 from Monetize →
    Subscriptions (the Settings page was not in the new Play Console menu). Individual, Philippines,
    tax status "Individual conducting business", legal name as on the ID; public merchant name
-   "NYE94 Apps", statement name `NYE94 ACEKOR`. Bank account and US tax form still to add.
+   "NYE94 Apps", statement name `NYE94 ACEKOR`. Bank account added; Google asked for a bank
+   statement (dated within 90 days, name and account number visible, unlocked PDF) to verify it.
+   US tax form still to add.
    - Play Console → **Settings → Payments profile → Create**: Individual, Philippines, legal name
      and address as on the ID. Paid products cannot be created without it.
    - **Bank account:** payments settings (payments.google.com) → **Payment methods → Add bank
