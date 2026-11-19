@@ -159,6 +159,12 @@ purchase stays "pending verification" on the first day, wait and tap **Restore**
 
 ## 8. Real-time notifications (renewals, cancellations, refunds) ✉
 
+19 Nov 2026: topic `play-rtdn` created with Play as publisher; Supabase secrets
+`RTDN_AUDIENCE` and `RTDN_SERVICE_ACCOUNT_EMAIL` set. Check from outside: an unsigned POST to
+`/functions/v1/play-rtdn` now answers **401 unauthorized** (was 503 not_configured), so the
+audience, the service-account email and a well-formed `GOOGLE_PLAY_SERVICE_ACCOUNT` key are all
+loaded.
+
 1. Google Cloud (project **ACE apps**) → **Pub/Sub → Topics → Create topic**:
    Topic ID `play-rtdn` (untick "Add a default subscription") → **Create**.
 2. Open the topic → **Permissions** (right panel; "Show info panel") → **Add principal**:
