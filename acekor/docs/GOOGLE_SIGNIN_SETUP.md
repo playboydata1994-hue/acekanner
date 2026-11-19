@@ -15,8 +15,8 @@ The **Web client ID** is public (it is compiled into the apps).
 | C. Web client `Supabase (ACE apps)` | Done: `424055951654-36ljq6g443009ivu3f0ave1fpi96jm2g.apps.googleusercontent.com` |
 | D. Supabase Google provider | Done through the Management API: enabled, Client ID set, nonce check on, no secret |
 | Web client ID in both apps' build settings | Done (`acekor/app/config/acekor.json`, `app/config/acekanner.json`) |
-| E. Android clients for the upload keys (ACEkor and ACEkanner) | Done |
-| E. Android client for ACEkor's Play app-signing key | SHA-1 known (2026-11-19); client to be created by the owner |
+| E. Android clients for the upload keys (ACEkor and ACEkanner) | Done (listed as "Android client 1" and "Android client 2") |
+| E. Android client for ACEkor's Play app-signing key | Done (2026-11-19, "ACEkor Play builds") |
 | E. Android client for ACEkanner's Play app-signing key | After ACEkanner's first Play upload |
 | Publish the consent screen | Before the public release |
 
