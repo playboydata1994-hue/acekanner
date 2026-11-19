@@ -102,7 +102,15 @@ Owner's answers (2026-11-18):
    name at creation: `com.acekor.calculator`.
    - **Home → Create app:** "ACEkor Grading Sheet"; default language English; **App**; **Free**.
    - Tick the declarations.
-3. **Internal testing:**
+3. ✅ **Internal testing** (2026-11-19): release `5 (1.0.0)` is available to the `Owner` email list.
+   Until the listing is reviewed, testers see the temporary name "com.acekor.calculator
+   (unreviewed)".
+   - **Moving a phone from a sideloaded build to the Play copy:** Play re-signs with Google's key,
+     so the Play copy cannot update a sideloaded one. Make a backup (Settings → Backup and
+     restore), uninstall, install from the opt-in link, then restore. The trial follows the
+     Google account.
+
+   Steps used:
    - **Test and release → Testing → Internal testing → Create new release.**
    - Accept **Play App Signing** (Google keeps the app-signing key; you keep the upload key).
    - Upload `ACEkor-1.0.0-build5.aab`, then save and roll out.
