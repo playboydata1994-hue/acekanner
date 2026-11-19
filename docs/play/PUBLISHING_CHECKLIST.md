@@ -85,8 +85,8 @@ answers. Steps marked **(you)** are done in your Google accounts; steps marked
 - [x] Phase 6 setup **Part 3** (testers, license testing) and **Part 4** (first upload,
       Play signing SHA-1, subscription `acekanner_premium_yearly`) — done 19 Nov 2026
       (`PLAY_CONSOLE_SETUP.md` steps 1–6).
-- [ ] Phase 6 setup **Part 5** (server checks purchases; real-time notifications): step 7 done
-      19 Nov 2026; step 8 waiting for the Play Console switch and a received test notification.
+- [x] Phase 6 setup **Part 5** (server checks purchases; real-time notifications) — done
+      19 Nov 2026 (`PLAY_CONSOLE_SETUP.md` steps 7–8; Google's test notification accepted).
 - [ ] Test on your phone with a license-tester account: sign in, 100 free scans counter,
       buy Premium (test card, no charge), cancel, restore, delete account.
 
